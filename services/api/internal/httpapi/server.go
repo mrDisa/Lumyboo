@@ -69,6 +69,7 @@ func New(database Pinger, options ...AuthOptions) http.Handler {
 	mountAuth(r, authentication)
 	mountShelf(r, authentication)
 	mountBookmarks(r, authentication)
+	mountPositions(r, authentication)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) { failure(w, r, 404, "not_found", "Route not found") })
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 		failure(w, r, 405, "method_not_allowed", "Method not allowed")

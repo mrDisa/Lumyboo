@@ -14,6 +14,7 @@ import (
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
 	"lumyboo/services/api/internal/httpapi"
+	"lumyboo/services/api/internal/positions"
 	"lumyboo/services/api/internal/shelf"
 )
 
@@ -49,7 +50,7 @@ func main() {
 			slog.Error("invalid authentication configuration")
 			os.Exit(1)
 		}
-		authentication = httpapi.AuthOptions{Bookmarks: bookmarks.Postgres{Pool: pool}, Shelf: shelf.Postgres{Pool: pool}, Service: service, Origin: config.Origin, SecureCookies: config.SecureCookies, TestDelivery: config.SMTP.AllowInsecure, TrustedProxies: config.TrustedProxies}
+		authentication = httpapi.AuthOptions{Positions: positions.Postgres{Pool: pool}, Bookmarks: bookmarks.Postgres{Pool: pool}, Shelf: shelf.Postgres{Pool: pool}, Service: service, Origin: config.Origin, SecureCookies: config.SecureCookies, TestDelivery: config.SMTP.AllowInsecure, TrustedProxies: config.TrustedProxies}
 		go func() {
 			ticker := time.NewTicker(15 * time.Minute)
 			defer ticker.Stop()

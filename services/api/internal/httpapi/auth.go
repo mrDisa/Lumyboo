@@ -14,10 +14,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
+	"lumyboo/services/api/internal/positions"
 	"lumyboo/services/api/internal/shelf"
 )
 
 type AuthOptions struct {
+	Positions      positions.Store
 	Bookmarks      bookmarks.Store
 	Shelf          shelf.Store
 	Service        *auth.Service

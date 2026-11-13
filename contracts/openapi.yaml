@@ -210,6 +210,52 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /positions/:
+    get:
+      operationId: getAccountPositions
+      responses:
+        '200':
+          description: Current account reading positions; never cached.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountPositions' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /positions/choose:
+    post:
+      operationId: chooseAccountPosition
+      description: Explicit choice against the displayed server revision (0 means absent). Prior server position is archived. Retry exactly the same operation ID and payload after an uncertain response; a stale revision is a conflict, not last-write-wins.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PositionChoice'
+                - type: object
+                  required: [accountId]
+                  properties:
+                    accountId: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Confirmed position (an idempotent replay may acknowledge an earlier revision).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, position]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  position: { $ref: '#/components/schemas/AccountPosition' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
   parameters:
     CSRFToken:
@@ -232,6 +278,35 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    ReadingLocator:
+      type: object
+      required: [bookId, version, chapter, paragraph, offset]
+      properties:
+        bookId: { type: string }
+        version: { type: string }
+        chapter: { type: integer, minimum: 0 }
+        paragraph: { type: string }
+        offset: { type: number, minimum: 0, maximum: 1, exclusiveMaximum: true }
+    AccountPosition:
+      allOf:
+        - $ref: '#/components/schemas/ReadingLocator'
+        - type: object
+          required: [revision]
+          properties:
+            revision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    AccountPositions:
+      type: object
+      required: [accountId, positions]
+      properties:
+        accountId: { type: string, format: uuid }
+        positions: { type: array, items: { $ref: '#/components/schemas/AccountPosition' } }
+    PositionChoice:
+      type: object
+      required: [operationId, expectedRevision, position]
+      properties:
+        operationId: { type: string, format: uuid }
+        expectedRevision: { type: integer, minimum: 0, maximum: 9007199254740990 }
+        position: { $ref: '#/components/schemas/ReadingLocator' }
     BookmarkEntry:
       type: object
       additionalProperties: false
