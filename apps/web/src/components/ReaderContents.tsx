@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { liveQuery } from 'dexie';
 import type { BookContent } from '../lib/books';
 import type { LocalDatabase } from '../lib/db';
-import { summarizeReadingCoverage } from '../lib/reading-coverage-summary';
+import { firstUnshownLocation, summarizeReadingCoverage } from '../lib/reading-coverage-summary';
 import styles from '../pages/Reader.module.css';
 
 export function ReaderContents({ content, store, chapter, changeChapter, openParagraph }: {
@@ -18,8 +18,10 @@ export function ReaderContents({ content, store, chapter, changeChapter, openPar
   )).subscribe({ next: summary => setState({ summary }), error: () => setState({ error: true }) });
   return () => subscription.unsubscribe();
  }, [store, content, attempt]);
+ const firstUnshown = state.summary ? firstUnshownLocation(state.summary) : null;
  return <><p className="reader-note section">Показанные абзацы — сохранённые участки текста, которые появлялись на экране. Это не подтверждение прочтения. Можно вернуться к первому непоказанному участку главы. Место приблизительное и может сместиться при изменении шрифта.</p>
   {state.error ? <p className="description" role="alert">Не удалось загрузить фрагменты. <button className="text-button" onClick={() => setAttempt(value => value + 1)}>Повторить</button></p> : !state.summary && <p className="description" role="status">Загружаем фрагменты…</p>}
+  {firstUnshown && <button className="secondary section" onClick={() => openParagraph(firstUnshown.chapter, content.chapters[firstUnshown.chapter].paragraphs[firstUnshown.paragraph].id, firstUnshown.offset)}>Первый непоказанный участок книги →</button>}
   {content.chapters.map((item, index) => {
    const counts = state.summary?.[index];
    return <div key={item.id} className={`goal-option ${styles.contentsItem}`}>

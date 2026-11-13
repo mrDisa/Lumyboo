@@ -1,6 +1,16 @@
 import type { BookContent } from './books';
 import { mergeTextRanges, type ParagraphCoverage, type TextRange } from './reading-coverage';
 
+// Follow book order, regardless of the current chapter or the order of stored rows.
+export function firstUnshownLocation(summary: ReturnType<typeof summarizeReadingCoverage>) {
+ for (const [chapter, counts] of summary.entries()) {
+  if (counts.firstIncomplete !== null && counts.firstIncompleteOffset !== null) {
+   return { chapter, paragraph: counts.firstIncomplete, offset: counts.firstIncompleteOffset };
+  }
+ }
+ return null;
+}
+
 // Count paragraphs, never infer a reading percentage from paragraph geometry.
 export function summarizeReadingCoverage(content: BookContent, rows: ParagraphCoverage[]) {
  const edition = new Map<string, TextRange[]>();

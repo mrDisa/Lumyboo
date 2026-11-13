@@ -4,13 +4,30 @@ import { liveQuery } from 'dexie';
 import type { BookContent } from './books';
 import { LocalDatabase } from './db';
 import { saveReadingCoverage, type ParagraphCoverage } from './reading-coverage';
-import { summarizeReadingCoverage } from './reading-coverage-summary';
+import { firstUnshownLocation, summarizeReadingCoverage } from './reading-coverage-summary';
 
 const content: BookContent = { id: 'book', version: '1', chapters: [
  { id: 'a', title: 'A', paragraphs: [{ id: 'p1', text: 'One' }, { id: 'p2', text: 'Two' }] },
  { id: 'b', title: 'B', paragraphs: [{ id: 'p3', text: 'Three' }] },
 ] };
 const row = (paragraph: string, ranges: ParagraphCoverage['ranges'], patch: Partial<ParagraphCoverage> = {}): ParagraphCoverage => ({ bookId: 'book', version: '1', chapter: 'a', paragraph, ranges, ...patch });
+
+it('returns to skipped text in book order, then advances after coverage fills the gap', () => {
+ const rows = [row('p3', [[0, 1]], { chapter: 'b' }), row('p2', [[0, 1]]), row('p1', [[0, .4], [.400001, 1]])];
+ const target = () => firstUnshownLocation(summarizeReadingCoverage(content, rows));
+ expect(target()).toEqual({ chapter: 0, paragraph: 0, offset: .4 });
+ rows.push(row('p1', [[.4, .400001]]));
+ expect(target()).toBeNull();
+ rows.shift();
+ expect(target()).toEqual({ chapter: 1, paragraph: 0, offset: 0 });
+});
+
+it('skips empty chapters and does not invent a destination for an empty or fully shown book', () => {
+ const withEmpty = { ...content, chapters: [{ id: 'empty', title: 'Empty', paragraphs: [] }, ...content.chapters] };
+ expect(firstUnshownLocation(summarizeReadingCoverage(withEmpty, []))).toEqual({ chapter: 1, paragraph: 0, offset: 0 });
+ expect(firstUnshownLocation(summarizeReadingCoverage({ ...content, chapters: [] }, []))).toBeNull();
+ expect(firstUnshownLocation(summarizeReadingCoverage({ ...content, chapters: [withEmpty.chapters[0]] }, []))).toBeNull();
+});
 
 it('keeps skipped chapters unseen and separates partial from full paragraphs', () => {
  expect(summarizeReadingCoverage(content, [row('p1', [[0, .2], [.8, 1]]), row('p2', [[.4, 1], [0, .5]])])).toEqual([
