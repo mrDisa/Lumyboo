@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto';
-import { afterEach, expect, it } from 'vitest';
-import { db, savePosition, toggleBookmark, deleteBookmark, saveReadingSession, bookmarkId, type Position } from './db';
+import { afterEach, expect, it, vi } from 'vitest';
+import { db, LocalDatabase, savePosition, toggleBookmark, deleteBookmark, saveReadingSession, bookmarkId, type Position } from './db';
 import { accountDatabase, prepareAccountBook, validReadingLocator } from './account-reading';
+import { rememberPositionChoice, sendPositionChoice } from './position-choices';
+import { positionChoice } from './positions';
 import type { BookContent } from './books';
 const a = accountDatabase('00000000-0000-4000-8000-000000000001');
 const b = accountDatabase('00000000-0000-4000-8000-000000000002');
@@ -9,7 +11,7 @@ const content: BookContent = { id: 'book', version: '1', chapters: [{ id: 'c1', 
 const position: Position = { bookId: 'book', version: '1', chapter: 0, paragraph: 'p1', offset: .3, updatedAt: '2026-11-13T00:00:00Z' };
 const remote = { bookId: 'book', version: '1', chapter: 0, paragraph: 'p2', offset: .6, revision: 2 };
 const serverBookmark = { ...remote, label: 'Server bookmark' };
-afterEach(async () => { for (const store of [a, b, db]) { await store.delete(); await store.open(); } });
+afterEach(async () => { vi.unstubAllGlobals(); for (const store of [a, b, db]) { await store.delete(); await store.open(); } });
 it('separates late writes, bookmarks, minutes and outbox ownership for two accounts and guest', async () => {
  await savePosition(position, db);
  await savePosition({ ...position, offset: .5 }, b);
@@ -75,4 +77,68 @@ it('rolls back a server choice, history and pending removal when a bookmark writ
 it('rejects malformed account identifiers before opening a namespace', () => {
  expect(() => accountDatabase('------------------------------------')).toThrow('определить аккаунт');
  expect(() => accountDatabase('000000000000400080000000000000000001')).toThrow('определить аккаунт');
+});
+
+it('keeps an interrupted save intact across reopen until the exact choice is confirmed', async () => {
+ const session = { user: { id: a.scope.slice('account:'.length), email: 'a@example.test' }, csrfToken: 'csrf' };
+ await savePosition(position, a);
+ await toggleBookmark(position, 'Local bookmark', a);
+ await saveReadingSession({ id: 'session', bookId: 'book', day: '2026-11-13', seconds: 12 }, a);
+ const choice = positionChoice(position, remote);
+ await rememberPositionChoice(a, { bookId: 'book', choice, remote, conflict: false });
+ vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Lost response')));
+ await expect(sendPositionChoice(a, session, 'book', choice.operationId)).rejects.toThrow('Lost response');
+ a.close(); await a.open();
+ const before = { choice: await a.positionChoices.get('book'), outbox: await a.outbox.toArray(), bookmarks: await a.bookmarks.toArray() };
+ await expect(prepareAccountBook(a, content, remote, [serverBookmark], true, position)).rejects.toThrow('незавершённое сохранение');
+ expect(await a.positions.get('book')).toEqual(position);
+ expect(await a.positionHistory.count()).toBe(0);
+ expect(await a.positionChoices.get('book')).toEqual(before.choice);
+ expect(await a.outbox.toArray()).toEqual(before.outbox);
+ expect(await a.bookmarks.toArray()).toEqual(before.bookmarks);
+ // Confirmation, including a receipt replay after a lost response, releases
+ // the guard. The newly fetched server place can then be explicitly adopted.
+ const confirmed = { ...position, revision: 3 };
+ vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ accountId: session.user.id, position: confirmed }))));
+ await sendPositionChoice(a, session, 'book', choice.operationId);
+ await prepareAccountBook(a, content, confirmed, [serverBookmark], true, position);
+ expect(await a.positionChoices.count()).toBe(0);
+ expect((await a.outbox.toArray()).map(op => op.change.type).sort()).toEqual(['bookmark.put', 'session.put']);
+});
+
+it.each([false, true])('checks a choice created by another tab after loading (conflict=%s) and still allows local reading', async conflict => {
+ await savePosition(position, a);
+ const loadedLocal = await a.positions.get('book');
+ const otherTab = new LocalDatabase(a.name, a.scope);
+ const saved = { bookId: 'book', choice: positionChoice(position, remote), remote, conflict };
+ try {
+  await rememberPositionChoice(otherTab, saved);
+  const before = await a.positionChoices.get('book');
+  const outbox = await a.outbox.toArray();
+  await expect(prepareAccountBook(a, content, remote, [serverBookmark], true, loadedLocal)).rejects.toThrow('незавершённое сохранение');
+  await prepareAccountBook(a, content, remote, [serverBookmark], false, loadedLocal);
+  expect(await a.positions.get('book')).toEqual(position);
+  expect(await a.positionChoices.get('book')).toEqual(before);
+  expect(await a.outbox.toArray()).toEqual(outbox);
+  expect((await a.bookmarks.get(bookmarkId(serverBookmark)))?.label).toBe('Server bookmark');
+ } finally { otherTab.close(); }
+});
+
+it('allows reading from the beginning while a guest-derived choice is unfinished', async () => {
+ await rememberPositionChoice(a, { bookId: 'book', choice: positionChoice(position, remote), remote, conflict: false });
+ await expect(prepareAccountBook(a, content, remote, [], true, undefined)).rejects.toThrow('незавершённое сохранение');
+ await prepareAccountBook(a, content, remote, [], false, undefined);
+ expect(await a.positions.count()).toBe(0);
+ expect(await a.positionChoices.count()).toBe(1);
+ expect(await a.outbox.count()).toBe(0);
+});
+
+it('does not block a server place because of another book or another account', async () => {
+ await rememberPositionChoice(a, { bookId: 'other', choice: positionChoice({ ...position, bookId: 'other' }), conflict: false });
+ await rememberPositionChoice(b, { bookId: 'book', choice: positionChoice(position), conflict: true });
+ await prepareAccountBook(a, content, remote, [], true, undefined);
+ expect((await a.positions.get('book'))?.paragraph).toBe(remote.paragraph);
+ expect(await a.positionChoices.count()).toBe(1);
+ expect(await b.positionChoices.count()).toBe(1);
+ expect(await db.positions.count()).toBe(0);
 });

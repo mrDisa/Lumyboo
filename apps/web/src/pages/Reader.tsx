@@ -36,8 +36,8 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
  const [attempt, setAttempt] = useState(0);
  const [ready, setReady] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const starting = useRef(false);
  const query = useQuery({ queryKey: ['account-reader-start', props.session.user.id, props.bookId, attempt], gcTime: 0, retry: false, networkMode: 'always', queryFn: async ({ signal }) => {
-  const [positions, bookmarks, local] = await Promise.all([loadAccountPositions(props.session.user.id, signal), loadAccountBookmarks(props.session.user.id, signal), store.positions.get(props.bookId)]);
-  return { remote: positions.positions.find(p => p.bookId === props.bookId), bookmarks: bookmarks.bookmarks, local };
+  const [positions, bookmarks, local, savedChoice] = await Promise.all([loadAccountPositions(props.session.user.id, signal), loadAccountBookmarks(props.session.user.id, signal), store.positions.get(props.bookId), store.positionChoices.get(props.bookId)]);
+  return { remote: positions.positions.find(p => p.bookId === props.bookId), bookmarks: bookmarks.bookmarks, local, savedChoice };
  } });
  const data = query.data;
  const remoteValid = !!data?.remote && validReadingLocator(data.remote, props.content);
@@ -48,7 +48,7 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
   const index = props.content.chapters[position.chapter].paragraphs.findIndex(p => p.id === position.paragraph);
   return `глава ${position.chapter + 1}, абзац ${index + 1}, ${Math.round(position.offset * 100)}% абзаца`;
  };
- const requiresChoice = !!data && (!!data.local && remoteValid && !samePosition(data.local, data.remote) || !!data.remote && !remoteValid);
+ const requiresChoice = !!data && (!!data.savedChoice || !!data.local && remoteValid && !samePosition(data.local, data.remote) || !!data.remote && !remoteValid);
  async function start(useRemote: boolean) {
   if (!data || busy) return;
   setBusy(true); setError('');
@@ -64,7 +64,7 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
  if (ready) return <ReaderContent {...props} source={store} />;
  if (query.isError) return <Empty><p>{query.error.message}</p><button className="secondary section" disabled={query.isFetching} onClick={() => void query.refetch()}>Попробовать снова</button><Link className="secondary section" to="/profile">В профиль</Link></Empty>;
  if (!data) return <Empty>Загружаем место и закладки аккаунта…</Empty>;
- return <><h1>Продолжим историю.</h1><p className="description account-email">{props.session.user.email}</p>{requiresChoice && <><p className="description">На устройстве: {describe(data.local)}. В аккаунте: {describe(data.remote)}.</p><p className="description">Выбери, откуда продолжить. Другой вариант останется в истории или аккаунте. Гостевые данные сохранятся отдельно.</p>{remoteValid && <button className="primary section" disabled={busy} onClick={() => void start(true)}>Продолжить с места аккаунта</button>}<button className="secondary section" disabled={busy} onClick={() => void start(false)}>{localValid ? 'Продолжить с места на этом устройстве' : 'Начать текущее издание с начала'}</button></>}<p className="description" role="alert">{error || (busy ? 'Подготавливаем чтение…' : '')}</p>{error && <button className="secondary section" disabled={busy || query.isFetching} onClick={() => { starting.current = false; setError(''); setAttempt(value => value + 1); }}>Обновить места и попробовать снова</button>}<Link className="secondary section" to="/profile">В профиль</Link></>;
+ return <><h1>Продолжим историю.</h1><p className="description account-email">{props.session.user.email}</p>{requiresChoice && <><p className="description">На устройстве: {describe(data.local)}. В аккаунте: {describe(data.remote)}.</p><p className="description">Выбери, откуда продолжить. Другой вариант останется в истории или аккаунте. Гостевые данные сохранятся отдельно.</p>{data.savedChoice && <p className="description" role="status">{data.savedChoice.conflict ? 'Есть конфликт сохранённого места. Сравни места заново в профиле.' : 'Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.'} Можно продолжить чтение на этом устройстве — сохранённый выбор останется доступен в профиле.</p>}{remoteValid && !data.savedChoice && <button className="primary section" disabled={busy} onClick={() => void start(true)}>Продолжить с места аккаунта</button>}<button className="secondary section" disabled={busy} onClick={() => void start(false)}>{localValid ? 'Продолжить с места на этом устройстве' : 'Начать текущее издание с начала'}</button></>}<p className="description" role="alert">{error || (busy ? 'Подготавливаем чтение…' : '')}</p>{error && <button className="secondary section" disabled={busy || query.isFetching} onClick={() => { starting.current = false; setError(''); setAttempt(value => value + 1); }}>Обновить места и попробовать снова</button>}<Link className="secondary section" to="/profile">В профиль</Link></>;
 }
 function ReaderContent({ content, bookId, title, author, excerpt, source = db }: ReaderProps & { source?: LocalDatabase }) {
   const { settings, act, notify } = useApp(); const navigate = useNavigate();

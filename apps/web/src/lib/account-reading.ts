@@ -16,10 +16,14 @@ export function validReadingLocator(p: ReadingLocator, content: BookContent) {
 // choice. All writes remain inside the captured account database.
 export async function prepareAccountBook(store: LocalDatabase, content: BookContent, remote: AccountPosition | undefined, bookmarks: BookmarkEntry[], useRemote: boolean, expectedLocal: Position | undefined) {
  if (store.scope === 'guest') throw new Error('Для аккаунта нужно отдельное хранилище.');
- return store.transaction('rw', [store.positions, store.positionHistory, store.bookmarks, store.outbox], async () => {
+ return store.transaction('rw', [store.positions, store.positionHistory, store.bookmarks, store.outbox, store.positionChoices], async () => {
   const current = await store.positions.get(content.id);
   if (JSON.stringify(current) !== JSON.stringify(expectedLocal)) throw new Error('Место на устройстве изменилось в другой вкладке. Открой книгу заново.');
   if (useRemote && remote) {
+   // A lost response may already have changed the server. Do not adopt a
+   // snapshot while an older explicit choice can still be retried. Check in
+   // this transaction too: another tab may have saved a choice after loading.
+   if (await store.positionChoices.get(content.id)) throw new Error('Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.');
    if (!validReadingLocator(remote, content)) throw new Error('Место аккаунта относится к другому изданию или недоступному фрагменту.');
    if (current) await store.positionHistory.put({ ...current, id: `choice:${crypto.randomUUID()}` });
    await store.positions.put({ bookId: remote.bookId, version: remote.version, chapter: remote.chapter, paragraph: remote.paragraph, offset: remote.offset, updatedAt: new Date().toISOString() });
