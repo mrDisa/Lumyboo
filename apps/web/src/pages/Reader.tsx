@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useAccount, getSession, type AccountSession } from '../lib/auth';
 import { loadAccountPositions, samePosition, type ReadingLocator } from '../lib/positions';
 import { loadAccountBookmarks } from '../lib/bookmarks';
-import { accountDatabase, prepareAccountBook, validReadingLocator } from '../lib/account-reading';
+import { accountDatabase, prepareAccountBook, resumeLocalAccountBook, validReadingLocator } from '../lib/account-reading';
 import { Link, useParams, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -60,9 +60,16 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
   } catch (error) { setError(error instanceof Error ? error.message : 'Не удалось подготовить чтение. Открой книгу заново.'); }
   finally { setBusy(false); }
  }
+ async function startLocal() {
+  if (busy) return;
+  setBusy(true); setError('');
+  try { await resumeLocalAccountBook(store, props.content); setReady(true); }
+  catch (error) { setError(error instanceof Error ? error.message : 'Не удалось открыть место на устройстве.'); }
+  finally { setBusy(false); }
+ }
  useEffect(() => { if (data && !requiresChoice && !starting.current) { starting.current = true; void start(!data.local && remoteValid); } }, [data, requiresChoice]);
  if (ready) return <ReaderContent {...props} source={store} />;
- if (query.isError) return <Empty><p>{query.error.message}</p><button className="secondary section" disabled={query.isFetching} onClick={() => void query.refetch()}>Попробовать снова</button><Link className="secondary section" to="/profile">В профиль</Link></Empty>;
+ if (query.isError) return <Empty><p>{query.error.message}</p><p className="description">Если ты уже читал это издание в аккаунте на этом устройстве, можно продолжить с сохранённого места и местными закладками. Для проверки входа нужна сеть.</p><button className="primary section" disabled={busy || query.isFetching} aria-busy={busy} onClick={() => void startLocal()}>Продолжить с места на устройстве</button><p className="description" role="alert">{error}</p><button className="secondary section" disabled={busy || query.isFetching} onClick={() => { setError(''); void query.refetch(); }}>Попробовать снова</button><Link className="secondary section" to="/profile">В профиль</Link></Empty>;
  if (!data) return <Empty>Загружаем место и закладки аккаунта…</Empty>;
  return <><h1>Продолжим историю.</h1><p className="description account-email">{props.session.user.email}</p>{requiresChoice && <><p className="description">На устройстве: {describe(data.local)}. В аккаунте: {describe(data.remote)}.</p><p className="description">Выбери, откуда продолжить. Другой вариант останется в истории или аккаунте. Гостевые данные сохранятся отдельно.</p>{data.savedChoice && <p className="description" role="status">{data.savedChoice.conflict ? 'Есть конфликт сохранённого места. Сравни места заново в профиле.' : 'Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.'} Можно продолжить чтение на этом устройстве — сохранённый выбор останется доступен в профиле.</p>}{remoteValid && !data.savedChoice && <button className="primary section" disabled={busy} onClick={() => void start(true)}>Продолжить с места аккаунта</button>}<button className="secondary section" disabled={busy} onClick={() => void start(false)}>{localValid ? 'Продолжить с места на этом устройстве' : 'Начать текущее издание с начала'}</button></>}<p className="description" role="alert">{error || (busy ? 'Подготавливаем чтение…' : '')}</p>{error && <button className="secondary section" disabled={busy || query.isFetching} onClick={() => { starting.current = false; setError(''); setAttempt(value => value + 1); }}>Обновить места и попробовать снова</button>}<Link className="secondary section" to="/profile">В профиль</Link></>;
 }

@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, expect, it, vi } from 'vitest';
 import { db, LocalDatabase, savePosition, toggleBookmark, deleteBookmark, saveReadingSession, bookmarkId, type Position } from './db';
-import { accountDatabase, prepareAccountBook, validReadingLocator } from './account-reading';
+import { accountDatabase, prepareAccountBook, resumeLocalAccountBook, validReadingLocator } from './account-reading';
 import { rememberPositionChoice, sendPositionChoice } from './position-choices';
 import { positionChoice } from './positions';
 import type { BookContent } from './books';
@@ -141,4 +141,52 @@ it('does not block a server place because of another book or another account', a
  expect(await a.positionChoices.count()).toBe(1);
  expect(await b.positionChoices.count()).toBe(1);
  expect(await db.positions.count()).toBe(0);
+});
+
+it.each([false, true])('resumes only local account data without reconciling an unavailable snapshot (conflict=%s)', async conflict => {
+ await savePosition(position, a);
+ await toggleBookmark(position, 'Local bookmark', a);
+ await prepareAccountBook(a, content, remote, [serverBookmark], false, position);
+ await deleteBookmark(bookmarkId(serverBookmark), a);
+ await saveReadingSession({ id: 'local-session', bookId: 'book', day: '2026-11-13', seconds: 12 }, a);
+ await rememberPositionChoice(a, { bookId: 'book', choice: positionChoice(position, remote), remote, conflict });
+ a.close(); await a.open();
+ const before = await Promise.all(a.tables.map(table => table.toArray()));
+ const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ user: { id: a.scope.slice(8), email: 'a@example.test' }, csrfToken: 'csrf' })));
+ vi.stubGlobal('fetch', fetcher);
+ await resumeLocalAccountBook(a, content);
+ expect(fetcher).toHaveBeenCalledTimes(1);
+ expect(fetcher.mock.calls[0][0]).toBe('/api/v1/auth/session');
+ expect(await Promise.all(a.tables.map(table => table.toArray()))).toEqual(before);
+ expect(await db.positions.count()).toBe(0);
+ expect(await b.positions.count()).toBe(0);
+});
+
+it.each(['expired', 'changed', 'unavailable'] as const)('refuses local account recovery when the live session is %s', async failure => {
+ await savePosition(position, a);
+ const before = await a.outbox.toArray();
+ const fetcher = vi.fn();
+ if (failure === 'unavailable') fetcher.mockRejectedValue(new TypeError('Network unavailable'));
+ else if (failure === 'expired') fetcher.mockResolvedValue(new Response('{}', { status: 401 }));
+ else fetcher.mockResolvedValue(new Response(JSON.stringify({ user: { id: b.scope.slice(8) }, csrfToken: 'csrf' })));
+ vi.stubGlobal('fetch', fetcher);
+ await expect(resumeLocalAccountBook(a, content)).rejects.toThrow(failure === 'expired' ? 'Вход истёк' : failure === 'changed' ? 'Аккаунт изменился' : 'Network unavailable');
+ expect(await a.positions.get('book')).toEqual(position);
+ expect(await a.outbox.toArray()).toEqual(before);
+});
+
+it('does not recover guest data or substitute another book, edition or invalid locator', async () => {
+ const fetcher = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ user: { id: a.scope.slice(8) }, csrfToken: 'csrf' })));
+ vi.stubGlobal('fetch', fetcher);
+ await expect(resumeLocalAccountBook(db, content)).rejects.toThrow('отдельное хранилище');
+ expect(fetcher).not.toHaveBeenCalled();
+ await savePosition(position, db);
+ await savePosition(position, b);
+ await savePosition({ ...position, bookId: 'other' }, a);
+ await expect(resumeLocalAccountBook(a, content)).rejects.toThrow('нет места');
+ for (const invalid of [{ ...position, version: 'old' }, { ...position, paragraph: 'missing' }, { ...position, chapter: 9 }, { ...position, offset: 1 }]) {
+  await savePosition(invalid, a);
+  await expect(resumeLocalAccountBook(a, content)).rejects.toThrow('нет места');
+  expect(await a.positions.get('book')).toEqual(invalid);
+ }
 });
