@@ -9,7 +9,7 @@ function assertOwner(store: LocalDatabase, accountId?: string) {
 // Keep the reviewed choice present until the request and local receipt finish.
 // Otherwise another tab could cancel it mid-request and adopt an older server
 // position while the first tab is still changing that same server position.
-async function withChoiceLock<T>(store: LocalDatabase, bookId: string, action: () => Promise<T>): Promise<T> {
+export async function withPositionChoiceLock<T>(store: LocalDatabase, bookId: string, action: () => Promise<T>): Promise<T> {
  if (!navigator.locks) throw new Error('Для безопасного сохранения места открой приложение в обновлённом браузере по HTTPS или на localhost.');
  const name = `lumyboo-position-choice:${JSON.stringify([store.scope, bookId])}`;
  return navigator.locks.request(name, { mode: 'exclusive', ifAvailable: true }, async lock => {
@@ -21,7 +21,7 @@ async function withChoiceLock<T>(store: LocalDatabase, bookId: string, action: (
 // resolve the existing operation rather than replace an uncertain request.
 export async function rememberPositionChoice(store: LocalDatabase, value: SavedPositionChoice) {
  assertOwner(store);
- return withChoiceLock(store, value.bookId, async () => {
+ return withPositionChoiceLock(store, value.bookId, async () => {
   await store.transaction('rw', [store.positionChoices, store.outbox], async () => {
    const existing = await store.positionChoices.get(value.bookId);
    if (existing) {
@@ -37,7 +37,7 @@ export async function rememberPositionChoice(store: LocalDatabase, value: SavedP
 }
 export async function forgetPositionChoice(store: LocalDatabase, bookId: string, operationId: string) {
  assertOwner(store);
- return withChoiceLock(store, bookId, async () => {
+ return withPositionChoiceLock(store, bookId, async () => {
   await store.transaction('rw', store.positionChoices, async () => {
    if ((await store.positionChoices.get(bookId))?.choice.operationId === operationId) await store.positionChoices.delete(bookId);
   });
@@ -45,7 +45,7 @@ export async function forgetPositionChoice(store: LocalDatabase, bookId: string,
 }
 export async function sendPositionChoice(store: LocalDatabase, session: AccountSession, bookId: string, operationId: string) {
  assertOwner(store, session.user.id);
- return withChoiceLock(store, bookId, async () => {
+ return withPositionChoiceLock(store, bookId, async () => {
   const saved = await store.positionChoices.get(bookId);
   if (!saved || saved.choice.operationId !== operationId) throw new Error('Сохранённый выбор изменился. Открой его заново.');
   if (saved.conflict) throw new Error('Место аккаунта изменилось. Сравни места заново.');
