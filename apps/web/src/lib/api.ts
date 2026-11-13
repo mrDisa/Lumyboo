@@ -9,6 +9,16 @@ export async function listBooks(search = '', signal?: AbortSignal): Promise<Cata
 export class ApiError extends Error {
  constructor(message: string, public status: number, public code: string, public retryAfter = 0) { super(message); }
 }
+function retryAfterSeconds(value: string | null) {
+ const text = value?.trim() ?? '';
+ // asctime HTTP dates omit the zone but still mean GMT, not device time.
+ const date = /^[A-Za-z]{3} [A-Za-z]{3} {1,2}\d{1,2} \d{2}:\d{2}:\d{2} \d{4}$/.test(text) ? `${text} GMT` : text;
+ // Retry-After accepts whole seconds or an HTTP date (including legacy
+ // weekday formats). Do not let Date.parse reinterpret invalid numbers.
+ const seconds = /^\d+$/.test(text) ? Number(text)
+  : /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/.test(text) ? Math.ceil((Date.parse(date) - Date.now()) / 1000) : 0;
+ return Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+}
 export async function requestJSON<T>(path: string, init: RequestInit = {}): Promise<T> {
  const headers = new Headers(init.headers);
  headers.set('Accept', 'application/json');
@@ -22,11 +32,13 @@ export async function requestJSON<T>(path: string, init: RequestInit = {}): Prom
   const response = await fetch(`/api/v1${path}`, { ...init, signal: controller.signal, credentials: 'same-origin', cache: 'no-store', headers });
   if (!response.ok) {
    const body: unknown = await response.json().catch(() => null);
+   // A timed-out/cancelled body is still a transport failure. In particular,
+   // do not turn it into a definitive sign-out or a terminal sync failure.
+   controller.signal.throwIfAborted();
    const error = body && typeof body === 'object' && 'error' in body ? body.error : null;
    const message = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : 'Сервис временно недоступен. Попробуй ещё раз.';
    const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : 'unavailable';
-   const retry = Number(response.headers.get('Retry-After'));
-   throw new ApiError(message, response.status, code, Number.isFinite(retry) && retry > 0 ? Math.ceil(retry) : 0);
+   throw new ApiError(message, response.status, code, retryAfterSeconds(response.headers.get('Retry-After')));
   }
   if (response.status === 204) return undefined as T;
   return await response.json();
