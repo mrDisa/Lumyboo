@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { AccountPosition, PositionChoice } from './positions';
-export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean }
+export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean; coveredPositionOperationIds?: string[] }
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
 export interface Position { bookId: string; version: string; chapter: number; paragraph: string; offset: number; updatedAt: string }
 export interface Bookmark extends Position { id: string; label: string }

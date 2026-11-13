@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { afterEach, expect, it, vi } from 'vitest';
-import { LocalDatabase, savePosition, type SavedPositionChoice } from './db';
+import { LocalDatabase, savePosition, toggleBookmark, saveReadingSession, type SavedPositionChoice } from './db';
 import { rememberPositionChoice, sendPositionChoice, forgetPositionChoice } from './position-choices';
 const accountId = '00000000-0000-4000-8000-000000000001';
 const store = new LocalDatabase('position-choice-tests', `account:${accountId}`);
@@ -70,4 +70,78 @@ it('upgrades v3 without losing reading data or queued changes', async () => {
  expect((await store.positions.get('book'))?.updatedAt).toBe('before');
  expect((await store.outbox.toArray()).map(op => op.id)).toEqual(['existing']);
  expect(await store.positionChoices.get('book')).toEqual(choice);
+});
+it('acknowledges only captured position operations and keeps unrelated data', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ const [sent] = await store.outbox.toArray();
+ await rememberPositionChoice(store, choice);
+ expect((await store.positionChoices.get('book'))?.coveredPositionOperationIds).toEqual([sent.id]);
+ await savePosition({ ...position, bookId: 'other', updatedAt: 'before' }, store);
+ await toggleBookmark({ ...position, updatedAt: 'before' }, 'chapter', store);
+ await saveReadingSession({ id: 'session', bookId: 'book', day: '2026-11-13', seconds: 20 }, store);
+ // Reopen the database as after a page reload.
+ store.close(); await store.open();
+ vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }))));
+ await sendPositionChoice(store, session, 'book', 'operation-a');
+ expect((await store.outbox.toArray()).map(op => op.change.type).sort()).toEqual(['bookmark.put', 'position.put', 'session.put']);
+ expect(await store.outbox.get(sent.id)).toBeUndefined();
+ expect(await store.positionChoices.count()).toBe(0);
+ expect((await store.positions.get('book'))?.updatedAt).toBe('before');
+});
+it('preserves reading written while the request is in flight', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => {
+  await savePosition({ ...position, offset: .7, updatedAt: 'during-request' }, store);
+  return new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }));
+ }));
+ await sendPositionChoice(store, session, 'book', 'operation-a');
+ expect((await store.positions.get('book'))?.offset).toBe(.7);
+ expect((await store.outbox.toArray()).map(op => op.change.type)).toEqual(['position.put']);
+});
+it('never widens the acknowledgement boundary on retry, even at the same locator', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ const saved = await store.positionChoices.get('book');
+ await savePosition({ ...position, updatedAt: 'later' }, store);
+ const [later] = await store.outbox.toArray();
+ await rememberPositionChoice(store, choice);
+ expect(await store.positionChoices.get('book')).toEqual(saved);
+ vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }))));
+ await sendPositionChoice(store, session, 'book', 'operation-a');
+ expect((await store.outbox.toArray()).map(op => op.id)).toEqual([later.id]);
+});
+it('preserves covered operations on conflicts, incorrect receipts and cancellation', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ accountId, position: { ...position, offset: .8, revision: 3 } }))));
+ await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('не подтвердил');
+ expect(await store.outbox.count()).toBe(1);
+ expect(await store.positionChoices.count()).toBe(1);
+ vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { code: 'position_conflict', message: 'Compare again' } }), { status: 409 })));
+ await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toMatchObject({ code: 'position_conflict' });
+ expect(await store.outbox.count()).toBe(1);
+ await forgetPositionChoice(store, 'book', 'operation-a');
+ expect(await store.outbox.count()).toBe(1);
+});
+it('keeps old choices without an acknowledgement boundary and unrelated queued changes', async () => {
+ await store.positionChoices.put(choice); // Persisted by the preceding app version.
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }))));
+ await sendPositionChoice(store, session, 'book', 'operation-a');
+ expect(await store.outbox.count()).toBe(1);
+});
+it('rolls back acknowledgement if the local receipt cannot be committed', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }))));
+ const fail = () => { throw new Error('Storage failure'); };
+ store.positionChoices.hook('deleting', fail);
+ try { await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Storage failure'); }
+ finally { store.positionChoices.hook('deleting').unsubscribe(fail); }
+ expect(await store.outbox.count()).toBe(1);
+ expect(await store.positionChoices.count()).toBe(1);
+ await sendPositionChoice(store, session, 'book', 'operation-a');
+ expect(await store.outbox.count()).toBe(0);
+ expect(await store.positionChoices.count()).toBe(0);
 });
