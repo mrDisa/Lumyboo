@@ -1,4 +1,4 @@
-.tools { display:flex; justify-content:space-between; gap:8px; margin-top:10px; }
+.tools { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:10px; }
 .tools button { display:flex; align-items:center; gap:6px; }
 .tools svg { width:16px; }
 .text :global(.reader-text) { line-height:var(--reader-leading,1.95); }
@@ -10,3 +10,6 @@
 .gaps summary { cursor:pointer; padding:8px 0; }
 .gapList { list-style:none; margin:0; padding:0; }
 .gapList li { padding:12px 0; border-top:1px solid var(--line); }
+
+.timeSummary { display:grid; grid-template-columns:1fr auto; gap:16px; }
+.timeSummary dd { margin:0; font-weight:600; }
