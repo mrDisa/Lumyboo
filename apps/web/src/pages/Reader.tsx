@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { books } from './Library';
 import { loadBook, type BookContent } from '../lib/books';
 import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, type Position } from '../lib/db';
+import { protectReading } from '../lib/update-guard';
 import { ReadingClock, localDay } from '../lib/reading';
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
@@ -21,6 +22,9 @@ function ReaderContent({ content, bookId, title, author, excerpt }: { content: B
   const { settings, act, notify } = useApp(); const navigate = useNavigate();
   const [chapter, setChapter] = useState<number | null>(null); const [panel, setPanel] = useState<'contents' | 'settings' | 'bookmarks' | null>(null);
   const [bookmarkActive, setBookmarkActive] = useState(false);
+  const [protectedReading, setProtectedReading] = useState(false);
+  const [protectionError, setProtectionError] = useState(false);
+  const sessionFlush = useRef<() => Promise<void>>(async () => {});
   const current = useRef<Position | null>(null); const requested = useRef<Position | null>(null);
   const ready = useRef(false); const flush = useRef<() => Promise<void>>(async () => {});
   const bookmarks = useLiveQuery(() => db.bookmarks.where('bookId').equals(bookId).filter(b => b.version === content.version).toArray(), [bookId, content.version], []);
@@ -28,6 +32,7 @@ function ReaderContent({ content, bookId, title, author, excerpt }: { content: B
   bookmarkIds.current = new Set(bookmarks.map(b => b.id));
   useEffect(() => { setBookmarkActive(!!current.current && bookmarkIds.current.has(bookmarkId(current.current!))); }, [bookmarks]);
   useEffect(() => {
+    if (!protectedReading) return;
     let cancelled = false;
     void act(async () => {
       const saved = await loadPosition(bookId, content.version);
@@ -37,9 +42,9 @@ function ReaderContent({ content, bookId, title, author, excerpt }: { content: B
       await setSettings({ currentBook: bookId });
     });
     return () => { cancelled = true; };
-  }, [bookId]);
+  }, [bookId, protectedReading]);
   useEffect(() => {
-    if (chapter === null) return;
+    if (chapter === null || !protectedReading) return;
     const screen = document.getElementById('screen')!;
     const first = content.chapters[chapter].paragraphs[0];
     const initial = requested.current ?? (current.current?.chapter === chapter ? current.current : null) ?? { bookId, version: content.version, chapter, paragraph: first.id, offset: 0, updatedAt: new Date().toISOString() };
@@ -74,34 +79,44 @@ function ReaderContent({ content, bookId, title, author, excerpt }: { content: B
     function hide() { if (document.hidden) { locate(); void act(save); } }
     screen.addEventListener('scroll', locate, { passive: true }); document.addEventListener('visibilitychange', hide);
     return () => { disposed = true; clearTimeout(timer); screen.removeEventListener('scroll', locate); document.removeEventListener('visibilitychange', hide); void act(save); };
-  }, [chapter, bookId, settings.fontSize, settings.font, settings.lineHeight]);
+  }, [chapter, bookId, protectedReading, settings.fontSize, settings.font, settings.lineHeight]);
   // Timed data stays outside the reader's React state: text does not rerender every second.
   useEffect(() => {
-    if (chapter === null) return;
+    if (chapter === null || !protectedReading) return;
     const clock = new ReadingClock(); let day = localDay(); let seconds = 0;
     let id = crypto.randomUUID(); let failed = false;
     const persist = () => {
       const row = { id, day, bookId, seconds };
-      return db.sessions.put(row).then(() => {}).catch(() => { if (!failed) notify('Не удалось сохранить время чтения. Проверь хранилище.'); failed = true; });
+      return db.sessions.put(row).then(() => {});
     };
+    const report = () => { if (!failed) notify('Не удалось сохранить время чтения. Проверь хранилище.'); failed = true; };
     const tick = () => {
+      let previousDay: Promise<void> = Promise.resolve();
       const today = localDay();
-      if (today !== day) { void persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
+      if (today !== day) { previousDay = persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
       seconds = Math.round((seconds + clock.tick(performance.now(), !document.hidden && document.hasFocus() && !panel && ready.current)) * 1000) / 1000;
-      void persist();
+      return Promise.all([previousDay, persist()]).then(() => {});
     };
-    const pause = () => { tick(); clock.pause(); };
-    const interval = setInterval(tick, 1000);
-    document.addEventListener('visibilitychange', pause); window.addEventListener('blur', pause);
-    return () => { clearInterval(interval); pause(); document.removeEventListener('visibilitychange', pause); window.removeEventListener('blur', pause); };
-  }, [bookId, chapter, panel]);
+    const pause = () => { const saved = tick(); clock.pause(); return saved; };
+    sessionFlush.current = pause;
+    const pauseAndReport = () => { void pause().catch(report); };
+    const interval = setInterval(() => { void tick().catch(report); }, 1000);
+    document.addEventListener('visibilitychange', pauseAndReport); window.addEventListener('blur', pauseAndReport);
+    return () => { clearInterval(interval); pauseAndReport(); document.removeEventListener('visibilitychange', pauseAndReport); window.removeEventListener('blur', pauseAndReport); };
+  }, [bookId, chapter, panel, protectedReading]);
+  async function flushReading() { await Promise.all([flush.current(), sessionFlush.current()]); }
+  useEffect(() => protectReading(flushReading, () => setProtectedReading(true), () => {
+    setProtectionError(true);
+    notify('Не удалось сохранить чтение. Обновление отложено; проверь хранилище.');
+  }), [bookId]);
+  if (!protectedReading) return <Empty>{protectionError ? 'Не удалось подготовить чтение. Проверь доступ к хранилищу и попробуй снова.' : 'Подготавливаем безопасное чтение…'}<Link className="secondary section" to="/catalog">В каталог</Link></Empty>;
   if (chapter === null) return <Empty>Восстанавливаем место чтения…</Empty>;
   async function changeChapter(value: number, position?: Position) {
-    if (!await act(() => flush.current())) return;
+    if (!await act(flushReading)) return;
     requested.current = position ?? null; setPanel(null); setChapter(value);
     if (value === chapter && position) { current.current = position; const el = document.getElementById(position.paragraph); el?.scrollIntoView({ block: 'start' }); await act(() => db.positions.put(position)); }
   }
-  async function leave() { if (await act(() => flush.current())) await navigate({ to: '/book/$bookId', params: { bookId } }); }
+  async function leave() { if (await act(flushReading)) await navigate({ to: '/book/$bookId', params: { bookId } }); }
   async function bookmark() {
     if (!current.current) return;
     const p = { ...current.current };
