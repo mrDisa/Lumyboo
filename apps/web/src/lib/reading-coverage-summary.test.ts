@@ -14,12 +14,12 @@ const row = (paragraph: string, ranges: ParagraphCoverage['ranges'], patch: Part
 
 it('keeps skipped chapters unseen and separates partial from full paragraphs', () => {
  expect(summarizeReadingCoverage(content, [row('p1', [[0, .2], [.8, 1]]), row('p2', [[.4, 1], [0, .5]])])).toEqual([
-  { full: 1, partial: 1, unseen: 0, total: 2 }, { full: 0, partial: 0, unseen: 1, total: 1 },
+  { full: 1, partial: 1, unseen: 0, total: 2, firstIncomplete: 0 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0 },
  ]);
 });
 it('does not round away small gaps or count another edition, book, chapter or paragraph', () => {
  expect(summarizeReadingCoverage(content, [row('p1', [[0, .5], [.500001, 1]]), row('p2', [[0, 1]], { version: 'old' }), row('p2', [[0, 1]], { bookId: 'other' }), row('p3', [[0, 1]]), row('unknown', [[0, 1]])])).toEqual([
-  { full: 0, partial: 1, unseen: 1, total: 2 }, { full: 0, partial: 0, unseen: 1, total: 1 },
+  { full: 0, partial: 1, unseen: 1, total: 2, firstIncomplete: 0 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0 },
  ]);
 });
 it('counts repeated observations once and leaves source ranges unchanged', () => {
@@ -48,4 +48,15 @@ it('updates the open summary after local and received fragments without touching
   expect(snapshots.at(-1)?.[1].unseen).toBe(1);
   expect(await store.outbox.toArray()).toEqual(queue);
  } finally { subscription.unsubscribe(); await store.delete(); await other.delete(); }
+});
+
+it('finds the earliest incomplete paragraph in text order, including partial gaps, and stops offering fully shown chapters', () => {
+ const rows = [row('p2', [[0, 1]])];
+ expect(summarizeReadingCoverage(content, rows)[0].firstIncomplete).toBe(0);
+ rows.push(row('p1', [[0, .4], [.400001, 1]]));
+ expect(summarizeReadingCoverage(content, rows)[0].firstIncomplete).toBe(0);
+ rows.push(row('p1', [[.4, .400001]]));
+ expect(summarizeReadingCoverage(content, rows)[0].firstIncomplete).toBeNull();
+ expect(summarizeReadingCoverage(content, [row('p1', [[0, 1]])])[0].firstIncomplete).toBe(1);
+ expect(summarizeReadingCoverage({ ...content, chapters: [{ id: 'empty', title: 'Empty', paragraphs: [] }] }, [])[0].firstIncomplete).toBeNull();
 });

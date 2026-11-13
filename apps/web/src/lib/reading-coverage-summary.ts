@@ -10,12 +10,15 @@ export function summarizeReadingCoverage(content: BookContent, rows: ParagraphCo
   edition.set(key, [...(edition.get(key) ?? []), ...row.ranges]);
  }
  return content.chapters.map(chapter => {
-  let full = 0; let partial = 0;
-  for (const paragraph of chapter.paragraphs) {
+  let full = 0; let partial = 0; let firstIncomplete: number | null = null;
+  for (const [index, paragraph] of chapter.paragraphs.entries()) {
    const ranges = mergeTextRanges(edition.get(JSON.stringify([chapter.id, paragraph.id])) ?? []);
    if (ranges.length === 1 && ranges[0][0] === 0 && ranges[0][1] === 1) full++;
-   else if (ranges.length) partial++;
+   else {
+    if (firstIncomplete === null) firstIncomplete = index;
+    if (ranges.length) partial++;
+   }
   }
-  return { full, partial, unseen: chapter.paragraphs.length - full - partial, total: chapter.paragraphs.length };
+  return { full, partial, unseen: chapter.paragraphs.length - full - partial, total: chapter.paragraphs.length, firstIncomplete };
  });
 }
