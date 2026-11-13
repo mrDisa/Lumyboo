@@ -311,6 +311,76 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /reading-sessions/{sessionId}:
+    get:
+      operationId: getReadingSession
+      description: Current cumulative client report for the signed-in owner only. A missing or other owner's session returns 404. Always no-store. Does not verify actual reading, calendar-day credit, coverage or rewards.
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Current session snapshot.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountReadingSession' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /reading-sessions/apply:
+    post:
+      operationId: applyReadingSession
+      description: |
+        Accept one cumulative, unverified client report. Requires Origin, session cookie,
+        X-CSRF-Token and the expected account ID. Session IDs are scoped to the owner.
+        A session's device, book, edition and reported calendar day are immutable.
+        Milliseconds are a cumulative integer total, never an increment. Larger reports
+        advance the total; equal or delayed smaller reports do not change it or its revision.
+        Each operation UUID is bound to the complete payload and the shared operation kind.
+        Retry an uncertain operation with the same UUID and payload. A retry returns its
+        original receipt, which may be older than the current session; never treat it as
+        a fresh server snapshot or acknowledgement of later local reports.
+        Day is reported by the client, without verified timezone attribution. This endpoint
+        grants no daily-goal credit, completion, coverage, XP, streak or race result.
+        The current browser timer does not send these reports yet. Old local sessions
+        without edition/device metadata must not be guessed into this protocol.
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [accountId, operationId, session]
+              properties:
+                accountId: { type: string, format: uuid }
+                operationId: { type: string, format: uuid }
+                session: { $ref: '#/components/schemas/ReadingSessionReport' }
+      responses:
+        '200':
+          description: Original operation receipt; not necessarily the current session snapshot.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountReadingSession' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409':
+          description: account_changed, operation_reused or reading_session_conflict. Do not silently retry with changed identity or a new UUID.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
   parameters:
     CSRFToken:
@@ -333,6 +403,35 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    ReadingSessionReport:
+      type: object
+      additionalProperties: false
+      required: [sessionId, deviceId, bookId, version, day, milliseconds]
+      properties:
+        sessionId: { type: string, format: uuid }
+        deviceId: { type: string, format: uuid }
+        bookId: { type: string }
+        version: { type: string }
+        day: { type: string, format: date, description: Unverified client calendar day from 0001-01-01 through 9999-12-31. }
+        milliseconds: { type: integer, minimum: 1, maximum: 86400000 }
+    ReadingSessionSnapshot:
+      type: object
+      additionalProperties: false
+      required: [sessionId, deviceId, bookId, version, day, milliseconds, revision]
+      properties:
+        sessionId: { type: string, format: uuid }
+        deviceId: { type: string, format: uuid }
+        bookId: { type: string }
+        version: { type: string }
+        day: { type: string, format: date, description: Unverified client calendar day from 0001-01-01 through 9999-12-31. }
+        milliseconds: { type: integer, minimum: 1, maximum: 86400000 }
+        revision: { type: integer, minimum: 1, maximum: 86400000 }
+    AccountReadingSession:
+      type: object
+      required: [accountId, session]
+      properties:
+        accountId: { type: string, format: uuid }
+        session: { $ref: '#/components/schemas/ReadingSessionSnapshot' }
     ReadingLocator:
       type: object
       required: [bookId, version, chapter, paragraph, offset]

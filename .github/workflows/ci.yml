@@ -43,11 +43,12 @@ jobs:
           for migration in services/api/db/migrations/*.up.sql; do
             psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f "$migration"
           done
-      - name: Authentication integration tests
+      - name: Account data integration tests
         env: { TEST_DATABASE_URL: 'postgres://lumyboo:test@localhost:5432/lumyboo?sslmode=disable' }
-        run: go -C services/api test -race ./internal/auth ./internal/httpapi ./internal/bookmarks ./internal/positions
+        run: go -C services/api test -race ./internal/auth ./internal/httpapi ./internal/bookmarks ./internal/positions ./internal/readingsessions
       - name: Roll back and reapply migrations
         run: |
+          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/006_reading_sessions.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/005_bookmark_revisions.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/004_position_history.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/003_pilot_book_versions.down.sql

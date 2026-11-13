@@ -236,10 +236,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reading-sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Current cumulative client report for the signed-in owner only. A missing or other owner's session returns 404. Always no-store. Does not verify actual reading, calendar-day credit, coverage or rewards. */
+        get: operations["getReadingSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reading-sessions/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Accept one cumulative, unverified client report. Requires Origin, session cookie,
+         *     X-CSRF-Token and the expected account ID. Session IDs are scoped to the owner.
+         *     A session's device, book, edition and reported calendar day are immutable.
+         *     Milliseconds are a cumulative integer total, never an increment. Larger reports
+         *     advance the total; equal or delayed smaller reports do not change it or its revision.
+         *     Each operation UUID is bound to the complete payload and the shared operation kind.
+         *     Retry an uncertain operation with the same UUID and payload. A retry returns its
+         *     original receipt, which may be older than the current session; never treat it as
+         *     a fresh server snapshot or acknowledgement of later local reports.
+         *     Day is reported by the client, without verified timezone attribution. This endpoint
+         *     grants no daily-goal credit, completion, coverage, XP, streak or race result.
+         *     The current browser timer does not send these reports yet. Old local sessions
+         *     without edition/device metadata must not be guessed into this protocol.
+         */
+        post: operations["applyReadingSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ReadingSessionReport: {
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            deviceId: string;
+            bookId: string;
+            version: string;
+            /**
+             * Format: date
+             * @description Unverified client calendar day from 0001-01-01 through 9999-12-31.
+             */
+            day: string;
+            milliseconds: number;
+        };
+        ReadingSessionSnapshot: {
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            deviceId: string;
+            bookId: string;
+            version: string;
+            /**
+             * Format: date
+             * @description Unverified client calendar day from 0001-01-01 through 9999-12-31.
+             */
+            day: string;
+            milliseconds: number;
+            revision: number;
+        };
+        AccountReadingSession: {
+            /** Format: uuid */
+            accountId: string;
+            session: components["schemas"]["ReadingSessionSnapshot"];
+        };
         ReadingLocator: {
             bookId: string;
             version: string;
@@ -769,6 +851,78 @@ export interface operations {
             401: components["responses"]["Error"];
             403: components["responses"]["Error"];
             409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getReadingSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current session snapshot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountReadingSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    applyReadingSession: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    accountId: string;
+                    /** Format: uuid */
+                    operationId: string;
+                    session: components["schemas"]["ReadingSessionReport"];
+                };
+            };
+        };
+        responses: {
+            /** @description Original operation receipt; not necessarily the current session snapshot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountReadingSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            /** @description account_changed, operation_reused or reading_session_conflict. Do not silently retry with changed identity or a new UUID. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             503: components["responses"]["Error"];
         };
     };

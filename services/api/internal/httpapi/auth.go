@@ -15,18 +15,20 @@ import (
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
 	"lumyboo/services/api/internal/positions"
+	"lumyboo/services/api/internal/readingsessions"
 	"lumyboo/services/api/internal/shelf"
 )
 
 type AuthOptions struct {
-	Positions      positions.Store
-	Bookmarks      bookmarks.Store
-	Shelf          shelf.Store
-	Service        *auth.Service
-	Origin         string
-	SecureCookies  bool
-	TestDelivery   bool
-	TrustedProxies []netip.Prefix
+	ReadingSessions readingsessions.Store
+	Positions       positions.Store
+	Bookmarks       bookmarks.Store
+	Shelf           shelf.Store
+	Service         *auth.Service
+	Origin          string
+	SecureCookies   bool
+	TestDelivery    bool
+	TrustedProxies  []netip.Prefix
 }
 type authHandler struct{ AuthOptions }
 type sessionView struct {
