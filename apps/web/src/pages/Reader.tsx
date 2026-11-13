@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useAccount, getSession, type AccountSession } from '../lib/auth';
 import { loadAccountPositions, samePosition, type ReadingLocator } from '../lib/positions';
 import { loadAccountBookmarks } from '../lib/bookmarks';
@@ -12,7 +12,7 @@ import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, savePosition
 import { protectReading } from '../lib/update-guard';
 import { ownReading } from '../lib/reading-ownership';
 import { ReadingClock, localDay } from '../lib/reading';
-import { sampleVisibleText, saveReadingCoverage } from '../lib/reading-coverage';
+import { createCoverageRecorder, sampleVisibleText, saveReadingCoverage } from '../lib/reading-coverage';
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
 import styles from './Reader.module.css';
@@ -103,6 +103,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
   const [protectedReading, setProtectedReading] = useState(false);
   const [protectionError, setProtectionError] = useState(false);
   const sessionFlush = useRef<() => Promise<void>>(async () => {});
+  const coverageRecorder = useMemo(() => createCoverageRecorder(samples => saveReadingCoverage(content, samples, source)), [content, source]);
   const current = useRef<Position | null>(null); const requested = useRef<Position | null>(null);
   const ready = useRef(false); const flush = useRef<() => Promise<void>>(async () => {});
   const bookmarks = useLiveQuery(() => source.bookmarks.where('bookId').equals(bookId).filter(b => b.version === content.version).toArray(), [bookId, content.version, source], []);
@@ -174,7 +175,8 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
       if (today !== day) { previousDay = persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
       const active = !document.hidden && document.hasFocus() && !panel && ready.current;
       const elapsed = clock.tick(performance.now(), active);
-      const coverage = observe && active && elapsed > 0 ? saveReadingCoverage(content, sampleVisibleText(document.getElementById('screen')!), source) : Promise.resolve();
+      if (observe && active && elapsed > 0) coverageRecorder.observe(sampleVisibleText(document.getElementById('screen')!));
+      const coverage = coverageRecorder.flush();
       const total = Math.round((seconds + elapsed) * 1000) / 1000;
       let fullSession: Promise<void> = Promise.resolve();
       if (total > 86400) { seconds = 86400; fullSession = persist(); id = crypto.randomUUID(); seconds = total - 86400; }
@@ -189,7 +191,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     const interval = setInterval(() => { void tick().catch(report); }, 1000);
     document.addEventListener('visibilitychange', pauseAndReport); window.addEventListener('blur', pauseAndReport);
     return () => { clearInterval(interval); pauseAndReport(); document.removeEventListener('visibilitychange', pauseAndReport); window.removeEventListener('blur', pauseAndReport); };
-  }, [bookId, chapter, panel, protectedReading]);
+  }, [bookId, chapter, panel, protectedReading, coverageRecorder]);
   async function flushReading() { await Promise.all([flush.current(), sessionFlush.current()]); }
   useEffect(() => { registerSave(flushReading); }, [registerSave]);
   useEffect(() => protectReading(flushReading, () => setProtectedReading(true), () => {

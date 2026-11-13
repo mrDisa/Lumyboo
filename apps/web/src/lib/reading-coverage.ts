@@ -35,6 +35,35 @@ export function mergeTextRanges(ranges: TextRange[]): TextRange[] {
  }
  return result;
 }
+
+// One recorder per open reader, across chapter/dialog effects. Observations
+// remain in memory until the exact snapshot has committed. flush also drains
+// observations added during an in-flight write; a failure leaves all for retry.
+export function createCoverageRecorder(save: (samples: CoverageSample[]) => Promise<void>) {
+ const pending = new Map<string, TextRange[]>();
+ let inFlight: Promise<void> | undefined;
+ function observe(samples: CoverageSample[]) {
+  const next = new Map(pending);
+  for (const { paragraph, range } of samples) {
+   const ranges = mergeTextRanges([...(next.get(paragraph) ?? []), range]);
+   if (JSON.stringify(next.get(paragraph)) !== JSON.stringify(ranges)) next.set(paragraph, ranges);
+  }
+  // Invalid observations must not partially change the retry buffer.
+  for (const [paragraph, ranges] of next) pending.set(paragraph, ranges);
+ }
+ async function flush(): Promise<void> {
+  if (inFlight) { await inFlight; return flush(); }
+  if (!pending.size) return;
+  const snapshot = new Map(pending);
+  const samples = Array.from(snapshot, ([paragraph, ranges]) => ranges.map(([from, to]) => ({ paragraph, range: [from, to] as TextRange }))).flat();
+  inFlight = Promise.resolve().then(() => save(samples)).then(() => {
+   for (const [paragraph, ranges] of snapshot) if (pending.get(paragraph) === ranges) pending.delete(paragraph);
+  }).finally(() => { inFlight = undefined; });
+  await inFlight;
+  return flush();
+ }
+ return { observe, flush };
+}
 // Deliberately local-only until a separate server protocol is implemented.
 // Guest/account isolation comes from the database, not a cookie or catalog ID.
 export async function saveReadingCoverage(content: BookContent, samples: CoverageSample[], store: LocalDatabase = db) {
