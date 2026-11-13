@@ -14,7 +14,7 @@ export function ReceiveReaderCoverage({ store, content }: { store: LocalDatabase
    online: () => navigator.onLine,
    publish: state => { if (state.phase === 'paused') notify(`${state.message} Чтение на устройстве доступно; повтори получение в профиле.`); },
   });
-  const wake = () => receiver.wake();
+  const wake = () => receiver.reconnect();
   const refresh = () => { if (document.visibilityState === 'visible' && document.hasFocus()) receiver.refresh(); };
   window.addEventListener('online', wake);
   window.addEventListener('focus', refresh);

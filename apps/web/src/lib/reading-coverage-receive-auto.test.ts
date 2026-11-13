@@ -163,3 +163,59 @@ it('does not refresh an in-flight receive or a receiver stopped after success', 
  receiver.stop(); receiver.refresh(); receiver.wake();
  await vi.advanceTimersByTimeAsync(600_000); expect(requests()).toHaveLength(1); expect(vi.getTimerCount()).toBe(0);
 });
+
+it('receives new fragments on reconnection after success without changing pending local work', async () => {
+ let online = true;
+ const { receiver, publish } = start({ online: () => online });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ await saveReadingCoverage(content, [{ paragraph: 'p', range: [0, .2] }], store);
+ const queue = await store.outbox.toArray();
+ online = false;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([{ ...item, ranges: [[400000, 600000]] }]));
+ online = true; receiver.reconnect(); receiver.reconnect(); receiver.refresh();
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect(requests()).toHaveLength(2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[0, .2], [.4, .6], [.8, 1]]);
+ expect(await store.outbox.toArray()).toEqual(queue);
+ await vi.advanceTimersByTimeAsync(60_000); expect(requests()).toHaveLength(2); expect(vi.getTimerCount()).toBe(0);
+});
+
+it('wakes an initially offline receive and refreshes a successful empty history on reconnection', async () => {
+ let online = false;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([]));
+ const { receiver, publish } = start({ online: () => online });
+ expect(fetch).not.toHaveBeenCalled(); online = true; receiver.reconnect();
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page());
+ receiver.reconnect();
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect(requests()).toHaveLength(2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[.8, 1]]);
+});
+
+it('reconnection after a successful receive preserves backoff and an account-change stop', async () => {
+ const { receiver, publish } = start();
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Response('{}', { status: 503, headers: { 'Retry-After': '60' } }));
+ receiver.reconnect();
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('позже')));
+ receiver.reconnect(); receiver.refresh(); await vi.advanceTimersByTimeAsync(59_999);
+ expect(requests()).toHaveLength(2);
+ vi.mocked(fetch).mockResolvedValue(response({ ...session, user: { ...session.user, id: 'other' } }));
+ await vi.advanceTimersByTimeAsync(1);
+ await settle(() => publish.mock.calls.some(([state]) => state.phase === 'paused'));
+ receiver.reconnect(); await vi.advanceTimersByTimeAsync(600_000);
+ expect(requests()).toHaveLength(2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[.8, 1]]);
+});
+
+it('reconnection never overlaps a receive or restarts it after cleanup', async () => {
+ let finish!: (value: Response) => void;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Promise<Response>(resolve => { finish = resolve; }));
+ const { receiver, publish } = start(); await settle(() => !!finish);
+ receiver.reconnect(); receiver.reconnect(); expect(requests()).toHaveLength(1);
+ receiver.stop(); const count = publish.mock.calls.length;
+ receiver.reconnect(); finish(page()); await realDelay(30);
+ expect(await store.coverage.count()).toBe(0); expect(publish).toHaveBeenCalledTimes(count);
+ await vi.advanceTimersByTimeAsync(600_000); expect(requests()).toHaveLength(1); expect(vi.getTimerCount()).toBe(0);
+});
