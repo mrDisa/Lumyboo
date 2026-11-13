@@ -274,8 +274,10 @@ export interface paths {
          *     a fresh server snapshot or acknowledgement of later local reports.
          *     Day is reported by the client, without verified timezone attribution. This endpoint
          *     grants no daily-goal credit, completion, coverage, XP, streak or race result.
-         *     The current browser timer does not send these reports yet. Old local sessions
-         *     without edition/device metadata must not be guessed into this protocol.
+         *     The browser sends new timer reports explicitly from the account profile,
+         *     in bounded batches with exact persisted operation payloads for retries.
+         *     Old local sessions without edition/device metadata stay local and must not
+         *     be guessed into this protocol.
          */
         post: operations["applyReadingSession"];
         delete?: never;

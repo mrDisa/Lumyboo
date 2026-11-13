@@ -163,7 +163,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     const clock = new ReadingClock(); let day = localDay(); let seconds = 0;
     let id = crypto.randomUUID(); let failed = false;
     const persist = () => {
-      const row = { id, day, bookId, seconds };
+      const row = { id, day, bookId, seconds, version: content.version };
       return saveReadingSession(row, source);
     };
     const report = () => { if (!failed) notify('Не удалось сохранить время чтения. Проверь хранилище.'); failed = true; };
@@ -171,8 +171,11 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
       let previousDay: Promise<void> = Promise.resolve();
       const today = localDay();
       if (today !== day) { previousDay = persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
-      seconds = Math.round((seconds + clock.tick(performance.now(), !document.hidden && document.hasFocus() && !panel && ready.current)) * 1000) / 1000;
-      return Promise.all([previousDay, persist()]).then(() => {});
+      const total = Math.round((seconds + clock.tick(performance.now(), !document.hidden && document.hasFocus() && !panel && ready.current)) * 1000) / 1000;
+      let fullSession: Promise<void> = Promise.resolve();
+      if (total > 86400) { seconds = 86400; fullSession = persist(); id = crypto.randomUUID(); seconds = total - 86400; }
+      else seconds = total;
+      return Promise.all([previousDay, fullSession, persist()]).then(() => {});
     };
     const pause = () => { const saved = tick(); clock.pause(); return saved; };
     sessionFlush.current = pause;

@@ -6,7 +6,7 @@ export interface SavedPositionChoice { bookId: string; choice: PositionChoice; r
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
 export interface Position { bookId: string; version: string; chapter: number; paragraph: string; offset: number; updatedAt: string }
 export interface Bookmark extends Position { id: string; label: string }
-export interface ReadingSession { id: string; bookId: string; day: string; seconds: number }
+export interface ReadingSession { id: string; bookId: string; day: string; seconds: number; version?: string; deviceId?: string }
 export type LocalChange =
   | { type: 'settings.put'; key: string; value: Settings }
   | { type: 'shelf.put'; key: string; value: { bookId: string } }
@@ -114,8 +114,19 @@ export async function savePosition(value: Position, store: LocalDatabase = db) {
 export async function saveReadingSession(value: ReadingSession, store: LocalDatabase = db) {
   await store.transaction('rw', [store.sessions, store.outbox, store.metadata], async () => {
     const previous = await store.sessions.get(value.id);
+    if (!Number.isFinite(value.seconds) || value.seconds < 0 || value.seconds > 86400) throw new Error('Некорректное время чтения.');
+    if (previous && (previous.bookId !== value.bookId || previous.day !== value.day || previous.version !== value.version || value.deviceId && previous.deviceId !== value.deviceId)) throw new Error('Данные сессии чтения изменились. Открой книгу заново.');
     if (previous && previous.seconds >= value.seconds || !previous && value.seconds <= 0) return;
-    await store.sessions.put(value);
-    await enqueue({ type: 'session.put', key: value.id, value }, store);
+    // Metadata is attached only at creation with a known edition. Old sessions
+    // remain unchanged; an edition must never be inferred during migration.
+    let deviceId = previous?.deviceId;
+    if (!previous && value.version) {
+      const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
+      await store.metadata.put(meta);
+      deviceId = meta.deviceId;
+    }
+    const row = deviceId ? { ...value, deviceId } : value;
+    await store.sessions.put(row);
+    await enqueue({ type: 'session.put', key: value.id, value: row }, store);
   });
 }
