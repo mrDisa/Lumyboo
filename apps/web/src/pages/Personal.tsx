@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { db, setSettings } from '../lib/db';
 import { useApp } from '../lib/context';
-import { localDay, sumReadingSeconds } from '../lib/reading';
+import { GuestReadingTime } from '../components/GuestReadingTime';
 import { Icon, Sculpture, Empty } from '../components/ui';
 import { BookCard } from '../components/BookCard';
 import { books } from './Library';
@@ -16,10 +16,8 @@ export function SettingsPage() {
 }
 export function Profile() {
   const { settings } = useApp();
-  const data = useLiveQuery(async () => ({ sessions: await db.sessions.toArray(), shelf: await db.shelf.toArray(), bookmarks: await db.bookmarks.count() }));
-  const seconds = sumReadingSeconds(data?.sessions ?? []);
-  const today = sumReadingSeconds(data?.sessions.filter(s => s.day === localDay()) ?? []);
-  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>Гостевой профиль этого устройства</p></div><AccountPanel /><div className="level section"><span className="eyebrow">Твой читательский путь</span><h2 className="section">Страница за страницей.</h2><p className="section">Каждая минута остаётся с тобой.</p></div><div className="stats"><div><b>{Math.floor(seconds / 60)}</b><small>минут за текстом</small></div><div><b>{Math.floor(today / 60)}</b><small>минут сегодня</small></div><div><b>{data?.bookmarks ?? 0}</b><small>закладок</small></div></div><p className="reader-note">Локальный учёт времени. Серверная проверка, дневные планы, серия и XP ещё не подключены.</p><div className="section-head section"><h3>На твоей полке</h3><Link to="/catalog" className="text-button">В каталог ↗</Link></div><div className="book-grid">{books.filter(b => data?.shelf.some(s => s.bookId === b.id)).map(b => <BookCard key={b.id} book={b} />)}</div>{!data?.shelf.length && <Empty>Сохрани первую книгу из каталога.</Empty>}<Link to="/settings" className="secondary section">Настроить своё пространство</Link></>;
+  const data = useLiveQuery(async () => ({ shelf: await db.shelf.toArray() }));
+  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>Гостевой профиль этого устройства</p></div><AccountPanel /><div className="level section"><span className="eyebrow">Твой читательский путь</span><h2 className="section">Страница за страницей.</h2><p className="section">Каждая минута остаётся с тобой.</p></div><GuestReadingTime /><div className="section-head section"><h3>На твоей полке</h3><Link to="/catalog" className="text-button">В каталог ↗</Link></div><div className="book-grid">{books.filter(b => data?.shelf.some(s => s.bookId === b.id)).map(b => <BookCard key={b.id} book={b} />)}</div>{!data?.shelf.length && <Empty>Сохрани первую книгу из каталога.</Empty>}<Link to="/settings" className="secondary section">Настроить своё пространство</Link></>;
 }
 export function Together() { return <><p className="eyebrow muted">Читай. Поддерживай. Расти.</p><div className="challenge-heading section"><h1>У историй есть<br />сила <em className="serif">сближать.</em></h1></div><div className="expedition"><span className="tag">Следующий этап</span><h2 className="section">Вместе — легче.</h2><div className="together-art"><Sculpture /></div><p className="description">В командном пути каждый читает свои книги и выполняет дневной план. Можно будет идти вместе 7, 14 или 30 дней.</p><p className="description">Сначала появятся аккаунты и синхронизация, затем — настоящие команды и приглашения. Fast Track по одной книге будет отдельным форматом с финальной проверкой.</p><Link to="/catalog" className="primary">Пока найдём твою историю<Icon name="arrow" /></Link></div></>; }
 export function Onboarding() {
