@@ -155,3 +155,26 @@ it('rejects malformed provenance, dates, IDs and durations rather than guessing 
   expect(readingSessionReport({ ...op, change: { ...op.change, value: { ...op.change.value, ...change } } })).toBeUndefined();
  }
 });
+it('cancels an in-flight automatic batch and retries the exact uncertain snapshot', async () => {
+ await saveReadingSession(row, store);
+ const controller = new AbortController();
+ const calls: string[] = [];
+ vi.stubGlobal('fetch', vi.fn(async (_url, init) => {
+  calls.push(String(init?.body));
+  return new Promise<Response>((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal?.reason)));
+ }));
+ const sending = sendReadingSessions(store, session, controller.signal);
+ const rejected = expect(sending).rejects.toThrow();
+ await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce()); controller.abort(); await rejected;
+ expect((await store.outbox.toArray())[0].state).toBe('sending');
+ await saveReadingSession({ ...row, seconds: 9 }, store);
+ store.close(); await store.open();
+ vi.stubGlobal('fetch', vi.fn(async (_url, init) => { calls.push(String(init?.body)); return receipt(init); }));
+ expect(await sendReadingSessions(store, session)).toBe(2);
+ expect(calls[1]).toBe(calls[0]); expect(JSON.parse(calls[2]).session.milliseconds).toBe(9000);
+});
+it('does not mark pending snapshots as sending after cancellation', async () => {
+ await saveReadingSession(row, store); const controller = new AbortController(); controller.abort();
+ await expect(sendReadingSessions(store, session, controller.signal)).rejects.toThrow();
+ expect(fetch).not.toHaveBeenCalled(); expect((await store.outbox.toArray())[0].state).toBe('pending');
+});

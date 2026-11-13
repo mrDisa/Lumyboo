@@ -14,7 +14,7 @@ export function AccountSaveStatus({ accountId }: { accountId: string }) {
    {!!result.status.total && <p className="description">Ожидают подтверждения: места чтения — {result.status.positions}, изменения закладок — {result.status.bookmarks}, записи времени — {result.status.sessions}{result.status.other ? `, другие изменения — ${result.status.other}` : ''}.</p>}
    {!!result.status.choices && <p className="description">Незавершённых сохранений места: {result.status.choices}. {result.status.conflicts ? 'Есть разные варианты места. Открой сохранение ниже и сравни их заново.' : 'Открой сохранение ниже, чтобы проверить и повторить выбранное место.'}</p>}
    {!!result.status.bookmarkChoices && <p className="description">Незавершённых сохранений закладок: {result.status.bookmarkChoices}. {result.status.bookmarkConflicts ? 'Есть разные варианты. Открой сохранение закладки ниже и сравни заново.' : 'Открой сохранение закладки ниже, чтобы повторить выбранное изменение.'}</p>}
-   <p className="reader-note">Место чтения можно сохранить в аккаунте в разделе ниже. Закладки можно сравнить и сохранить отдельно ниже. Время можно сохранить в разделе «Время чтения аккаунта». Гостевое чтение учитывается отдельно.</p>
+   <p className="reader-note">Место чтения можно сохранить в аккаунте в разделе ниже. Закладки можно сравнить и сохранить отдельно ниже. Время аккаунта сохраняется автоматически; статус и ручное сохранение — в разделе «Время чтения аккаунта». Гостевое чтение учитывается отдельно.</p>
   </>}
  </div>;
 }
