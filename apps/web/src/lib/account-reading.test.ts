@@ -1,9 +1,10 @@
 import 'fake-indexeddb/auto';
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { db, LocalDatabase, savePosition, toggleBookmark, deleteBookmark, saveReadingSession, bookmarkId, type Position } from './db';
 import { accountDatabase, prepareAccountBook, resumeLocalAccountBook, validReadingLocator } from './account-reading';
 import { rememberPositionChoice, sendPositionChoice } from './position-choices';
 import { positionChoice } from './positions';
+import { rememberBookmarkChoice, sendBookmarkChoice, forgetBookmarkChoice } from './bookmark-choices';
 import type { BookContent } from './books';
 const a = accountDatabase('00000000-0000-4000-8000-000000000001');
 const b = accountDatabase('00000000-0000-4000-8000-000000000002');
@@ -11,6 +12,11 @@ const content: BookContent = { id: 'book', version: '1', chapters: [{ id: 'c1', 
 const position: Position = { bookId: 'book', version: '1', chapter: 0, paragraph: 'p1', offset: .3, updatedAt: '2026-11-13T00:00:00Z' };
 const remote = { bookId: 'book', version: '1', chapter: 0, paragraph: 'p2', offset: .6, revision: 2 };
 const serverBookmark = { ...remote, label: 'Server bookmark' };
+beforeEach(async () => {
+ const { locks } = await vi.importActual<{ locks: LockManager }>('node:worker_threads');
+ const prefix = crypto.randomUUID();
+ vi.stubGlobal('navigator', { locks: { request: (name: string, options: LockOptions, callback: LockGrantedCallback<unknown>) => locks.request(prefix + name, options, callback) } });
+});
 afterEach(async () => { vi.unstubAllGlobals(); for (const store of [a, b, db]) { await store.delete(); await store.open(); } });
 it('separates late writes, bookmarks, minutes and outbox ownership for two accounts and guest', async () => {
  await savePosition(position, db);
@@ -189,4 +195,58 @@ it('does not recover guest data or substitute another book, edition or invalid l
   await expect(resumeLocalAccountBook(a, content)).rejects.toThrow('нет места');
   expect(await a.positions.get('book')).toEqual(invalid);
  }
+});
+
+
+it.each([false, true])('preserves an unresolved bookmark across snapshots and reopen without outbox (conflict=%s)', async conflict => {
+ const id = bookmarkId(serverBookmark);
+ const local = { ...serverBookmark, id, label: 'Reviewed local label', offset: .2, updatedAt: 'before' };
+ await a.bookmarks.put(local); // A previously received bookmark has no outbox.
+ const change = { operationId: crypto.randomUUID(), expectedRevision: 2, bookmark: local, deleted: false };
+ await rememberBookmarkChoice(a, change);
+ if (conflict) await a.bookmarkChoices.update(id, { conflict: true });
+ const saved = await a.bookmarkChoices.get(id);
+ a.close(); await a.open();
+ for (const snapshot of [[serverBookmark], []]) {
+  await prepareAccountBook(a, content, remote, snapshot, false, undefined);
+  expect(await a.bookmarks.get(id)).toEqual(local);
+  expect(await a.bookmarkChoices.get(id)).toEqual(saved);
+  expect(await a.outbox.count()).toBe(0);
+ }
+ // Cancelling the retry allows the next complete snapshot to reconcile again.
+ await forgetBookmarkChoice(a, id, change.operationId);
+ await prepareAccountBook(a, content, remote, [], false, undefined);
+ expect(await a.bookmarks.get(id)).toBeUndefined();
+});
+
+it('does not resurrect a missing bookmark while its deletion awaits a receipt in another tab', async () => {
+ const id = bookmarkId(serverBookmark);
+ const change = { operationId: crypto.randomUUID(), expectedRevision: 2, bookmark: serverBookmark, deleted: true };
+ const otherTab = new LocalDatabase(a.name, a.scope);
+ const session = { user: { id: a.scope.slice(8), email: 'a@example.test' }, csrfToken: 'csrf' };
+ try {
+  await rememberBookmarkChoice(otherTab, change);
+  const saved = await a.bookmarkChoices.get(id);
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Lost response')));
+  await expect(sendBookmarkChoice(otherTab, session, id, change.operationId)).rejects.toThrow('Lost response');
+  await prepareAccountBook(a, content, remote, [serverBookmark, { ...serverBookmark, paragraph: 'p1' }], false, undefined);
+  expect(await a.bookmarks.get(id)).toBeUndefined();
+  expect(await a.bookmarks.count()).toBe(1); // Unrelated bookmarks still load.
+  expect(await a.bookmarkChoices.get(id)).toEqual(saved);
+  expect(await a.outbox.count()).toBe(0);
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ accountId: session.user.id, bookmark: { ...serverBookmark, deleted: true, revision: 3 } }))));
+  await sendBookmarkChoice(otherTab, session, id, change.operationId);
+  expect(await a.bookmarkChoices.get(id)).toBeUndefined();
+  // A later fresh snapshot is authoritative after confirmation.
+  await prepareAccountBook(a, content, remote, [serverBookmark], false, undefined);
+  expect((await a.bookmarks.get(id))?.label).toBe(serverBookmark.label);
+ } finally { otherTab.close(); }
+});
+
+it('does not protect a bookmark because another account has an unfinished choice for the same key', async () => {
+ await rememberBookmarkChoice(b, { operationId: crypto.randomUUID(), expectedRevision: 2, bookmark: serverBookmark, deleted: true });
+ await prepareAccountBook(a, content, remote, [serverBookmark], false, undefined);
+ expect(await a.bookmarks.count()).toBe(1);
+ expect(await b.bookmarkChoices.count()).toBe(1);
+ expect(await db.bookmarks.count()).toBe(0);
 });

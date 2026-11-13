@@ -28,7 +28,7 @@ export async function resumeLocalAccountBook(store: LocalDatabase, content: Book
 // choice. All writes remain inside the captured account database.
 export async function prepareAccountBook(store: LocalDatabase, content: BookContent, remote: AccountPosition | undefined, bookmarks: BookmarkEntry[], useRemote: boolean, expectedLocal: Position | undefined) {
  if (store.scope === 'guest') throw new Error('Для аккаунта нужно отдельное хранилище.');
- return store.transaction('rw', [store.positions, store.positionHistory, store.bookmarks, store.outbox, store.positionChoices], async () => {
+ return store.transaction('rw', [store.positions, store.positionHistory, store.bookmarks, store.outbox, store.positionChoices, store.bookmarkChoices], async () => {
   const current = await store.positions.get(content.id);
   if (JSON.stringify(current) !== JSON.stringify(expectedLocal)) throw new Error('Место на устройстве изменилось в другой вкладке. Открой книгу заново.');
   if (useRemote && remote) {
@@ -43,16 +43,21 @@ export async function prepareAccountBook(store: LocalDatabase, content: BookCont
    // explicitly reviewed by the user. Other books/operations remain intact.
    await store.outbox.where('[entity+state]').equals([`position:${content.id}`, 'pending']).delete();
   }
+  // An explicit retry can exist without outbox entries (for example, deleting
+  // a server-only bookmark). Freeze its local presence/absence until resolved.
+  // Read in this transaction so choices from other tabs cannot race the merge.
+  const unresolvedBookmarkIds = new Set(await store.bookmarkChoices.toCollection().primaryKeys());
   const remoteIds = new Set(bookmarks.filter(entry => validReadingLocator(entry, content)).map(bookmarkId));
   const existing = await store.bookmarks.where('bookId').equals(content.id).filter(entry => entry.version === content.version).toArray();
   for (const entry of existing) {
-   if (remoteIds.has(entry.id)) continue;
+   if (remoteIds.has(entry.id) || unresolvedBookmarkIds.has(entry.id)) continue;
    const changes = await store.outbox.where('[entity+state]').anyOf([[`bookmark:${entry.id}`, 'pending'], [`bookmark:${entry.id}`, 'sending']]).count();
    if (!changes) await store.bookmarks.delete(entry.id);
   }
   for (const entry of bookmarks) {
    if (!validReadingLocator(entry, content)) continue;
    const id = bookmarkId(entry);
+   if (unresolvedBookmarkIds.has(id)) continue;
    const pending = await store.outbox.where('[entity+state]').equals([`bookmark:${id}`, 'pending']).first();
    const sending = await store.outbox.where('[entity+state]').equals([`bookmark:${id}`, 'sending']).first();
    if (pending || sending) continue;
