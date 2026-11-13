@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type { AccountPosition, PositionChoice } from './positions';
 import type { BookmarkChange } from './bookmarks';
+import type { ParagraphCoverage } from './reading-coverage';
 export interface SavedBookmarkChoice { id: string; change: BookmarkChange; conflict: boolean; coveredOperationIds: string[] }
 export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean; coveredPositionOperationIds?: string[] }
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
@@ -31,6 +32,7 @@ export class LocalDatabase extends Dexie {
   shelf!: Table<{ bookId: string }, string>;
   downloads!: Table<Download, string>;
   sessions!: Table<ReadingSession, string>;
+  coverage!: Table<ParagraphCoverage, [string, string, string]>;
   constructor(name = 'lumyboo-local-v1', public readonly scope: OperationScope = 'guest') {
     super(name);
     this.version(1).stores({ settings: 'id', positions: 'bookId', bookmarks: 'id, bookId', shelf: 'bookId', downloads: 'bookId', sessions: 'id, day, bookId' });
@@ -38,6 +40,7 @@ export class LocalDatabase extends Dexie {
     this.version(3).stores({ outbox: 'id, sequence, [entity+state]', metadata: 'id' });
     this.version(4).stores({ positionChoices: 'bookId' });
     this.version(5).stores({ bookmarkChoices: 'id' });
+    this.version(6).stores({ coverage: '[bookId+version+paragraph], [bookId+version]' });
   }
 }
 export const db = new LocalDatabase();

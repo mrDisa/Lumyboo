@@ -12,6 +12,7 @@ import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, savePosition
 import { protectReading } from '../lib/update-guard';
 import { ownReading } from '../lib/reading-ownership';
 import { ReadingClock, localDay } from '../lib/reading';
+import { sampleVisibleText, saveReadingCoverage } from '../lib/reading-coverage';
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
 import styles from './Reader.module.css';
@@ -166,18 +167,23 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
       const row = { id, day, bookId, seconds, version: content.version };
       return saveReadingSession(row, source);
     };
-    const report = () => { if (!failed) notify('Не удалось сохранить время чтения. Проверь хранилище.'); failed = true; };
-    const tick = () => {
+    const report = () => { if (!failed) notify('Не удалось сохранить данные чтения. Проверь хранилище.'); failed = true; };
+    const tick = (observe = true) => {
       let previousDay: Promise<void> = Promise.resolve();
       const today = localDay();
       if (today !== day) { previousDay = persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
-      const total = Math.round((seconds + clock.tick(performance.now(), !document.hidden && document.hasFocus() && !panel && ready.current)) * 1000) / 1000;
+      const active = !document.hidden && document.hasFocus() && !panel && ready.current;
+      const elapsed = clock.tick(performance.now(), active);
+      const coverage = observe && active && elapsed > 0 ? saveReadingCoverage(content, sampleVisibleText(document.getElementById('screen')!), source) : Promise.resolve();
+      const total = Math.round((seconds + elapsed) * 1000) / 1000;
       let fullSession: Promise<void> = Promise.resolve();
       if (total > 86400) { seconds = 86400; fullSession = persist(); id = crypto.randomUUID(); seconds = total - 86400; }
       else seconds = total;
-      return Promise.all([previousDay, fullSession, persist()]).then(() => {});
+      return Promise.all([previousDay, fullSession, persist(), coverage]).then(() => {});
     };
-    const pause = () => { const saved = tick(); clock.pause(); return saved; };
+    // Cleanup can run after React has rendered a different chapter. Only the
+    // periodic active-text tick may observe DOM; flushing never invents a view.
+    const pause = () => { const saved = tick(false); clock.pause(); return saved; };
     sessionFlush.current = pause;
     const pauseAndReport = () => { void pause().catch(report); };
     const interval = setInterval(() => { void tick().catch(report); }, 1000);
