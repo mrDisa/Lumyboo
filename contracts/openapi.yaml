@@ -405,6 +405,104 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /reading-coverage/{bookId}:
+    get:
+      operationId: listReadingCoverage
+      description: |
+        Private live pages of geometric text observations for the session owner and
+        the exact book edition, including historical editions. No completion is inferred.
+        Ordered by paragraph ID using bytewise C collation, not reading order.
+        Concurrent range updates do not move rows. New rows before the cursor require
+        refreshing from the start. Empty history returns items: []. Responses are no-store.
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 200 }
+        - name: version
+          in: query
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 200 }
+        - name: cursor
+          in: query
+          schema: { type: string, maxLength: 200 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        '200':
+          description: Owner-scoped page; nextCursor is empty on the final page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, items, nextCursor]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  items: { type: array, maxItems: 50, items: { $ref: '#/components/schemas/ReadingCoverage' } }
+                  nextCursor: { type: string }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /reading-coverage/apply:
+    post:
+      operationId: applyReadingCoverage
+      description: |
+        Atomically union one paragraph's geometric observations with saved coverage.
+        Requires Origin, session cookie, X-CSRF-Token and expected accountId.
+        Only paragraphs in the current development edition allowlist are accepted.
+        Ranges are integer millionths of paragraph geometry, not character offsets.
+        Overlap and adjacency merge; gaps remain gaps. Up to 64 incoming ranges,
+        8192 request bytes and 256 stored disjoint ranges per paragraph. Exceeding the
+        stored fragment limit returns coverage_fragment_limit without mutation or receipt;
+        do not bridge unobserved gaps or silently drop local observations to bypass it.
+        Shared operation UUID space with positions, bookmarks and time. Uncertain requests
+        must retry the exact UUID and payload. An exact retry returns its original receipt,
+        which may predate other observations; it must not replace newer local coverage.
+        Geometry is approximate, especially across layout/font changes. No proof of reading,
+        completed book, minutes, goal, XP, streak or race result is produced.
+        The browser does not yet send local coverage through this protocol.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [accountId, operationId, coverage]
+              properties:
+                accountId: { type: string, format: uuid }
+                operationId: { type: string, format: uuid }
+                coverage:
+                  allOf:
+                    - $ref: '#/components/schemas/ReadingCoverage'
+                    - type: object
+                      properties:
+                        ranges: { type: array, minItems: 1, maxItems: 64, items: { $ref: '#/components/schemas/CoverageRange' } }
+      responses:
+        '200':
+          description: Original operation receipt; not necessarily the current paragraph snapshot.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, coverage]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  coverage: { $ref: '#/components/schemas/ReadingCoverage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409':
+          description: account_changed, operation_reused or coverage_fragment_limit; no partial mutation.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
   parameters:
     CSRFToken:
@@ -427,6 +525,21 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    CoverageRange:
+      type: array
+      description: Exactly [from, to], with from less than to, in integer millionths of a paragraph.
+      minItems: 2
+      maxItems: 2
+      items: { type: integer, minimum: 0, maximum: 1000000 }
+    ReadingCoverage:
+      type: object
+      additionalProperties: false
+      required: [bookId, version, paragraph, ranges]
+      properties:
+        bookId: { type: string, minLength: 1, maxLength: 200 }
+        version: { type: string, minLength: 1, maxLength: 200 }
+        paragraph: { type: string, minLength: 1, maxLength: 200 }
+        ranges: { type: array, minItems: 1, maxItems: 256, items: { $ref: '#/components/schemas/CoverageRange' } }
     ReadingSessionReport:
       type: object
       additionalProperties: false

@@ -303,10 +303,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reading-coverage/{bookId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Private live pages of geometric text observations for the session owner and
+         *     the exact book edition, including historical editions. No completion is inferred.
+         *     Ordered by paragraph ID using bytewise C collation, not reading order.
+         *     Concurrent range updates do not move rows. New rows before the cursor require
+         *     refreshing from the start. Empty history returns items: []. Responses are no-store.
+         */
+        get: operations["listReadingCoverage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reading-coverage/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Atomically union one paragraph's geometric observations with saved coverage.
+         *     Requires Origin, session cookie, X-CSRF-Token and expected accountId.
+         *     Only paragraphs in the current development edition allowlist are accepted.
+         *     Ranges are integer millionths of paragraph geometry, not character offsets.
+         *     Overlap and adjacency merge; gaps remain gaps. Up to 64 incoming ranges,
+         *     8192 request bytes and 256 stored disjoint ranges per paragraph. Exceeding the
+         *     stored fragment limit returns coverage_fragment_limit without mutation or receipt;
+         *     do not bridge unobserved gaps or silently drop local observations to bypass it.
+         *     Shared operation UUID space with positions, bookmarks and time. Uncertain requests
+         *     must retry the exact UUID and payload. An exact retry returns its original receipt,
+         *     which may predate other observations; it must not replace newer local coverage.
+         *     Geometry is approximate, especially across layout/font changes. No proof of reading,
+         *     completed book, minutes, goal, XP, streak or race result is produced.
+         *     The browser does not yet send local coverage through this protocol.
+         */
+        post: operations["applyReadingCoverage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Exactly [from, to], with from less than to, in integer millionths of a paragraph. */
+        CoverageRange: number[];
+        ReadingCoverage: {
+            bookId: string;
+            version: string;
+            paragraph: string;
+            ranges: components["schemas"]["CoverageRange"][];
+        };
         ReadingSessionReport: {
             /** Format: uuid */
             sessionId: string;
@@ -968,6 +1031,92 @@ export interface operations {
             401: components["responses"]["Error"];
             403: components["responses"]["Error"];
             /** @description account_changed, operation_reused or reading_session_conflict. Do not silently retry with changed identity or a new UUID. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            503: components["responses"]["Error"];
+        };
+    };
+    listReadingCoverage: {
+        parameters: {
+            query: {
+                version: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                bookId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owner-scoped page; nextCursor is empty on the final page. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        items: components["schemas"]["ReadingCoverage"][];
+                        nextCursor: string;
+                    };
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    applyReadingCoverage: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["CSRFToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    accountId: string;
+                    /** Format: uuid */
+                    operationId: string;
+                    coverage: components["schemas"]["ReadingCoverage"] & {
+                        ranges?: components["schemas"]["CoverageRange"][];
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Original operation receipt; not necessarily the current paragraph snapshot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        coverage: components["schemas"]["ReadingCoverage"];
+                    };
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            /** @description account_changed, operation_reused or coverage_fragment_limit; no partial mutation. */
             409: {
                 headers: {
                     [name: string]: unknown;

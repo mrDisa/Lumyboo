@@ -15,11 +15,13 @@ import (
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
 	"lumyboo/services/api/internal/positions"
+	"lumyboo/services/api/internal/readingcoverage"
 	"lumyboo/services/api/internal/readingsessions"
 	"lumyboo/services/api/internal/shelf"
 )
 
 type AuthOptions struct {
+	ReadingCoverage readingcoverage.Store
 	ReadingSessions readingsessions.Store
 	Positions       positions.Store
 	Bookmarks       bookmarks.Store
