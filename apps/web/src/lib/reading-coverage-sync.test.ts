@@ -168,3 +168,53 @@ it('keeps the cross-tab lock until acknowledgement and preserves uncertain data 
  controller.abort(); finish.resolve(); await pending;
  expect((await store.outbox.toArray())[0].state).toBe('sending');
 });
+
+it('automatically retries an uncertain snapshot on restart while preserving later observations and other queues', async () => {
+ const { startReadingCoverageAuto, hasReadingCoverageWork } = await import('./reading-coverage-auto');
+ const { getSession } = await import('./auth');
+ const states: string[] = []; const requests: string[] = [];
+ await observe();
+ await savePosition({ bookId: 'book', version: '1', chapter: 0, paragraph: 'p', offset: 0, updatedAt: 'now' }, store);
+ vi.mocked(fetch).mockImplementation(async (url, init) => {
+  if (url === '/api/v1/auth/session') return new Response(JSON.stringify({ ...session, csrfToken: 'fresh-csrf' }));
+  expect(url).toBe('/api/v1/reading-coverage/apply');
+  requests.push(String(init?.body));
+  if (requests.length === 1) return new Response(JSON.stringify({ message: 'Lost reply', code: 'unavailable' }), { status: 503 });
+  return receipt(init);
+ });
+ const start = () => startReadingCoverageAuto({ accountId: owner, online: () => true, hasWork: () => hasReadingCoverageWork(store), verify: getSession, send: (live, signal) => sendReadingCoverage(store, live, signal), publish: state => states.push(state.message) });
+ let sender = start();
+ try {
+  await vi.waitFor(() => expect(states.some(message => message.includes('повторим отправку позже'))).toBe(true));
+  sender.stop();
+  expect((await store.outbox.toArray()).find(op => op.change.type === 'coverage.put')?.state).toBe('sending');
+  await observe(.8, 1);
+  store.close(); await store.open();
+  states.length = 0; sender = start();
+  await vi.waitFor(() => expect(requests).toHaveLength(3));
+  await vi.waitFor(() => expect(states.some(message => message.includes('сохраняются автоматически'))).toBe(true));
+  expect(requests[1]).toBe(requests[0]);
+  expect(body({ body: requests[2] }).coverage.ranges).toEqual([[0, 200000], [800000, 1000000]]);
+  expect((await store.outbox.toArray()).map(op => op.change.type)).toEqual(['position.put']);
+  expect((await store.coverage.toArray())[0].ranges).toEqual([[0, .2], [.8, 1]]);
+ } finally { sender.stop(); }
+});
+
+it('finds legacy account work but excludes guests, foreign and malformed operations', async () => {
+ const { hasReadingCoverageWork } = await import('./reading-coverage-auto');
+ const guest = new LocalDatabase('coverage-auto-guest');
+ try {
+  await guest.coverage.put(legacy());
+  expect(await hasReadingCoverageWork(guest)).toBe(false);
+  expect(await hasReadingCoverageWork(store)).toBe(false);
+  await observe(); const op = (await store.outbox.toArray())[0];
+  await store.outbox.update(op.id, { scope: 'account:other' });
+  expect(await hasReadingCoverageWork(store)).toBe(false);
+  await store.outbox.update(op.id, { scope: store.scope, entity: 'broken' });
+  expect(await hasReadingCoverageWork(store)).toBe(false);
+  await store.coverage.put(legacy('q'));
+  expect(await hasReadingCoverageWork(store)).toBe(true);
+  await queueStoredReadingCoverage(store);
+  expect(await hasReadingCoverageWork(store)).toBe(true);
+ } finally { await guest.delete(); }
+});

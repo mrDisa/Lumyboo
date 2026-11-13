@@ -1,4 +1,5 @@
 import type { components } from './api.generated';
+import { ReadingAutoBusyError } from './reading-auto';
 import { getSession, type AccountSession } from './auth';
 import { requestJSON } from './api';
 import type { LocalDatabase, PendingOperation } from './db';
@@ -35,7 +36,7 @@ export async function sendReadingCoverage(store: LocalDatabase, session: Account
  if (store.scope !== `account:${session.user.id}`) throw new Error('Аккаунт изменился. Открой профиль заново.');
  if (!navigator.locks) throw new Error('Для безопасного сохранения открой приложение в обновлённом браузере по HTTPS или на localhost.');
  return navigator.locks.request(`lumyboo-reading-coverage:${store.scope}`, { mode: 'exclusive', ifAvailable: true }, async lock => {
-  if (!lock) throw new Error('Фрагменты сохраняются в другой вкладке. Дождись завершения и повтори действие.');
+  if (!lock) throw new ReadingAutoBusyError('Фрагменты сохраняются в другой вкладке. Дождись завершения и повтори действие.');
   signal?.throwIfAborted();
   const live = await getSession(signal);
   if (!live || live.user.id !== session.user.id) throw new Error('Аккаунт изменился. Открой профиль заново.');

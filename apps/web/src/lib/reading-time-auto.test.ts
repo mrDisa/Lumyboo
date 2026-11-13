@@ -1,13 +1,15 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from './api';
 import { ReadingTimeBusyError, startReadingTimeAuto, type ReadingTimeAutoState } from './reading-time-auto';
+import { startReadingCoverageAuto } from './reading-coverage-auto';
+describe.each([['time', startReadingTimeAuto], ['coverage', startReadingCoverageAuto]] as const)('%s automatic saving', (_name, start) => {
 const accountId = 'account-a';
 const session = { user: { id: accountId, email: 'a@example.test' }, csrfToken: 'fresh' };
 const active: ReturnType<typeof startReadingTimeAuto>[] = [];
 function setup(overrides: Partial<Parameters<typeof startReadingTimeAuto>[0]> = {}) {
  vi.useFakeTimers();
  const deps = { accountId, online: vi.fn(() => true), hasWork: vi.fn(async () => true), verify: vi.fn(async () => session), send: vi.fn(async () => 1), publish: vi.fn<(state: ReadingTimeAutoState) => void>(), ...overrides };
- const sender = startReadingTimeAuto(deps); active.push(sender);
+ const sender = start(deps); active.push(sender);
  return { ...deps, sender };
 }
 afterEach(() => { active.forEach(sender => sender.stop()); active.length = 0; vi.useRealTimers(); });
@@ -79,4 +81,6 @@ it('aborts an in-flight send and leaves no timers after stop', async () => {
 it('can resume after explicit successful manual saving', async () => {
  const send = vi.fn().mockRejectedValueOnce(new Error('Invalid receipt')).mockResolvedValue(1); const deps = setup({ send });
  await vi.advanceTimersByTimeAsync(0); deps.sender.resume(); await vi.advanceTimersByTimeAsync(0); expect(send).toHaveBeenCalledTimes(2);
+});
+
 });

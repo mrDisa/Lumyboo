@@ -94,7 +94,7 @@ async function queueCoverage(row: ParagraphCoverage, store: LocalDatabase) {
  }
 }
 // Existing v6 account observations already contain exact edition provenance.
-// Queue them once on explicit save; no guest import or inferred edition.
+// Queue them once before saving; no guest import or inferred edition.
 export async function queueStoredReadingCoverage(store: LocalDatabase) {
  if (store.scope === 'guest') throw new Error('Нужно войти в аккаунт.');
  await store.transaction('rw', store.coverage, store.outbox, store.metadata, async () => {
