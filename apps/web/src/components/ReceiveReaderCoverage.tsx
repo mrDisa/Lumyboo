@@ -12,6 +12,7 @@ export function ReceiveReaderCoverage({ store, content }: { store: LocalDatabase
   if (!session || store.scope !== `account:${accountId}`) return;
   const receiver = startReadingCoverageReceive({ store, session, content,
    online: () => navigator.onLine,
+   foreground: () => document.visibilityState === 'visible' && document.hasFocus(),
    publish: state => { if (state.phase === 'paused') notify(`${state.message} Чтение на устройстве доступно; повтори получение в профиле.`); },
   });
   const wake = () => receiver.reconnect();

@@ -22,7 +22,7 @@ function start(overrides: Partial<Parameters<typeof startReadingCoverageReceive>
 }
 const requests = () => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes('/reading-coverage/'));
 beforeEach(async () => {
- vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+ vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
  const { locks } = await vi.importActual<{ locks: LockManager }>('node:worker_threads');
  const prefix = crypto.randomUUID();
  vi.stubGlobal('navigator', { locks: { request: (name: string, options: LockOptions, callback: LockGrantedCallback<unknown>) => locks.request(prefix + name, options, callback) } });
@@ -218,4 +218,65 @@ it('reconnection never overlaps a receive or restarts it after cleanup', async (
  receiver.reconnect(); finish(page()); await realDelay(30);
  expect(await store.coverage.count()).toBe(0); expect(publish).toHaveBeenCalledTimes(count);
  await vi.advanceTimersByTimeAsync(600_000); expect(requests()).toHaveLength(1); expect(vi.getTimerCount()).toBe(0);
+});
+
+it('refreshes a foreground reader every minute, merging another device without changing local work', async () => {
+ const { receiver, publish } = start({ foreground: () => true });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ await saveReadingCoverage(content, [{ paragraph: 'p', range: [0, .2] }], store);
+ const queue = await store.outbox.toArray();
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([{ ...item, ranges: [[400000, 600000]] }]));
+ await vi.advanceTimersByTimeAsync(59_999); expect(requests()).toHaveLength(1);
+ await vi.advanceTimersByTimeAsync(1);
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[0, .2], [.4, .6], [.8, 1]]);
+ expect(await store.outbox.toArray()).toEqual(queue);
+ await vi.advanceTimersByTimeAsync(60_000);
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 3);
+ expect(requests()).toHaveLength(3);
+ receiver.stop(); expect(vi.getTimerCount()).toBe(0);
+});
+
+it('skips periodic refresh while hidden, unfocused or offline and refreshes an empty history later', async () => {
+ let foreground = false; let online = true;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([]));
+ const { publish } = start({ foreground: () => foreground, online: () => online });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ await vi.advanceTimersByTimeAsync(120_000); expect(requests()).toHaveLength(1);
+ foreground = true; online = false;
+ await vi.advanceTimersByTimeAsync(120_000); expect(requests()).toHaveLength(1);
+ online = true;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page());
+ await vi.advanceTimersByTimeAsync(60_000);
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[.8, 1]]);
+});
+
+it('periodic refresh respects Retry-After and a permanent account stop', async () => {
+ const { publish } = start({ foreground: () => true });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Response('{}', { status: 503, headers: { 'Retry-After': '180' } }));
+ await vi.advanceTimersByTimeAsync(60_000);
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('позже')));
+ await vi.advanceTimersByTimeAsync(179_999); expect(requests()).toHaveLength(2);
+ vi.mocked(fetch).mockResolvedValue(response({ ...session, user: { ...session.user, id: 'other' } }));
+ await vi.advanceTimersByTimeAsync(1);
+ await settle(() => publish.mock.calls.some(([state]) => state.phase === 'paused'));
+ const calls = vi.mocked(fetch).mock.calls.length;
+ await vi.advanceTimersByTimeAsync(600_000); expect(fetch).toHaveBeenCalledTimes(calls);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[.8, 1]]);
+});
+
+it('periodic ticks do not overlap a request and cleanup cancels a late refresh', async () => {
+ const { receiver, publish } = start({ foreground: () => true });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ let finish!: (value: Response) => void;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Promise<Response>(resolve => { finish = resolve; }));
+ await vi.advanceTimersByTimeAsync(60_000); await settle(() => !!finish);
+ await vi.advanceTimersByTimeAsync(120_000); expect(requests()).toHaveLength(2);
+ receiver.stop(); const calls = publish.mock.calls.length;
+ finish(page([{ ...item, ranges: [[400000, 600000]] }])); await realDelay(30);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[.8, 1]]);
+ expect(publish).toHaveBeenCalledTimes(calls);
+ await vi.advanceTimersByTimeAsync(600_000); expect(requests()).toHaveLength(2); expect(vi.getTimerCount()).toBe(0);
 });
