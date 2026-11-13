@@ -164,6 +164,52 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /bookmarks/:
+    get:
+      operationId: getAccountBookmarks
+      description: Current account only; no guest data or shared caching.
+      responses:
+        '200':
+          description: Active account bookmarks
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountBookmarks' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /bookmarks/import:
+    post:
+      operationId: importGuestBookmarks
+      description: Additive explicit copy. Existing locators, labels and deletion tombstones win. Entire batch is validated and committed atomically.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [accountId, bookmarks]
+              properties:
+                accountId: { type: string, format: uuid }
+                bookmarks:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items: { $ref: '#/components/schemas/BookmarkEntry' }
+      responses:
+        '200':
+          description: Active account bookmarks after merge
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountBookmarks' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
   parameters:
     CSRFToken:
@@ -186,6 +232,23 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    BookmarkEntry:
+      type: object
+      additionalProperties: false
+      required: [bookId, version, chapter, paragraph, offset, label]
+      properties:
+        bookId: { type: string }
+        version: { type: string }
+        chapter: { type: integer, minimum: 0 }
+        paragraph: { type: string }
+        offset: { type: number, minimum: 0, maximum: 1, exclusiveMaximum: true }
+        label: { type: string, maxLength: 200 }
+    AccountBookmarks:
+      type: object
+      required: [accountId, bookmarks]
+      properties:
+        accountId: { type: string, format: uuid }
+        bookmarks: { type: array, items: { $ref: '#/components/schemas/BookmarkEntry' } }
     AccountShelf:
       type: object
       required: [accountId, bookIds]

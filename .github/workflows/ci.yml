@@ -45,9 +45,10 @@ jobs:
           done
       - name: Authentication integration tests
         env: { TEST_DATABASE_URL: 'postgres://lumyboo:test@localhost:5432/lumyboo?sslmode=disable' }
-        run: go -C services/api test -race ./internal/auth ./internal/httpapi
+        run: go -C services/api test -race ./internal/auth ./internal/httpapi ./internal/bookmarks
       - name: Roll back and reapply migrations
         run: |
+          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/003_pilot_book_versions.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/002_auth.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/001_local_pilot.down.sql
           for migration in services/api/db/migrations/*.up.sql; do

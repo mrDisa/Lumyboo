@@ -13,10 +13,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"lumyboo/services/api/internal/auth"
+	"lumyboo/services/api/internal/bookmarks"
 	"lumyboo/services/api/internal/shelf"
 )
 
 type AuthOptions struct {
+	Bookmarks      bookmarks.Store
 	Shelf          shelf.Store
 	Service        *auth.Service
 	Origin         string
@@ -79,10 +81,13 @@ func mountAuth(r chi.Router, options AuthOptions) {
 	})
 }
 func decodeJSON(w http.ResponseWriter, r *http.Request, value any) error {
+	return decodeJSONLimit(w, r, value, 2048)
+}
+func decodeJSONLimit(w http.ResponseWriter, r *http.Request, value any, limit int64) error {
 	if strings.Split(r.Header.Get("Content-Type"), ";")[0] != "application/json" {
 		return errors.New("expected JSON")
 	}
-	r.Body = http.MaxBytesReader(w, r.Body, 2048)
+	r.Body = http.MaxBytesReader(w, r.Body, limit)
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(value); err != nil {

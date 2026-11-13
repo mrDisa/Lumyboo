@@ -11,5 +11,5 @@ export function Modal({ title, children, close }: { title: string; children: Rea
     dialog.current?.showModal();
     return () => { dialog.current?.close(); previous?.focus(); };
   }, []);
-  return <dialog ref={dialog} onCancel={close} onClick={e => { if (e.target === dialog.current) close(); }}><div className="sheet"><div className="handle" /><div className="sheet-head"><h2>{title}</h2><button className="circle" onClick={close} aria-label="Закрыть окно"><Icon name="close" /></button></div>{children}</div></dialog>;
+  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); close(); }} onClick={e => { if (e.target === dialog.current) close(); }}><div className="sheet"><div className="handle" /><div className="sheet-head"><h2>{title}</h2><button className="circle" onClick={close} aria-label="Закрыть окно"><Icon name="close" /></button></div>{children}</div></dialog>;
 }

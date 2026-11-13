@@ -1,0 +1,57 @@
+{
+  "room-for-stories": {
+    "version": "1",
+    "chapters": [
+      [
+        "ch-1-p-1",
+        "ch-1-p-2",
+        "ch-1-p-3"
+      ],
+      [
+        "ch-2-p-1",
+        "ch-2-p-2",
+        "ch-2-p-3"
+      ],
+      [
+        "ch-3-p-1",
+        "ch-3-p-2",
+        "ch-3-p-3"
+      ],
+      [
+        "ch-4-p-1",
+        "ch-4-p-2",
+        "ch-4-p-3"
+      ],
+      [
+        "ch-5-p-1",
+        "ch-5-p-2",
+        "ch-5-p-3"
+      ]
+    ]
+  },
+  "white-nights-excerpt": {
+    "version": "1",
+    "chapters": [
+      [
+        "ch-1-p-1",
+        "ch-1-p-2",
+        "ch-1-p-3"
+      ],
+      [
+        "ch-2-p-1",
+        "ch-2-p-2",
+        "ch-2-p-3"
+      ]
+    ]
+  },
+  "gambler-excerpt": {
+    "version": "1",
+    "chapters": [
+      [
+        "ch-1-p-1",
+        "ch-1-p-2",
+        "ch-1-p-3"
+      ]
+    ]
+  }
+}
