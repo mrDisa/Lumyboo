@@ -4,6 +4,7 @@ import type { BookContent } from './books';
 import type { LocalDatabase } from './db';
 import { mergeTextRanges, type TextRange } from './reading-coverage';
 import { validCoverageRanges, type CoverageReport } from './reading-coverage-sync';
+import { ReadingAutoBusyError } from './reading-auto';
 
 // Match PostgreSQL C collation for paragraph IDs, including non-ASCII IDs.
 function compareIDs(a: string, b: string) {
@@ -19,7 +20,7 @@ export async function receiveReadingCoverage(store: LocalDatabase, session: Acco
  if (!navigator.locks) throw new Error('Для безопасного сохранения открой приложение в обновлённом браузере по HTTPS или на localhost.');
  signal?.throwIfAborted();
  return navigator.locks.request(`lumyboo-reading-coverage:${store.scope}`, { mode: 'exclusive', ifAvailable: true }, async lock => {
-  if (!lock) throw new Error('Фрагменты сохраняются в другой вкладке. Дождись завершения и повтори действие.');
+  if (!lock) throw new ReadingAutoBusyError('Фрагменты сохраняются в другой вкладке. Дождись завершения и повтори действие.');
   async function checkOwner() {
    signal?.throwIfAborted();
    const live = await getSession(signal);

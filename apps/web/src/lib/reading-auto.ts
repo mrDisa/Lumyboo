@@ -20,16 +20,16 @@ function retryDelay(error: unknown, failures: number) {
  return null;
 }
 // Bounded account-only sender. Never infer an owner or restart after cleanup.
-export function startReadingAuto(deps: ReadingAutoDependencies, messages: ReadingAutoMessages) {
+export function startReadingAuto(deps: ReadingAutoDependencies, messages: ReadingAutoMessages, options: { once?: boolean } = {}) {
  const controller = new AbortController();
  let timer: ReturnType<typeof setTimeout> | undefined;
- let running = false; let paused = false; let failures = 0;
+ let running = false; let paused = false; let failures = 0; let completed = false;
  const publish = (phase: ReadingAutoState['phase'], message: string) => {
   if (!controller.signal.aborted) deps.publish({ accountId: deps.accountId, phase, message });
  };
  const schedule = (delay: number) => { if (!controller.signal.aborted && !paused) timer = setTimeout(() => { timer = undefined; void run(); }, delay); };
  async function run() {
-  if (controller.signal.aborted || running || paused) return;
+  if (controller.signal.aborted || running || paused || completed) return;
   if (!deps.online()) { publish('offline', messages.offline); return; }
   running = true;
   let delay: number | null = 30_000;
@@ -43,6 +43,7 @@ export function startReadingAuto(deps: ReadingAutoDependencies, messages: Readin
     const sent = await deps.send(session, controller.signal);
     // Yield between bounded batches; later snapshots remain in the queue.
     if (sent === 50) delay = 1000;
+    if (options.once) { completed = true; delay = null; }
    }
    failures = 0;
    publish('waiting', messages.waiting);
