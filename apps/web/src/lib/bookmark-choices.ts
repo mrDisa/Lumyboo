@@ -6,7 +6,7 @@ import { applyAccountBookmark, bookmarkEntry, sameBookmark, type BookmarkChange 
 function assertOwner(store: LocalDatabase, accountId?: string) {
  if (!store.scope.startsWith('account:') || accountId && store.scope !== `account:${accountId}`) throw new Error('Аккаунт изменился. Открой профиль заново.');
 }
-async function withBookmarkLock<T>(store: LocalDatabase, id: string, action: () => Promise<T>): Promise<T> {
+export async function withBookmarkLock<T>(store: LocalDatabase, id: string, action: () => Promise<T>): Promise<T> {
  if (!navigator.locks) throw new Error('Для безопасного сохранения закладки открой приложение в обновлённом браузере по HTTPS или на localhost.');
  return navigator.locks.request(`lumyboo-bookmark-choice:${JSON.stringify([store.scope, id])}`, { mode: 'exclusive', ifAvailable: true }, async lock => {
   if (!lock) throw new Error('Закладка сохраняется в другой вкладке. Дождись завершения и повтори действие.');

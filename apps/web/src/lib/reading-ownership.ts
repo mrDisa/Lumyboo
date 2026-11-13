@@ -1,5 +1,7 @@
 import type { OperationScope } from './db';
 
+export const readingLockName = (scope: OperationScope, bookId: string) => `lumyboo-reader:${JSON.stringify([scope, bookId])}`;
+
 // Acquire before loading/reconciling the local locator, not just before the
 // first save. A waiting reader must load the position after the previous one
 // has flushed, rather than keep a stale snapshot from its initial opening.
@@ -14,7 +16,7 @@ export function ownReading(
  let acquired = false; let disposed = false;
  let release!: () => void;
  const closed = new Promise<void>(resolve => { release = resolve; });
- const name = `lumyboo-reader:${JSON.stringify([scope, bookId])}`;
+ const name = readingLockName(scope, bookId);
  // Defer the request so a cancelled effect (including StrictMode's initial
  // replay) cannot briefly occupy the lock and reject its own replacement.
  void Promise.resolve().then(() => {
