@@ -15,7 +15,7 @@ it('counts local account changes, including sending operations and deletion tomb
  await toggleShelf('book', store);
  await store.outbox.toCollection().modify({ state: 'sending' });
  const status = await accountSaveStatus(store);
- expect(status).toEqual({ positions: 1, bookmarks: 1, sessions: 1, other: 1, total: 4, choices: 0, conflicts: 0 });
+ expect(status).toEqual({ positions: 1, bookmarks: 1, sessions: 1, other: 1, total: 4, choices: 0, conflicts: 0, bookmarkChoices: 0, bookmarkConflicts: 0 });
  expect(accountSaveHeading(status)).toBe('Сохранено на устройстве');
 });
 it('prioritizes persisted conflicts and uncertain saves after reopen', async () => {
@@ -33,4 +33,18 @@ it('keeps accounts and guest reading separate and never calls an empty queue syn
  expect(status.total).toBe(0);
  expect(accountSaveHeading(status)).toBe('Нет изменений, ожидающих отправки');
  await expect(accountSaveStatus(guest)).rejects.toThrow('Нужно войти');
+});
+
+it('shows unresolved bookmark requests even without outbox entries after reopen', async () => {
+ await store.bookmarkChoices.put({ id: 'bookmark', change: { operationId: 'op', expectedRevision: 0, bookmark: { ...position, label: 'chapter' }, deleted: true }, conflict: false, coveredOperationIds: [] });
+ store.close(); await store.open();
+ let status = await accountSaveStatus(store);
+ expect(status.total).toBe(0);
+ expect(status.bookmarkChoices).toBe(1);
+ expect(accountSaveHeading(status)).toBe('Сохранение закладки не подтверждено');
+ await store.bookmarkChoices.update('bookmark', { conflict: true });
+ status = await accountSaveStatus(store);
+ expect(status.bookmarkConflicts).toBe(1);
+ expect(accountSaveHeading(status)).toBe('Есть конфликт закладок');
+ expect((await accountSaveStatus(other)).bookmarkChoices).toBe(0);
 });
