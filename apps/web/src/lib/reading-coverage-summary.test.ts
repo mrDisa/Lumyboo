@@ -14,12 +14,12 @@ const row = (paragraph: string, ranges: ParagraphCoverage['ranges'], patch: Part
 
 it('keeps skipped chapters unseen and separates partial from full paragraphs', () => {
  expect(summarizeReadingCoverage(content, [row('p1', [[0, .2], [.8, 1]]), row('p2', [[.4, 1], [0, .5]])])).toEqual([
-  { full: 1, partial: 1, unseen: 0, total: 2, firstIncomplete: 0 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0 },
+  { full: 1, partial: 1, unseen: 0, total: 2, firstIncomplete: 0, firstIncompleteOffset: .2 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0, firstIncompleteOffset: 0 },
  ]);
 });
 it('does not round away small gaps or count another edition, book, chapter or paragraph', () => {
  expect(summarizeReadingCoverage(content, [row('p1', [[0, .5], [.500001, 1]]), row('p2', [[0, 1]], { version: 'old' }), row('p2', [[0, 1]], { bookId: 'other' }), row('p3', [[0, 1]]), row('unknown', [[0, 1]])])).toEqual([
-  { full: 0, partial: 1, unseen: 1, total: 2, firstIncomplete: 0 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0 },
+  { full: 0, partial: 1, unseen: 1, total: 2, firstIncomplete: 0, firstIncompleteOffset: .5 }, { full: 0, partial: 0, unseen: 1, total: 1, firstIncomplete: 0, firstIncompleteOffset: 0 },
  ]);
 });
 it('counts repeated observations once and leaves source ranges unchanged', () => {
@@ -59,4 +59,21 @@ it('finds the earliest incomplete paragraph in text order, including partial gap
  expect(summarizeReadingCoverage(content, rows)[0].firstIncomplete).toBeNull();
  expect(summarizeReadingCoverage(content, [row('p1', [[0, 1]])])[0].firstIncomplete).toBe(1);
  expect(summarizeReadingCoverage({ ...content, chapters: [{ id: 'empty', title: 'Empty', paragraphs: [] }] }, [])[0].firstIncomplete).toBeNull();
+});
+
+
+it('targets the first missing prefix, internal gap or suffix without skipping tiny gaps', () => {
+ const target = (ranges: ParagraphCoverage['ranges']) => summarizeReadingCoverage(content, [row('p1', ranges)])[0].firstIncompleteOffset;
+ expect(target([])).toBe(0);
+ expect(target([[.2, 1]])).toBe(0);
+ expect(target([[0, .4], [.8, 1]])).toBe(.4);
+ expect(target([[0, .999999]])).toBe(.999999);
+ expect(target([[0, .4], [.400001, 1]])).toBe(.4);
+ expect(target([[.8, 1], [0, .3], [.2, .6]])).toBe(.6);
+ const joined = summarizeReadingCoverage(content, [row('p1', [[0, .3]]), row('p1', [[.2, 1]]), row('p2', [[0, .7]])])[0];
+ expect(joined.firstIncomplete).toBe(1);
+ expect(joined.firstIncompleteOffset).toBe(.7);
+ const complete = summarizeReadingCoverage(content, [row('p1', [[0, 1]]), row('p2', [[0, 1]])])[0];
+ expect(complete.firstIncomplete).toBeNull();
+ expect(complete.firstIncompleteOffset).toBeNull();
 });
