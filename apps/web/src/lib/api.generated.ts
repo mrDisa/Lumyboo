@@ -169,6 +169,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bookmarks/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Full account bookmark snapshot including deletion tombstones and per-bookmark revisions. Never cached. */
+        get: operations["getAccountBookmarkState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookmarks/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description One atomic bookmark mutation with optimistic revision and durable operation receipt. Revision 0 means absent; deletes create tombstones even when absent. Reusing an operation UUID with different payload or operation kind fails. A replay returns its original result, which may be older than current state. Client clocks never set precedence. Only current pilot editions are accepted. */
+        post: operations["applyAccountBookmark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/positions/": {
         parameters: {
             query?: never;
@@ -234,6 +268,16 @@ export interface components {
             paragraph: string;
             offset: number;
             label: string;
+        };
+        BookmarkState: {
+            bookId: string;
+            version: string;
+            chapter: number;
+            paragraph: string;
+            offset: number;
+            label: string;
+            revision: number;
+            deleted: boolean;
         };
         AccountBookmarks: {
             /** Format: uuid */
@@ -588,6 +632,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountBookmarks"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getAccountBookmarkState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current account bookmark state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        bookmarks: components["schemas"]["BookmarkState"][];
+                    };
+                };
+            };
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    applyAccountBookmark: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["CSRFToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    accountId: string;
+                    /** Format: uuid */
+                    operationId: string;
+                    expectedRevision: number;
+                    bookmark: components["schemas"]["BookmarkEntry"];
+                    deleted: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Original committed operation result; refetch state for current data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        bookmark: components["schemas"]["BookmarkState"];
+                    };
                 };
             };
             400: components["responses"]["Error"];

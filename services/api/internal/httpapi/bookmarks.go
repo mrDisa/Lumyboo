@@ -3,6 +3,7 @@ package httpapi
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"math"
 	"net/http"
 	"unicode/utf8"
@@ -48,6 +49,8 @@ func mountBookmarks(r chi.Router, options AuthOptions) {
 			})
 		})
 		r.Get("/", h.accountBookmarks)
+		r.Get("/state", h.bookmarkState)
+		r.Post("/apply", h.applyBookmark)
 		r.Post("/import", h.importBookmarks)
 	})
 }
@@ -118,4 +121,75 @@ func (h authHandler) importBookmarks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, 200, map[string]any{"accountId": user.ID, "bookmarks": result})
+}
+
+func (h authHandler) bookmarkState(w http.ResponseWriter, r *http.Request) {
+	user, err := h.Service.Session(r.Context(), h.cookie(r))
+	if err != nil {
+		authFailure(w, r, err)
+		return
+	}
+	entries, err := h.Bookmarks.State(r.Context(), user.ID)
+	if err != nil {
+		failure(w, r, 503, "bookmarks_unavailable", "Не удалось загрузить состояние закладок.")
+		return
+	}
+	respond(w, 200, map[string]any{"accountId": user.ID, "bookmarks": entries})
+}
+func (h authHandler) applyBookmark(w http.ResponseWriter, r *http.Request) {
+	token := h.cookie(r)
+	user, err := h.Service.Session(r.Context(), token)
+	if err != nil {
+		authFailure(w, r, err)
+		return
+	}
+	if !h.Service.ValidCSRF(token, r.Header.Get("X-CSRF-Token")) {
+		failure(w, r, 403, "invalid_csrf", "Обнови страницу и повтори сохранение.")
+		return
+	}
+	var body struct {
+		AccountID        string `json:"accountId"`
+		OperationID      string `json:"operationId"`
+		ExpectedRevision *int64 `json:"expectedRevision"`
+		Deleted          *bool  `json:"deleted"`
+		Bookmark         struct {
+			BookID    string   `json:"bookId"`
+			Version   string   `json:"version"`
+			Chapter   *int     `json:"chapter"`
+			Paragraph string   `json:"paragraph"`
+			Offset    *float64 `json:"offset"`
+			Label     *string  `json:"label"`
+		} `json:"bookmark"`
+	}
+	if decodeJSON(w, r, &body) != nil || !operationUUID.MatchString(body.OperationID) || body.ExpectedRevision == nil || *body.ExpectedRevision < 0 || *body.ExpectedRevision >= 9007199254740991 || body.Deleted == nil || body.Bookmark.Chapter == nil || body.Bookmark.Offset == nil || body.Bookmark.Label == nil {
+		failure(w, r, 400, "invalid_request", "Проверь изменение закладки.")
+		return
+	}
+	if body.AccountID != user.ID {
+		failure(w, r, 409, "account_changed", "Аккаунт изменился. Открой профиль заново.")
+		return
+	}
+	entry := bookmarks.Entry{BookID: body.Bookmark.BookID, Version: body.Bookmark.Version, Chapter: *body.Bookmark.Chapter, Paragraph: body.Bookmark.Paragraph, Offset: *body.Bookmark.Offset, Label: *body.Bookmark.Label}
+	var locations map[string]editionLocations
+	if json.Unmarshal(bookmarkLocations, &locations) != nil {
+		failure(w, r, 503, "bookmarks_unavailable", "Каталог временно недоступен.")
+		return
+	}
+	if !validBookmark(entry, locations) {
+		failure(w, r, 400, "invalid_bookmark", "Закладка не соответствует текущему тексту.")
+		return
+	}
+	result, err := h.Bookmarks.Apply(r.Context(), user.ID, bookmarks.Change{OperationID: body.OperationID, ExpectedRevision: *body.ExpectedRevision, Bookmark: entry, Deleted: *body.Deleted})
+	switch {
+	case errors.Is(err, bookmarks.ErrConflict):
+		failure(w, r, 409, "bookmark_conflict", "Закладка аккаунта изменилась. Загрузи её заново.")
+		return
+	case errors.Is(err, bookmarks.ErrOperationReused):
+		failure(w, r, 409, "operation_reused", "Этот запрос уже использован для другого изменения.")
+		return
+	case err != nil:
+		failure(w, r, 503, "bookmarks_unavailable", "Не удалось сохранить закладку. Можно безопасно повторить этот запрос.")
+		return
+	}
+	respond(w, 200, map[string]any{"accountId": user.ID, "bookmark": result})
 }

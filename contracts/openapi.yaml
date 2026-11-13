@@ -210,6 +210,61 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /bookmarks/state:
+    get:
+      operationId: getAccountBookmarkState
+      description: Full account bookmark snapshot including deletion tombstones and per-bookmark revisions. Never cached.
+      responses:
+        '200':
+          description: Current account bookmark state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, bookmarks]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  bookmarks: { type: array, items: { $ref: '#/components/schemas/BookmarkState' } }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /bookmarks/apply:
+    post:
+      operationId: applyAccountBookmark
+      description: One atomic bookmark mutation with optimistic revision and durable operation receipt. Revision 0 means absent; deletes create tombstones even when absent. Reusing an operation UUID with different payload or operation kind fails. A replay returns its original result, which may be older than current state. Client clocks never set precedence. Only current pilot editions are accepted.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [accountId, operationId, expectedRevision, bookmark, deleted]
+              properties:
+                accountId: { type: string, format: uuid }
+                operationId: { type: string, format: uuid }
+                expectedRevision: { type: integer, minimum: 0, maximum: 9007199254740990 }
+                bookmark: { $ref: '#/components/schemas/BookmarkEntry' }
+                deleted: { type: boolean }
+      responses:
+        '200':
+          description: Original committed operation result; refetch state for current data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, bookmark]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  bookmark: { $ref: '#/components/schemas/BookmarkState' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
   /positions/:
     get:
       operationId: getAccountPositions
@@ -318,6 +373,18 @@ components:
         paragraph: { type: string }
         offset: { type: number, minimum: 0, maximum: 1, exclusiveMaximum: true }
         label: { type: string, maxLength: 200 }
+    BookmarkState:
+      type: object
+      required: [bookId, version, chapter, paragraph, offset, label, revision, deleted]
+      properties:
+        bookId: { type: string }
+        version: { type: string }
+        chapter: { type: integer, minimum: 0 }
+        paragraph: { type: string }
+        offset: { type: number, minimum: 0, maximum: 1, exclusiveMaximum: true }
+        label: { type: string, maxLength: 200 }
+        revision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        deleted: { type: boolean }
     AccountBookmarks:
       type: object
       required: [accountId, bookmarks]

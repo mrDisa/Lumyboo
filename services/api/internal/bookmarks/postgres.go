@@ -20,6 +20,8 @@ type Entry struct {
 	Label     string  `json:"label"`
 }
 type Store interface {
+	State(context.Context, string) ([]State, error)
+	Apply(context.Context, string, Change) (State, error)
 	List(context.Context, string) ([]Entry, error)
 	Import(context.Context, string, []Entry) ([]Entry, error)
 }

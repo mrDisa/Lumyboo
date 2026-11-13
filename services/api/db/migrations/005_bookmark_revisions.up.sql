@@ -1,0 +1,4 @@
+BEGIN;
+ALTER TABLE bookmarks ADD COLUMN server_revision bigint NOT NULL DEFAULT 1
+ CHECK (server_revision BETWEEN 1 AND 9007199254740991);
+COMMIT;
