@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { LocalDatabase, savePosition, toggleBookmark, saveReadingSession, type SavedPositionChoice } from './db';
 import { rememberPositionChoice, sendPositionChoice, forgetPositionChoice } from './position-choices';
 const accountId = '00000000-0000-4000-8000-000000000001';
@@ -8,6 +8,11 @@ const store = new LocalDatabase('position-choice-tests', `account:${accountId}`)
 const session = { user: { id: accountId, email: 'a@example.test' }, csrfToken: 'csrf' };
 const position = { bookId: 'book', version: '1', chapter: 0, paragraph: 'p1', offset: .3 };
 const choice: SavedPositionChoice = { bookId: 'book', conflict: false, choice: { operationId: 'operation-a', expectedRevision: 2, position }, remote: { ...position, offset: .1, revision: 2 } };
+beforeEach(async () => {
+ const { locks } = await vi.importActual<{ locks: LockManager }>('node:worker_threads');
+ const prefix = crypto.randomUUID();
+ vi.stubGlobal('navigator', { locks: { request: (name: string, options: LockOptions, callback: LockGrantedCallback<unknown>) => locks.request(prefix + name, options, callback) } });
+});
 afterEach(async () => { vi.unstubAllGlobals(); await store.delete(); await store.open(); });
 it('reopens an uncertain choice and resends the identical payload without clearing newer reading', async () => {
  const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('Lost response')).mockResolvedValue(new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } })));
@@ -144,4 +149,106 @@ it('rolls back acknowledgement if the local receipt cannot be committed', async 
  await sendPositionChoice(store, session, 'book', 'operation-a');
  expect(await store.outbox.count()).toBe(0);
  expect(await store.positionChoices.count()).toBe(0);
+});
+
+it('blocks cancellation, replacement and duplicate sends from another connection until the receipt is saved', async () => {
+ const other = new LocalDatabase(store.name, store.scope);
+ let finish!: (response: Response) => void;
+ const fetcher = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
+ vi.stubGlobal('fetch', fetcher);
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ const sending = sendPositionChoice(store, session, 'book', 'operation-a');
+ try {
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+  await expect(forgetPositionChoice(other, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
+  await expect(sendPositionChoice(other, session, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
+  await expect(rememberPositionChoice(other, { ...choice, choice: { ...choice.choice, operationId: 'replacement' } })).rejects.toThrow('другой вкладке');
+  expect((await other.positionChoices.get('book'))?.choice.operationId).toBe('operation-a');
+  expect(await other.outbox.count()).toBe(1);
+  expect(fetcher).toHaveBeenCalledOnce();
+ } finally {
+  finish(new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } })));
+  await sending;
+  other.close();
+ }
+ expect(await store.positionChoices.count()).toBe(0);
+ expect(await store.outbox.count()).toBe(0);
+ await rememberPositionChoice(store, choice); // The committed receipt releases ownership.
+});
+
+it('releases ownership after a lost response so an explicit cancellation remains possible', async () => {
+ let fail!: (error: Error) => void;
+ const fetcher = vi.fn(() => new Promise<Response>((_, reject) => { fail = reject; }));
+ vi.stubGlobal('fetch', fetcher);
+ await rememberPositionChoice(store, choice);
+ const result = expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Lost response');
+ await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+ await expect(forgetPositionChoice(store, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
+ fail(new Error('Lost response'));
+ await result;
+ expect(await store.positionChoices.get('book')).toEqual(choice);
+ await forgetPositionChoice(store, 'book', 'operation-a');
+ expect(await store.positionChoices.count()).toBe(0);
+});
+
+it('keeps other books and other accounts independent during a pending request', async () => {
+ const otherAccount = new LocalDatabase('other-choice-account', 'account:other');
+ let finish!: (response: Response) => void;
+ const fetcher = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
+ vi.stubGlobal('fetch', fetcher);
+ await rememberPositionChoice(store, choice);
+ const sending = sendPositionChoice(store, session, 'book', 'operation-a');
+ try {
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+  const anotherBook = { ...choice, bookId: 'another-book', choice: { ...choice.choice, position: { ...position, bookId: 'another-book' } } };
+  await rememberPositionChoice(store, anotherBook);
+  await forgetPositionChoice(store, 'another-book', 'operation-a');
+  await rememberPositionChoice(otherAccount, choice);
+  await forgetPositionChoice(otherAccount, 'book', 'operation-a');
+  expect(await otherAccount.positionChoices.count()).toBe(0);
+  expect(await store.positionChoices.count()).toBe(1);
+ } finally {
+  finish(new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } })));
+  await sending;
+  await otherAccount.delete();
+ }
+});
+
+it('preserves the choice and queue without sending when safe locking is unavailable', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ const saved = await store.positionChoices.get('book');
+ const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+ vi.stubGlobal('navigator', {});
+ await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('HTTPS');
+ await expect(forgetPositionChoice(store, 'book', 'operation-a')).rejects.toThrow('HTTPS');
+ await expect(rememberPositionChoice(store, choice)).rejects.toThrow('HTTPS');
+ expect(await store.positionChoices.get('book')).toEqual(saved);
+ expect(await store.outbox.count()).toBe(1);
+ expect(fetcher).not.toHaveBeenCalled();
+});
+
+it('holds ownership after the server responds until the local receipt transaction commits', async () => {
+ await savePosition({ ...position, updatedAt: 'before' }, store);
+ await rememberPositionChoice(store, choice);
+ vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } }))));
+ let release!: () => void;
+ const receipt = new Promise<void>(resolve => { release = resolve; });
+ let committing = false;
+ const hold = () => { committing = true; void Dexie.waitFor(receipt); };
+ store.positionChoices.hook('deleting', hold);
+ const sending = sendPositionChoice(store, session, 'book', 'operation-a');
+ try {
+  await vi.waitFor(() => expect(committing).toBe(true));
+  await expect(forgetPositionChoice(store, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
+  await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
+ } finally {
+  release();
+  await sending;
+  store.positionChoices.hook('deleting').unsubscribe(hold);
+ }
+ expect(await store.positionChoices.count()).toBe(0);
+ expect(await store.outbox.count()).toBe(0);
+ await rememberPositionChoice(store, choice);
 });
