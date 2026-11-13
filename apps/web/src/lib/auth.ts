@@ -38,9 +38,10 @@ export function useAccount() {
   try { await verifyCode(challengeId, code); announceChange(); }
   finally { await refresh(); }
  }
- async function logout(all = false) {
+ async function logout(all = false, expectedAccountId?: string) {
   try {
    const session = await getSession();
+   if (session && expectedAccountId && session.user.id !== expectedAccountId) throw new ApiError('Аккаунт изменился. Открой профиль заново.', 409, 'account_changed');
    if (session) await requestJSON<void>(all ? '/auth/logout-all' : '/auth/logout', { method: 'POST', headers: { 'X-CSRF-Token': session.csrfToken } });
    announceChange();
   } finally { await refresh(); }

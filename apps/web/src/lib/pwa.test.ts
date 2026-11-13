@@ -31,20 +31,20 @@ it('does not announce offline readiness when the app cache or controller is miss
   controller.controller = null;
   await pwa.checkOfflineShell(); expect(pwa.getOfflineState().shellReady).toBe(false);
 });
-it('keeps a reader open when another tab activates an update', async () => {
+it.each(['/read/test', '/account/read/test'])('keeps reader %s open when another tab activates an update', async path => {
   const pwa = await import('./pwa'); pwa.startOfflineShell();
-  location.pathname = '/read/test'; callbacks.onNeedRefresh(); callbacks.onNeedReload();
+  location.pathname = path; callbacks.onNeedRefresh(); callbacks.onNeedReload();
   await pwa.applyAppUpdate();
   expect(reload).not.toHaveBeenCalled(); expect(activate).not.toHaveBeenCalled();
   expect(pwa.getOfflineState().updateAvailable).toBe(true);
   location.pathname = '/catalog'; await pwa.applyAppUpdate(); expect(reload).toHaveBeenCalledTimes(1);
 });
-it('waits for activation after an explicit update and defers reload if reading starts', async () => {
+it.each(['/read/test', '/account/read/test'])('defers reload if reading starts at %s during activation', async path => {
   const pwa = await import('./pwa'); pwa.startOfflineShell(); callbacks.onNeedRefresh();
   const update = pwa.applyAppUpdate();
   await vi.waitFor(() => expect(activate).toHaveBeenCalledOnce());
   expect(reload).not.toHaveBeenCalled();
-  location.pathname = '/read/test'; callbacks.onNeedReload(); await update; expect(reload).not.toHaveBeenCalled();
+  location.pathname = path; callbacks.onNeedReload(); await update; expect(reload).not.toHaveBeenCalled();
   location.pathname = '/catalog'; await pwa.applyAppUpdate(); expect(reload).toHaveBeenCalledOnce();
 });
 it('surfaces registration failure and retries the installation', async () => {

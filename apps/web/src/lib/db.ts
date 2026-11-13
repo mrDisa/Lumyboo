@@ -11,7 +11,8 @@ export type LocalChange =
   | { type: 'bookmark.put'; key: string; value: Bookmark }
   | { type: 'bookmark.delete'; key: string }
   | { type: 'session.put'; key: string; value: ReadingSession };
-export interface PendingOperation { id: string; formatVersion: 1; scope: 'guest'; deviceId: string; sequence: number; entity: string; state: 'pending' | 'sending'; change: LocalChange }
+export type OperationScope = 'guest' | `account:${string}`;
+export interface PendingOperation { id: string; formatVersion: 1; scope: OperationScope; deviceId: string; sequence: number; entity: string; state: 'pending' | 'sending'; change: LocalChange }
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
 export const defaults: Settings = { id: 'local', theme: 'system', fontSize: 18, font: 'serif', lineHeight: 1.95, onboarded: false, name: '' };
 export class LocalDatabase extends Dexie {
@@ -24,7 +25,7 @@ export class LocalDatabase extends Dexie {
   shelf!: Table<{ bookId: string }, string>;
   downloads!: Table<Download, string>;
   sessions!: Table<ReadingSession, string>;
-  constructor(name = 'lumyboo-local-v1') {
+  constructor(name = 'lumyboo-local-v1', public readonly scope: OperationScope = 'guest') {
     super(name);
     this.version(1).stores({ settings: 'id', positions: 'bookId', bookmarks: 'id, bookId', shelf: 'bookId', downloads: 'bookId', sessions: 'id, day, bookId' });
     this.version(2).stores({ positionHistory: 'id, bookId, [bookId+version]' });
@@ -32,81 +33,81 @@ export class LocalDatabase extends Dexie {
   }
 }
 export const db = new LocalDatabase();
-export async function setSettings(patch: Partial<Omit<Settings, 'id'>>) {
-  await db.transaction('rw', [db.settings, db.outbox, db.metadata], async () => {
-    const value: Settings = { ...defaults, ...await db.settings.get('local'), ...patch, id: 'local' };
-    if (JSON.stringify(value) === JSON.stringify(await db.settings.get('local'))) return;
-    await db.settings.put(value);
-    await enqueue({ type: 'settings.put', key: 'local', value });
+export async function setSettings(patch: Partial<Omit<Settings, 'id'>>, store: LocalDatabase = db) {
+  await store.transaction('rw', [store.settings, store.outbox, store.metadata], async () => {
+    const value: Settings = { ...defaults, ...await store.settings.get('local'), ...patch, id: 'local' };
+    if (JSON.stringify(value) === JSON.stringify(await store.settings.get('local'))) return;
+    await store.settings.put(value);
+    await enqueue({ type: 'settings.put', key: 'local', value }, store);
   });
 }
-export async function toggleShelf(bookId: string) {
-  await db.transaction('rw', [db.shelf, db.outbox, db.metadata], async () => {
-    if (await db.shelf.get(bookId)) {
-      await db.shelf.delete(bookId);
-      await enqueue({ type: 'shelf.delete', key: bookId });
+export async function toggleShelf(bookId: string, store: LocalDatabase = db) {
+  await store.transaction('rw', [store.shelf, store.outbox, store.metadata], async () => {
+    if (await store.shelf.get(bookId)) {
+      await store.shelf.delete(bookId);
+      await enqueue({ type: 'shelf.delete', key: bookId }, store);
     } else {
-      await db.shelf.put({ bookId });
-      await enqueue({ type: 'shelf.put', key: bookId, value: { bookId } });
+      await store.shelf.put({ bookId });
+      await enqueue({ type: 'shelf.put', key: bookId, value: { bookId } }, store);
     }
   });
 }
-export function bookmarkId(p: Position) { return `${p.bookId}:${p.version}:${p.paragraph}`; }
-export async function toggleBookmark(p: Position, label: string) {
+export function bookmarkId(p: Pick<Position, 'bookId' | 'version' | 'paragraph'>) { return `${p.bookId}:${p.version}:${p.paragraph}`; }
+export async function toggleBookmark(p: Position, label: string, store: LocalDatabase = db) {
   const id = bookmarkId(p);
-  await db.transaction('rw', [db.bookmarks, db.outbox, db.metadata], async () => {
-    if (await db.bookmarks.get(id)) {
-      await db.bookmarks.delete(id);
-      await enqueue({ type: 'bookmark.delete', key: id });
+  await store.transaction('rw', [store.bookmarks, store.outbox, store.metadata], async () => {
+    if (await store.bookmarks.get(id)) {
+      await store.bookmarks.delete(id);
+      await enqueue({ type: 'bookmark.delete', key: id }, store);
     } else {
       const value = { ...p, id, label };
-      await db.bookmarks.put(value);
-      await enqueue({ type: 'bookmark.put', key: id, value });
+      await store.bookmarks.put(value);
+      await enqueue({ type: 'bookmark.put', key: id, value }, store);
     }
   });
 }
 
-export async function loadPosition(bookId: string, version: string) {
-  return db.transaction('rw', db.positions, db.positionHistory, async () => {
-    const saved = await db.positions.get(bookId);
+export async function loadPosition(bookId: string, version: string, store: LocalDatabase = db) {
+  return store.transaction('rw', store.positions, store.positionHistory, async () => {
+    const saved = await store.positions.get(bookId);
     if (saved && saved.version !== version) {
-      await db.positionHistory.put({ ...saved, id: `${bookId}:${saved.version}` });
+      await store.positionHistory.put({ ...saved, id: `${bookId}:${saved.version}` });
     }
     return saved;
   });
 }
 
-// Called only inside the same transaction as the local write. Guest operations
-// must never be sent under whichever account happens to be signed in.
-async function enqueue(change: LocalChange) {
-  const meta = await db.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
+// Called inside the local write transaction; ownership is fixed by the
+// database instance, never by whichever cookie happens to be current.
+async function enqueue(change: LocalChange, store: LocalDatabase = db) {
+  const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
   meta.sequence += 1;
-  await db.metadata.put(meta);
+  await store.metadata.put(meta);
   const entity = `${change.type.split('.')[0]}:${change.key}`;
   // Only unsent snapshots can be superseded. Sending operations stay immutable
   // so a lost response can later be retried with the same operation ID.
-  await db.outbox.where('[entity+state]').equals([entity, 'pending']).delete();
-  await db.outbox.add({ id: crypto.randomUUID(), formatVersion: 1, scope: 'guest', deviceId: meta.deviceId, sequence: meta.sequence, entity, state: 'pending', change });
+  await store.outbox.where('[entity+state]').equals([entity, 'pending']).delete();
+  await store.outbox.add({ id: crypto.randomUUID(), formatVersion: 1, scope: store.scope, deviceId: meta.deviceId, sequence: meta.sequence, entity, state: 'pending', change });
 }
-export async function deleteBookmark(id: string) {
-  await db.transaction('rw', [db.bookmarks, db.outbox, db.metadata], async () => {
-    if (!await db.bookmarks.get(id)) return;
-    await db.bookmarks.delete(id);
-    await enqueue({ type: 'bookmark.delete', key: id });
+export async function deleteBookmark(id: string, store: LocalDatabase = db) {
+  await store.transaction('rw', [store.bookmarks, store.outbox, store.metadata], async () => {
+    if (!await store.bookmarks.get(id)) return;
+    await store.bookmarks.delete(id);
+    await enqueue({ type: 'bookmark.delete', key: id }, store);
   });
 }
-export async function savePosition(value: Position) {
-  await db.transaction('rw', [db.positions, db.outbox, db.metadata], async () => {
-    if (JSON.stringify(await db.positions.get(value.bookId)) === JSON.stringify(value)) return;
-    await db.positions.put(value);
-    await enqueue({ type: 'position.put', key: value.bookId, value });
+export async function savePosition(value: Position, store: LocalDatabase = db) {
+  await store.transaction('rw', [store.positions, store.outbox, store.metadata], async () => {
+    if (JSON.stringify(await store.positions.get(value.bookId)) === JSON.stringify(value)) return;
+    await store.positions.put(value);
+    await enqueue({ type: 'position.put', key: value.bookId, value }, store);
   });
 }
-export async function saveReadingSession(value: ReadingSession) {
-  await db.transaction('rw', [db.sessions, db.outbox, db.metadata], async () => {
-    const previous = await db.sessions.get(value.id);
+export async function saveReadingSession(value: ReadingSession, store: LocalDatabase = db) {
+  await store.transaction('rw', [store.sessions, store.outbox, store.metadata], async () => {
+    const previous = await store.sessions.get(value.id);
     if (previous && previous.seconds >= value.seconds || !previous && value.seconds <= 0) return;
-    await db.sessions.put(value);
-    await enqueue({ type: 'session.put', key: value.id, value });
+    await store.sessions.put(value);
+    await enqueue({ type: 'session.put', key: value.id, value }, store);
   });
 }

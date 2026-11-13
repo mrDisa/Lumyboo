@@ -17,7 +17,7 @@ export function App() {
   const stored = useLiveQuery(() => db.settings.get('local'));
   const settings = { ...defaults, ...stored };
   const path = useRouterState({ select: s => s.location.pathname });
-  const reading = path.startsWith('/read/');
+  const reading = path.startsWith('/read/') || path.startsWith('/account/read/');
   const [message, notify] = useState('');
   const [online, setOnline] = useState(navigator.onLine);
   const offline = useSyncExternalStore(subscribeOffline, getOfflineState);

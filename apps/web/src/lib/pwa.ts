@@ -39,7 +39,7 @@ export async function checkOfflineShell() {
 }
 function reloadIfRequested() {
   // Another tab can activate an update, but it must never interrupt this reader.
-  if (requestedReload && !location.pathname.startsWith('/read/')) {
+  if (requestedReload && !(location.pathname.startsWith('/read/') || location.pathname.startsWith('/account/read/'))) {
     requestedReload = false;
     location.reload();
   }
@@ -90,7 +90,7 @@ export async function retryOfflineShell() {
   await checkOfflineShell();
 }
 export async function applyAppUpdate() {
-  if (location.pathname.startsWith('/read/')) return;
+  if (location.pathname.startsWith('/read/') || location.pathname.startsWith('/account/read/')) return;
   if (updatePromise) return updatePromise;
   change({ updating: true });
   updatePromise = withUpdateProtection(async () => {
