@@ -4,13 +4,34 @@ import { liveQuery } from 'dexie';
 import type { BookContent } from './books';
 import { LocalDatabase } from './db';
 import { saveReadingCoverage, type ParagraphCoverage } from './reading-coverage';
-import { firstUnshownLocation, summarizeReadingCoverage } from './reading-coverage-summary';
+import { chapterUnshownLocations, firstUnshownLocation, summarizeReadingCoverage } from './reading-coverage-summary';
 
 const content: BookContent = { id: 'book', version: '1', chapters: [
  { id: 'a', title: 'A', paragraphs: [{ id: 'p1', text: 'One' }, { id: 'p2', text: 'Two' }] },
  { id: 'b', title: 'B', paragraphs: [{ id: 'p3', text: 'Three' }] },
 ] };
 const row = (paragraph: string, ranges: ParagraphCoverage['ranges'], patch: Partial<ParagraphCoverage> = {}): ParagraphCoverage => ({ bookId: 'book', version: '1', chapter: 'a', paragraph, ranges, ...patch });
+
+it('lists every missing prefix, internal gap and suffix in paragraph order', () => {
+ const rows = [row('p2', [[.2, .3]]), row('p1', [[.1, .4], [.400001, .8]])];
+ const before = structuredClone(rows);
+ expect(chapterUnshownLocations(content, rows, 0)).toEqual([
+  { paragraph: 0, offset: 0, end: .1 }, { paragraph: 0, offset: .4, end: .400001 }, { paragraph: 0, offset: .8, end: 1 },
+  { paragraph: 1, offset: 0, end: .2 }, { paragraph: 1, offset: .3, end: 1 },
+ ]);
+ expect(rows).toEqual(before);
+});
+
+it('merges observations, ignores foreign locators and removes filled gaps from the list', () => {
+ const rows = [row('p1', [[0, .4]]), row('p1', [[.3, 1]]), row('p2', [[0, 1]], { version: 'old' }),
+  row('p2', [[0, 1]], { bookId: 'other' }), row('p2', [[0, 1]], { chapter: 'b' })];
+ expect(chapterUnshownLocations(content, rows, 0)).toEqual([{ paragraph: 1, offset: 0, end: 1 }]);
+ rows.push(row('p2', [[0, 1]]));
+ expect(chapterUnshownLocations(content, rows, 0)).toEqual([]);
+ expect(chapterUnshownLocations(content, rows, 1)).toEqual([{ paragraph: 0, offset: 0, end: 1 }]);
+ expect(chapterUnshownLocations(content, rows, 5)).toEqual([]);
+ expect(chapterUnshownLocations({ ...content, chapters: [{ id: 'empty', title: 'Empty', paragraphs: [] }] }, rows, 0)).toEqual([]);
+});
 
 it('returns to skipped text in book order, then advances after coverage fills the gap', () => {
  const rows = [row('p3', [[0, 1]], { chapter: 'b' }), row('p2', [[0, 1]]), row('p1', [[0, .4], [.400001, 1]])];

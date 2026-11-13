@@ -6,3 +6,7 @@
 .contentsItem { display:flex; flex-direction:column; align-items:flex-start; gap:8px; overflow-wrap:anywhere; }
 .contentsItem small { font-size:11px; line-height:1.6; color:var(--muted); font-weight:400; text-align:left; }
 .contentsChapter { display:flex; flex-direction:column; align-items:flex-start; gap:8px; width:100%; padding:0; text-align:left; }
+.gaps { width:100%; font-size:12px; font-weight:400; }
+.gaps summary { cursor:pointer; padding:8px 0; }
+.gapList { list-style:none; margin:0; padding:0; }
+.gapList li { padding:12px 0; border-top:1px solid var(--line); }
