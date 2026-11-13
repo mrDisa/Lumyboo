@@ -311,6 +311,28 @@ paths:
         '409': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /reading-sessions/:
+    get:
+      operationId: listReadingSessions
+      description: Live pages of the signed-in owner's cumulative reports from all devices, ordered by reported day descending then session UUID descending. Always no-store. Does not import local time or verify days or rewards. Concurrent new rows ahead of the cursor require a refresh; duration updates never change ordering.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - name: cursor
+          in: query
+          description: Opaque nextCursor from the preceding page; empty starts at the newest reported day.
+          schema: { type: string, maxLength: 47 }
+      responses:
+        '200':
+          description: One page; empty nextCursor means no further rows at query time.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountReadingSessionPage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
   /reading-sessions/{sessionId}:
     get:
       operationId: getReadingSession
@@ -428,6 +450,16 @@ components:
         day: { type: string, format: date, description: Unverified client calendar day from 0001-01-01 through 9999-12-31. }
         milliseconds: { type: integer, minimum: 1, maximum: 86400000 }
         revision: { type: integer, minimum: 1, maximum: 86400000 }
+    AccountReadingSessionPage:
+      type: object
+      required: [accountId, items, nextCursor]
+      properties:
+        accountId: { type: string, format: uuid }
+        items:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/ReadingSessionSnapshot' }
+        nextCursor: { type: string, maxLength: 47 }
     AccountReadingSession:
       type: object
       required: [accountId, session]

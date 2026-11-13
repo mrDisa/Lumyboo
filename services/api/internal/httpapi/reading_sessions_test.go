@@ -16,6 +16,9 @@ import (
 type readingSessionMemory struct {
 	owner, id string
 	change    readingsessions.Change
+	cursor    string
+	limit     int
+	page      readingsessions.Page
 	calls     int
 	err       error
 }
@@ -146,5 +149,55 @@ func TestReadingSessionSecurityValidationAndErrors(t *testing.T) {
 		if w.Code != 503 {
 			t.Fatal("unconfigured", w.Code, w.Body)
 		}
+	}
+}
+
+func (s *readingSessionMemory) List(_ context.Context, owner, cursor string, limit int) (readingsessions.Page, error) {
+	s.owner, s.cursor, s.limit = owner, cursor, limit
+	s.calls++
+	return s.page, s.err
+}
+func TestReadingSessionHistory(t *testing.T) {
+	store := &readingSessionMemory{page: readingsessions.Page{Items: []readingsessions.Session{}}}
+	handler, cookie, session := readingSessionServer(t, store)
+	cursor := "2026-11-13_00000000-0000-4000-8000-000000000004"
+	path := "/api/v1/reading-sessions/"
+	for _, query := range []string{"", "?limit=50&cursor=" + cursor} {
+		w := authRequest(handler, "GET", path+query, "", "", cookie, "")
+		if w.Code != 200 || store.owner != session.User.ID || w.Header().Get("Cache-Control") != "no-store" || !strings.Contains(w.Body.String(), `"items":[]`) {
+			t.Fatal(w.Code, w.Body, store)
+		}
+		if query == "" && store.limit != 20 || query != "" && (store.limit != 50 || store.cursor != cursor) {
+			t.Fatal(store)
+		}
+	}
+	for _, query := range []string{"?limit=0", "?limit=51", "?limit=-1", "?limit=1.5", "?cursor=bad", "?cursor=0000-01-01_00000000-0000-4000-8000-000000000004", "?cursor=2026-02-29_00000000-0000-4000-8000-000000000004"} {
+		before := store.calls
+		w := authRequest(handler, "GET", path+query, "", "", cookie, "")
+		if w.Code != 400 || store.calls != before {
+			t.Fatal(w.Code, w.Body)
+		}
+	}
+	before := store.calls
+	w := authRequest(handler, "GET", path, "", "", "", "")
+	if w.Code != 401 || store.calls != before {
+		t.Fatal(w.Code, w.Body)
+	}
+	req := httptest.NewRequest("GET", path, nil)
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	if w.Code != 403 || store.calls != before {
+		t.Fatal(w.Code, w.Body)
+	}
+	store.err = errors.New("private database error")
+	w = authRequest(handler, "GET", path, "", "", cookie, "")
+	if w.Code != 503 || strings.Contains(w.Body.String(), "private database") {
+		t.Fatal(w.Code, w.Body)
+	}
+	w = authRequest(New(nil), "GET", path, "", "", cookie, "")
+	if w.Code != 503 {
+		t.Fatal(w.Code, w.Body)
 	}
 }

@@ -25,6 +25,7 @@ func mountReadingSessions(r chi.Router, options AuthOptions) {
 				next.ServeHTTP(w, req)
 			})
 		})
+		r.Get("/", h.readingSessionHistory)
 		r.Get("/{sessionId}", h.readingSession)
 		r.Post("/apply", h.applyReadingSession)
 	})
@@ -107,4 +108,25 @@ func (h authHandler) applyReadingSession(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	respond(w, 200, map[string]any{"accountId": user.ID, "session": result})
+}
+
+func (h authHandler) readingSessionHistory(w http.ResponseWriter, r *http.Request) {
+	user, err := h.Service.Session(r.Context(), h.cookie(r))
+	if err != nil {
+		authFailure(w, r, err)
+		return
+	}
+	cursor := r.URL.Query().Get("cursor")
+	limit, validLimit := bounded(r.URL.Query().Get("limit"), 20, 1, 50)
+	_, _, validCursor := readingsessions.ParseCursor(cursor)
+	if !validLimit || !validCursor {
+		failure(w, r, 400, "invalid_request", "Проверь параметры истории времени.")
+		return
+	}
+	result, err := h.ReadingSessions.List(r.Context(), user.ID, cursor, limit)
+	if err != nil {
+		failure(w, r, 503, "reading_sessions_unavailable", "Не удалось загрузить историю времени.")
+		return
+	}
+	respond(w, 200, map[string]any{"accountId": user.ID, "items": result.Items, "nextCursor": result.NextCursor})
 }

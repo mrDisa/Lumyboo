@@ -281,3 +281,120 @@ func TestPostgresReadingSessions(t *testing.T) {
 		t.Fatal("deleted owner accepted")
 	}
 }
+
+func TestPostgresReadingSessionHistory(t *testing.T) {
+	url := os.Getenv("TEST_DATABASE_URL")
+	if url == "" {
+		t.Skip("TEST_DATABASE_URL is required for PostgreSQL integration")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+	a, b := newID(), newID()
+	for _, owner := range []string{a, b} {
+		if _, err := pool.Exec(ctx, `INSERT INTO users(id) VALUES($1)`, owner); err != nil {
+			t.Fatal(err)
+		}
+		defer pool.Exec(ctx, `DELETE FROM users WHERE id=$1`, owner)
+	}
+	store := Postgres{Pool: pool}
+	empty, err := store.List(ctx, a, "", 20)
+	if err != nil || len(empty.Items) != 0 || empty.Items == nil || empty.NextCursor != "" {
+		t.Fatal(empty, err)
+	}
+	device := newID()
+	changes := make([]Change, 5)
+	for i := range changes {
+		changes[i] = sample()
+		changes[i].Session.SessionID = fmt.Sprintf("00000000-0000-4000-8000-%012d", 5-i)
+		changes[i].Session.DeviceID = device
+		if i == 1 {
+			changes[i].Session.DeviceID = newID()
+		}
+		if i > 1 {
+			changes[i].Session.Day = "2026-11-12"
+		}
+		if _, err := store.Apply(ctx, a, changes[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	foreign := changes[0]
+	foreign.Session.Milliseconds = 9999
+	if _, err := store.Apply(ctx, b, foreign); err != nil {
+		t.Fatal(err)
+	}
+	first, err := store.List(ctx, a, "", 2)
+	if err != nil || len(first.Items) != 2 || first.NextCursor == "" || first.Items[0].SessionID != changes[0].Session.SessionID || first.Items[1].DeviceID != changes[1].Session.DeviceID {
+		t.Fatal(first, err)
+	}
+	update := changes[0]
+	update.OperationID = newID()
+	update.Session.Milliseconds = 60000
+	if _, err := store.Apply(ctx, a, update); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	cursor := ""
+	for page := 0; page < 3; page++ {
+		result, err := store.List(ctx, a, cursor, 2)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, item := range result.Items {
+			if seen[item.SessionID] {
+				t.Fatal("duplicate session across pages", item)
+			}
+			seen[item.SessionID] = true
+			if page == 0 && item.SessionID == changes[0].Session.SessionID && item.Milliseconds != 60000 {
+				t.Fatal("stale cumulative total", item)
+			}
+		}
+		cursor = result.NextCursor
+		if page < 2 && cursor == "" || page == 2 && (cursor != "" || len(result.Items) != 1) {
+			t.Fatal(result)
+		}
+	}
+	if len(seen) != 5 {
+		t.Fatal(seen)
+	}
+	other, err := store.List(ctx, b, "", 20)
+	if err != nil || len(other.Items) != 1 || other.Items[0].Milliseconds != 9999 {
+		t.Fatal(other, err)
+	}
+	// A concurrent row ahead of the cursor appears on refresh, without shifting
+	// the next page; this is a live list rather than a global snapshot.
+	added := sample()
+	added.Session.Day = "2026-11-14"
+	if _, err := store.Apply(ctx, a, added); err != nil {
+		t.Fatal(err)
+	}
+	second, err := store.List(ctx, a, first.NextCursor, 2)
+	if err != nil || len(second.Items) != 2 || second.Items[0].SessionID != changes[2].Session.SessionID {
+		t.Fatal(second, err)
+	}
+	fresh, err := store.List(ctx, a, "", 2)
+	if err != nil || fresh.Items[0].SessionID != added.Session.SessionID {
+		t.Fatal(fresh, err)
+	}
+	// A cursor is a position, not a lookup of a row; it remains usable if that
+	// boundary row no longer exists and never imports another owner's history.
+	if _, err := pool.Exec(ctx, `DELETE FROM reading_sessions WHERE user_id=$1 AND session_id=$2`, a, changes[3].Session.SessionID); err != nil {
+		t.Fatal(err)
+	}
+	absent := "2026-11-12_00000000-0000-4000-8000-000000000002"
+	result, err := store.List(ctx, a, absent, 20)
+	if err != nil || len(result.Items) != 1 || result.NextCursor != "" {
+		t.Fatal(result, err)
+	}
+	for _, limit := range []int{0, -1, 51} {
+		if _, err := store.List(ctx, a, "", limit); !errors.Is(err, ErrInvalid) {
+			t.Fatal(err)
+		}
+	}
+	if _, err := store.List(ctx, a, "bad", 20); !errors.Is(err, ErrInvalid) {
+		t.Fatal(err)
+	}
+}

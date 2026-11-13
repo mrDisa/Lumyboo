@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -40,7 +41,23 @@ type Session struct {
 	Report
 	Revision int64 `json:"revision"`
 }
+type Page struct {
+	Items      []Session `json:"items"`
+	NextCursor string    `json:"nextCursor"`
+}
+
+// Cursor uses immutable ordering fields. Concurrent duration updates cannot move rows.
+func ParseCursor(cursor string) (day, id string, ok bool) {
+	if cursor == "" {
+		return "", "", true
+	}
+	day, id, found := strings.Cut(cursor, "_")
+	date, err := time.Parse("2006-01-02", day)
+	return day, id, found && err == nil && date.Year() >= 1 && date.Format("2006-01-02") == day && ValidID(id)
+}
+
 type Store interface {
+	List(context.Context, string, string, int) (Page, error)
 	Get(context.Context, string, string) (Session, error)
 	Apply(context.Context, string, Change) (Session, error)
 }
@@ -69,6 +86,43 @@ func (s Postgres) Get(ctx context.Context, owner, id string) (Session, error) {
 		return Session{}, ErrNotFound
 	}
 	return p, err
+}
+
+// List is a live page, not an atomic snapshot of the entire history. New rows
+// ahead of the cursor are visible on refresh; no aggregate credit is inferred.
+func (s Postgres) List(ctx context.Context, owner, cursor string, limit int) (Page, error) {
+	day, id, ok := ParseCursor(cursor)
+	if !ok || limit < 1 || limit > 50 {
+		return Page{}, ErrInvalid
+	}
+	query := `SELECT ` + sessionColumns + ` FROM reading_sessions WHERE user_id=$1`
+	args := []any{owner, limit + 1}
+	if cursor != "" {
+		query += ` AND (reported_day,session_id) < ($3::text::date,$4::uuid)`
+		args = append(args, day, id)
+	}
+	rows, err := s.Pool.Query(ctx, query+` ORDER BY reported_day DESC,session_id DESC LIMIT $2`, args...)
+	if err != nil {
+		return Page{}, err
+	}
+	defer rows.Close()
+	result := Page{Items: make([]Session, 0, limit)}
+	for rows.Next() {
+		item, err := scan(rows)
+		if err != nil {
+			return Page{}, err
+		}
+		result.Items = append(result.Items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return Page{}, err
+	}
+	if len(result.Items) > limit {
+		result.Items = result.Items[:limit]
+		last := result.Items[limit-1]
+		result.NextCursor = last.Day + "_" + last.SessionID
+	}
+	return result, nil
 }
 
 type receipt struct {

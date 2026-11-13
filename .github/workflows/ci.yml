@@ -48,6 +48,7 @@ jobs:
         run: go -C services/api test -race ./internal/auth ./internal/httpapi ./internal/bookmarks ./internal/positions ./internal/readingsessions
       - name: Roll back and reapply migrations
         run: |
+          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/007_reading_session_history.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/006_reading_sessions.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/005_bookmark_revisions.down.sql
           psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/004_position_history.down.sql

@@ -236,6 +236,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reading-sessions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Live pages of the signed-in owner's cumulative reports from all devices, ordered by reported day descending then session UUID descending. Always no-store. Does not import local time or verify days or rewards. Concurrent new rows ahead of the cursor require a refresh; duration updates never change ordering. */
+        get: operations["listReadingSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reading-sessions/{sessionId}": {
         parameters: {
             query?: never;
@@ -318,6 +335,12 @@ export interface components {
             day: string;
             milliseconds: number;
             revision: number;
+        };
+        AccountReadingSessionPage: {
+            /** Format: uuid */
+            accountId: string;
+            items: components["schemas"]["ReadingSessionSnapshot"][];
+            nextCursor: string;
         };
         AccountReadingSession: {
             /** Format: uuid */
@@ -853,6 +876,34 @@ export interface operations {
             401: components["responses"]["Error"];
             403: components["responses"]["Error"];
             409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    listReadingSessions: {
+        parameters: {
+            query?: {
+                limit?: number;
+                /** @description Opaque nextCursor from the preceding page; empty starts at the newest reported day. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page; empty nextCursor means no further rows at query time. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountReadingSessionPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
             503: components["responses"]["Error"];
         };
     };
