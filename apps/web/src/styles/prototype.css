@@ -134,3 +134,5 @@ body{background:var(--bg)}.phone{box-shadow:0 35px 100px #00000012,0 0 0 8px var
 .onboard-art .sculpture{left:50%;top:7px;width:255px;transform:translateX(-50%) rotate(-8deg)}
 .onboard-art .art-caption{position:absolute;bottom:0;left:26px;font-size:8px;font-weight:700;letter-spacing:.16em;color:var(--muted)}
 @media(max-width:365px){.onboard-art .sculpture{left:50%;width:238px}}
+
+.stats-time{grid-template-columns:repeat(2,1fr)}

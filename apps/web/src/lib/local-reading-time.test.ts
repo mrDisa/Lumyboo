@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import { liveQuery } from 'dexie';
 import { LocalDatabase, saveReadingSession } from './db';
 import { loadLocalReadingTime } from './local-reading-time';
 
@@ -39,4 +40,29 @@ it('keeps guest history separate from account histories across reopen and expose
   await guest.open();
   expect((await loadLocalReadingTime(guest, '2026-11-13')).today).toBe(10);
  } finally { await guest.delete(); await account.delete(); }
+});
+
+it('updates account daily history from saved sessions while isolating another account and preserving pending operations', async () => {
+ const account = new LocalDatabase(`daily-${crypto.randomUUID()}`, 'account:a');
+ const other = new LocalDatabase(`daily-${crypto.randomUUID()}`, 'account:b');
+ let latest: Awaited<ReturnType<typeof loadLocalReadingTime>> | undefined;
+ const subscription = liveQuery(() => loadLocalReadingTime(account, '2026-11-13')).subscribe(value => { latest = value; });
+ try {
+  await vi.waitFor(() => expect(latest?.days).toEqual([]));
+  const base = { id: 'same', bookId: 'book', version: '1', day: '2026-11-13', seconds: 60 };
+  await saveReadingSession(base, account);
+  await saveReadingSession({ ...base, seconds: 9000 }, other);
+  await saveReadingSession({ ...base, seconds: 90 }, account);
+  await saveReadingSession({ ...base, id: 'edition', version: '2', seconds: 30 }, account);
+  await account.sessions.put({ ...base, id: 'legacy', version: undefined, day: '2026-11-12', seconds: 10 });
+  const pending = await account.outbox.toArray();
+  expect(pending.length).toBeGreaterThan(0);
+  await vi.waitFor(() => expect(latest).toEqual({ total: 130, today: 120, bookmarks: 0,
+   days: [{ day: '2026-11-13', seconds: 120 }, { day: '2026-11-12', seconds: 10 }],
+  }));
+  expect(await account.outbox.toArray()).toEqual(pending);
+  account.close(); await account.open();
+  expect(await loadLocalReadingTime(account, '2026-11-14')).toEqual({ ...latest, today: 0 });
+  expect((await loadLocalReadingTime(other, '2026-11-13')).total).toBe(9000);
+ } finally { subscription.unsubscribe(); await account.delete(); await other.delete(); }
 });

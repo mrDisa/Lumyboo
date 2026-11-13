@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { db, setSettings } from '../lib/db';
 import { useApp } from '../lib/context';
-import { GuestReadingTime } from '../components/GuestReadingTime';
+import { GuestReadingTime } from '../components/LocalReadingTime';
 import { Icon, Sculpture, Empty } from '../components/ui';
 import { BookCard } from '../components/BookCard';
 import { books } from './Library';
