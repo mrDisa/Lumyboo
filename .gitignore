@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+coverage/
+__pycache__/
+*.pyc
+
+# Local planning and work logs: never commit or force-add.
+/Lumyboo-Development-Plan.md
+/docs/PRODUCT-RULES.md
+/docs/STATUS.md
+/docs/QA.md

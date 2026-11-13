@@ -1,0 +1,5 @@
+.tools { display:flex; justify-content:space-between; gap:8px; margin-top:10px; }
+.tools button { display:flex; align-items:center; gap:6px; }
+.tools svg { width:16px; }
+.text :global(.reader-text) { line-height:var(--reader-leading,1.95); }
+.text p { scroll-margin-top:20px; overflow-wrap:break-word; }
