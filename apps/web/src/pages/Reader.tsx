@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useAccount, getSession, type AccountSession } from '../lib/auth';
 import { loadAccountPositions, samePosition, type ReadingLocator } from '../lib/positions';
 import { loadAccountBookmarks } from '../lib/bookmarks';
@@ -10,6 +10,7 @@ import { books } from './Library';
 import { loadBook, type BookContent } from '../lib/books';
 import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, savePosition, saveReadingSession, deleteBookmark, type Position, type LocalDatabase } from '../lib/db';
 import { protectReading } from '../lib/update-guard';
+import { ownReading } from '../lib/reading-ownership';
 import { ReadingClock, localDay } from '../lib/reading';
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
@@ -22,17 +23,34 @@ export function Reader({ accountMode = false }: { accountMode?: boolean }) {
   if (query.isPending) return <Empty>Открываем историю…</Empty>;
   if (query.isError) return <Empty><p>{query.error.message}</p><button className="secondary section" onClick={() => void query.refetch()}>Попробовать снова</button><Link to="/book/$bookId" params={{ bookId: book.id }}>Вернуться к книге</Link></Empty>;
   if (accountMode) return <AccountReaderGate content={query.data} bookId={book.id} title={book.title} author={book.author} excerpt={book.kind === 'excerpt'} />;
-  return <ReaderContent key={book.id} content={query.data} bookId={book.id} title={book.title} author={book.author} excerpt={book.kind === 'excerpt'} />;
+  return <ReadingOwnership key={book.id} source={db} bookId={book.id}>{registerSave => <ReaderContent content={query.data} bookId={book.id} title={book.title} author={book.author} excerpt={book.kind === 'excerpt'} registerSave={registerSave} />}</ReadingOwnership>;
 }
 type ReaderProps = { content: BookContent; bookId: string; title: string; author: string; excerpt: boolean };
+type RegisterSave = (save: () => Promise<void>) => void;
+function ReadingOwnership({ source, bookId, children }: { source: LocalDatabase; bookId: string; children: (registerSave: RegisterSave) => ReactNode }) {
+ const { notify } = useApp();
+ const [state, setState] = useState<'opening' | 'ready' | 'busy' | 'error'>('opening');
+ const [error, setError] = useState(''); const [attempt, setAttempt] = useState(0);
+ const save = useRef<() => Promise<void>>(async () => {});
+ const registerSave = useCallback<RegisterSave>(callback => { save.current = callback; }, []);
+ useEffect(() => ownReading(source.scope, bookId, () => save.current(), () => setState('ready'), () => setState('busy'), error => {
+  const message = error instanceof Error ? error.message : 'Не удалось защитить место чтения.';
+  setError(message); setState('error'); notify(message);
+ }), [source, bookId, attempt]);
+ if (state === 'ready') return children(registerSave);
+ return <Empty><p role="status">{state === 'busy' ? 'Эта книга уже открыта в другой вкладке.' : state === 'error' ? error : 'Подготавливаем чтение…'}</p>{state === 'busy' && <p className="description">Сохрани и закрой читалку в той вкладке, затем повтори открытие здесь.</p>}{state !== 'opening' && <button className="primary section" onClick={() => { setState('opening'); setAttempt(value => value + 1); }}>Попробовать снова</button>}<Link className="secondary section" to={source.scope === 'guest' ? '/catalog' : '/profile'}>Вернуться {source.scope === 'guest' ? 'в каталог' : 'в профиль'}</Link></Empty>;
+}
 function AccountReaderGate(props: ReaderProps) {
  const account = useAccount();
  if (account.checking) return <Empty>Проверяем вход…</Empty>;
  if (!account.session) return <Empty><p>{account.error ? 'Не удалось проверить вход. Для открытия данных аккаунта подключись к сети.' : 'Войди, чтобы открыть своё место аккаунта.'}</p><Link className="secondary section" to="/login">Войти</Link><Link className="secondary section" to="/read/$bookId" params={{ bookId: props.bookId }}>Читать как гость</Link></Empty>;
- return <AccountReaderStart key={`${account.session.user.id}:${props.bookId}`} {...props} session={account.session} />;
+ const session = account.session;
+ return <ReadingOwnership key={`${session.user.id}:${props.bookId}`} source={accountDatabase(session.user.id)} bookId={props.bookId}>{registerSave => <AccountReaderStart {...props} session={session} registerSave={registerSave} />}</ReadingOwnership>;
 }
-function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
+function AccountReaderStart(props: ReaderProps & { session: AccountSession; registerSave: RegisterSave }) {
  const store = accountDatabase(props.session.user.id);
+ const preparation = useRef<Promise<void>>(Promise.resolve());
+ useEffect(() => { props.registerSave(() => preparation.current); }, [props.registerSave]);
  const [attempt, setAttempt] = useState(0);
  const [ready, setReady] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const starting = useRef(false);
  const query = useQuery({ queryKey: ['account-reader-start', props.session.user.id, props.bookId, attempt], gcTime: 0, retry: false, networkMode: 'always', queryFn: async ({ signal }) => {
@@ -49,9 +67,10 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
   return `глава ${position.chapter + 1}, абзац ${index + 1}, ${Math.round(position.offset * 100)}% абзаца`;
  };
  const requiresChoice = !!data && (!!data.savedChoice || !!data.local && remoteValid && !samePosition(data.local, data.remote) || !!data.remote && !remoteValid);
- async function start(useRemote: boolean) {
+ function start(useRemote: boolean) {
   if (!data || busy) return;
   setBusy(true); setError('');
+  preparation.current = (async () => {
   try {
    const current = await getSession();
    if (current?.user.id !== props.session.user.id) throw new Error('Аккаунт изменился. Открой книгу из профиля заново.');
@@ -59,6 +78,8 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
    setReady(true);
   } catch (error) { setError(error instanceof Error ? error.message : 'Не удалось подготовить чтение. Открой книгу заново.'); }
   finally { setBusy(false); }
+  })();
+  return preparation.current;
  }
  async function startLocal() {
   if (busy) return;
@@ -73,7 +94,7 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
  if (!data) return <Empty>Загружаем место и закладки аккаунта…</Empty>;
  return <><h1>Продолжим историю.</h1><p className="description account-email">{props.session.user.email}</p>{requiresChoice && <><p className="description">На устройстве: {describe(data.local)}. В аккаунте: {describe(data.remote)}.</p><p className="description">Выбери, откуда продолжить. Другой вариант останется в истории или аккаунте. Гостевые данные сохранятся отдельно.</p>{data.savedChoice && <p className="description" role="status">{data.savedChoice.conflict ? 'Есть конфликт сохранённого места. Сравни места заново в профиле.' : 'Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.'} Можно продолжить чтение на этом устройстве — сохранённый выбор останется доступен в профиле.</p>}{remoteValid && !data.savedChoice && <button className="primary section" disabled={busy} onClick={() => void start(true)}>Продолжить с места аккаунта</button>}<button className="secondary section" disabled={busy} onClick={() => void start(false)}>{localValid ? 'Продолжить с места на этом устройстве' : 'Начать текущее издание с начала'}</button></>}<p className="description" role="alert">{error || (busy ? 'Подготавливаем чтение…' : '')}</p>{error && <button className="secondary section" disabled={busy || query.isFetching} onClick={() => { starting.current = false; setError(''); setAttempt(value => value + 1); }}>Обновить места и попробовать снова</button>}<Link className="secondary section" to="/profile">В профиль</Link></>;
 }
-function ReaderContent({ content, bookId, title, author, excerpt, source = db }: ReaderProps & { source?: LocalDatabase }) {
+function ReaderContent({ content, bookId, title, author, excerpt, source = db, registerSave }: ReaderProps & { source?: LocalDatabase; registerSave: RegisterSave }) {
   const { settings, act, notify } = useApp(); const navigate = useNavigate();
   const [chapter, setChapter] = useState<number | null>(null); const [panel, setPanel] = useState<'contents' | 'settings' | 'bookmarks' | null>(null);
   const [navigation, setNavigation] = useState(0);
@@ -161,6 +182,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db }:
     return () => { clearInterval(interval); pauseAndReport(); document.removeEventListener('visibilitychange', pauseAndReport); window.removeEventListener('blur', pauseAndReport); };
   }, [bookId, chapter, panel, protectedReading]);
   async function flushReading() { await Promise.all([flush.current(), sessionFlush.current()]); }
+  useEffect(() => { registerSave(flushReading); }, [registerSave]);
   useEffect(() => protectReading(flushReading, () => setProtectedReading(true), () => {
     setProtectionError(true);
     notify('Не удалось сохранить чтение. Обновление отложено; проверь хранилище.');
