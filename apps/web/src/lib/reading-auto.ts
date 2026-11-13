@@ -58,6 +58,9 @@ export function startReadingAuto(deps: ReadingAutoDependencies, messages: Readin
  return {
   // online events cannot bypass an existing backoff or an account/conflict stop.
   wake() { if (!timer && !running && !paused) void run(); },
+  // A new foreground visit may refresh a successful one-shot receive. It must
+  // never bypass an active run, retry delay or permanent validation/auth stop.
+  refresh() { if (controller.signal.aborted || !completed) return; completed = false; void run(); },
   resume() { if (controller.signal.aborted) return; paused = false; failures = 0; if (timer) clearTimeout(timer); timer = undefined; if (!running) void run(); },
   stop() { controller.abort(); if (timer) clearTimeout(timer); timer = undefined; },
  };

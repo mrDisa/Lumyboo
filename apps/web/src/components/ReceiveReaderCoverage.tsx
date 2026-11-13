@@ -15,8 +15,14 @@ export function ReceiveReaderCoverage({ store, content }: { store: LocalDatabase
    publish: state => { if (state.phase === 'paused') notify(`${state.message} Чтение на устройстве доступно; повтори получение в профиле.`); },
   });
   const wake = () => receiver.wake();
+  const refresh = () => { if (document.visibilityState === 'visible' && document.hasFocus()) receiver.refresh(); };
   window.addEventListener('online', wake);
-  return () => { receiver.stop(); window.removeEventListener('online', wake); };
+  window.addEventListener('focus', refresh);
+  document.addEventListener('visibilitychange', refresh);
+  return () => {
+   receiver.stop(); window.removeEventListener('online', wake);
+   window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh);
+  };
  }, [store, content, accountId]);
  return null;
 }

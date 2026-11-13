@@ -115,3 +115,51 @@ it('does not mistake fifty changed paragraphs for an outgoing batch needing anot
  receiver.wake(); await vi.advanceTimersByTimeAsync(60_000);
  expect(requests()).toHaveLength(1); expect(await store.coverage.count()).toBe(50); expect(vi.getTimerCount()).toBe(0);
 });
+
+it('refreshes a completed receive with new account fragments while retaining late local work', async () => {
+ const { receiver, publish } = start();
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ await saveReadingCoverage(content, [{ paragraph: 'p', range: [0, .2] }], store);
+ const queue = await store.outbox.toArray();
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([{ ...item, ranges: [[400000, 600000]] }]));
+ receiver.refresh(); receiver.refresh(); receiver.wake();
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect(requests()).toHaveLength(2);
+ expect((await store.coverage.get(['book', '1', 'p']))?.ranges).toEqual([[0, .2], [.4, .6], [.8, 1]]);
+ expect(await store.outbox.toArray()).toEqual(queue);
+ await vi.advanceTimersByTimeAsync(60_000); expect(requests()).toHaveLength(2);
+});
+
+it('can refresh an empty receive and wait offline without restarting before connectivity returns', async () => {
+ let online = true;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([]));
+ const { receiver, publish } = start({ online: () => online });
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ online = false; receiver.refresh(); receiver.refresh();
+ expect(requests()).toHaveLength(1); expect(publish.mock.lastCall?.[0].phase).toBe('offline');
+ online = true; receiver.wake();
+ await settle(() => publish.mock.calls.filter(([state]) => state.message.includes('получены')).length === 2);
+ expect(requests()).toHaveLength(2);
+});
+
+it('foreground refresh cannot bypass retry backoff or a permanent stop', async () => {
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Response('{}', { status: 503 }));
+ const { receiver, publish } = start();
+ await settle(() => publish.mock.calls.some(([state]) => state.message.includes('позже')));
+ receiver.refresh(); await vi.advanceTimersByTimeAsync(4999); expect(requests()).toHaveLength(1);
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : page([{ ...item, version: 'old' }]));
+ await vi.advanceTimersByTimeAsync(1);
+ await settle(() => publish.mock.calls.some(([state]) => state.phase === 'paused'));
+ receiver.refresh(); receiver.wake(); await vi.advanceTimersByTimeAsync(600_000);
+ expect(requests()).toHaveLength(2); expect(await store.coverage.count()).toBe(0);
+});
+
+it('does not refresh an in-flight receive or a receiver stopped after success', async () => {
+ let finish!: (value: Response) => void;
+ vi.mocked(fetch).mockImplementation(async url => url === '/api/v1/auth/session' ? response(session) : new Promise<Response>(resolve => { finish = resolve; }));
+ const { receiver, publish } = start(); await settle(() => !!finish);
+ receiver.refresh(); receiver.refresh(); expect(requests()).toHaveLength(1);
+ finish(page()); await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
+ receiver.stop(); receiver.refresh(); receiver.wake();
+ await vi.advanceTimersByTimeAsync(600_000); expect(requests()).toHaveLength(1); expect(vi.getTimerCount()).toBe(0);
+});
