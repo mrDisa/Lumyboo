@@ -351,7 +351,9 @@ export interface paths {
          *     completed book, minutes, goal, XP, streak or race result is produced.
          *     The browser explicitly sends account observations from the profile in bounded
          *     batches, retaining immutable sending snapshots for retries. Guest observations
-         *     remain local. Coverage received from other devices is not yet applied locally.
+         *     remain local. For a selected verified edition, the browser can explicitly fetch
+         *     all live pages and atomically union them with local coverage after validation.
+         *     Receiving coverage does not acknowledge outgoing operations or complete books.
          */
         post: operations["applyReadingCoverage"];
         delete?: never;

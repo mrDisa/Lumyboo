@@ -7,7 +7,7 @@ import { coverageKey, queueStoredReadingCoverage } from './reading-coverage';
 export type CoverageReport = components['schemas']['ReadingCoverage'];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const keyValid = (s: unknown): s is string => typeof s === 'string' && !!s && [...s].length <= 200 && !s.includes('\0');
-function validRanges(ranges: unknown, max: number): ranges is [number, number][] {
+export function validCoverageRanges(ranges: unknown, max: number): ranges is [number, number][] {
  if (!Array.isArray(ranges) || !ranges.length || ranges.length > max) return false;
  let end = -1;
  for (const range of ranges) {
@@ -19,7 +19,7 @@ function validRanges(ranges: unknown, max: number): ranges is [number, number][]
 export function readingCoverageReport(op: PendingOperation): CoverageReport | undefined {
  if (op.change.type !== 'coverage.put' || op.formatVersion !== 1 || !uuid.test(op.id) || !['pending', 'sending'].includes(op.state)) return;
  const p = op.change.value;
- if (!p || !keyValid(p.bookId) || !keyValid(p.version) || !keyValid(p.paragraph) || !validRanges(p.ranges, 64)) return;
+ if (!p || !keyValid(p.bookId) || !keyValid(p.version) || !keyValid(p.paragraph) || !validCoverageRanges(p.ranges, 64)) return;
  let key: unknown;
  try { key = JSON.parse(op.change.key); } catch { return; }
  if (!Array.isArray(key) || key.length !== 4 || !Number.isSafeInteger(key[3]) || key[3] < 0 || op.change.key !== coverageKey(p.bookId, p.version, p.paragraph, key[3]) || op.entity !== `coverage:${op.change.key}`) return;
@@ -27,7 +27,7 @@ export function readingCoverageReport(op: PendingOperation): CoverageReport | un
 }
 function validReceipt(receipt: { accountId: string; coverage: CoverageReport }, owner: string, sent: CoverageReport) {
  const p = receipt?.coverage;
- return receipt?.accountId === owner && p && p.bookId === sent.bookId && p.version === sent.version && p.paragraph === sent.paragraph && validRanges(p.ranges, 256) && sent.ranges.every(([from, to]) => p.ranges.some(([start, end]) => start <= from && end >= to));
+ return receipt?.accountId === owner && p && p.bookId === sent.bookId && p.version === sent.version && p.paragraph === sent.paragraph && validCoverageRanges(p.ranges, 256) && sent.ranges.every(([from, to]) => p.ranges.some(([start, end]) => start <= from && end >= to));
 }
 // One explicit batch, serialized across tabs until local acknowledgement.
 // Never replace local coverage with a potentially older operation receipt.
