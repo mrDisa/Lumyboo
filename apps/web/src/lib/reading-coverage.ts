@@ -1,5 +1,5 @@
 import type { BookContent } from './books';
-import { db, type LocalDatabase } from './db';
+import { db, enqueue, type LocalDatabase } from './db';
 
 export type TextRange = [number, number];
 export interface ParagraphCoverage {
@@ -8,6 +8,7 @@ export interface ParagraphCoverage {
  chapter: string;
  paragraph: string;
  ranges: TextRange[];
+ queued?: true;
 }
 export interface VisibleParagraph { id: string; top: number; bottom: number }
 export interface CoverageSample { paragraph: string; range: TextRange }
@@ -64,7 +65,46 @@ export function createCoverageRecorder(save: (samples: CoverageSample[]) => Prom
  }
  return { observe, flush };
 }
-// Deliberately local-only until a separate server protocol is implemented.
+export const coverageKey = (book: string, version: string, paragraph: string, chunk: number) => JSON.stringify([book, version, paragraph, chunk]);
+// Snap already-quantized fractions past binary multiplication noise, then
+// round arbitrary legacy fractions inward. Sub-millionth gaps remain gaps.
+export function coverageMillionths(ranges: TextRange[]): TextRange[] {
+ const boundary = (value: number, up: boolean) => {
+  const scaled = value * 1_000_000; const nearest = Math.round(scaled);
+  return Math.abs(scaled - nearest) < 1e-7 ? nearest : up ? Math.ceil(scaled) : Math.floor(scaled);
+ };
+ const result: TextRange[] = [];
+ for (const [from, to] of mergeTextRanges(ranges)) {
+  const start = boundary(from, true); const end = boundary(to, false);
+  if (start >= end) continue;
+  const previous = result.at(-1);
+  if (previous && start <= previous[1]) previous[1] = Math.max(previous[1], end);
+  else result.push([start, end]);
+ }
+ return result;
+}
+// Must run inside coverage/outbox/metadata transaction. Replace only pending
+// chunks of this paragraph; uncertain requests keep their exact UUID/payload.
+async function queueCoverage(row: ParagraphCoverage, store: LocalDatabase) {
+ const { bookId, version, paragraph } = row;
+ await store.outbox.filter(op => op.state === 'pending' && op.scope === store.scope && op.change.type === 'coverage.put' && op.change.value.bookId === bookId && op.change.value.version === version && op.change.value.paragraph === paragraph).delete();
+ const ranges = coverageMillionths(row.ranges);
+ for (let i = 0; i < ranges.length; i += 64) {
+  await enqueue({ type: 'coverage.put', key: coverageKey(bookId, version, paragraph, i / 64), value: { bookId, version, paragraph, ranges: ranges.slice(i, i + 64) } }, store);
+ }
+}
+// Existing v6 account observations already contain exact edition provenance.
+// Queue them once on explicit save; no guest import or inferred edition.
+export async function queueStoredReadingCoverage(store: LocalDatabase) {
+ if (store.scope === 'guest') throw new Error('Нужно войти в аккаунт.');
+ await store.transaction('rw', store.coverage, store.outbox, store.metadata, async () => {
+  for (const row of await store.coverage.toArray()) {
+   if (row.queued) continue;
+   await queueCoverage(row, store);
+   await store.coverage.put({ ...row, queued: true });
+  }
+ });
+}
 // Guest/account isolation comes from the database, not a cookie or catalog ID.
 export async function saveReadingCoverage(content: BookContent, samples: CoverageSample[], store: LocalDatabase = db) {
  if (!samples.length) return;
@@ -74,15 +114,17 @@ export async function saveReadingCoverage(content: BookContent, samples: Coverag
   if (!paragraphs.has(sample.paragraph)) throw new Error('Фрагмент отсутствует в этом издании.');
   grouped.set(sample.paragraph, [...(grouped.get(sample.paragraph) ?? []), sample.range]);
  }
- await store.transaction('rw', store.coverage, async () => {
+ await store.transaction('rw', store.coverage, store.outbox, store.metadata, async () => {
   for (const [paragraph, incoming] of grouped) {
    const key: [string, string, string] = [content.id, content.version, paragraph];
    const previous = await store.coverage.get(key);
    const chapter = paragraphs.get(paragraph)!;
    if (previous && previous.chapter !== chapter) throw new Error('Структура издания изменилась.');
    const ranges = mergeTextRanges([...(previous?.ranges ?? []), ...incoming]);
-   if (JSON.stringify(previous?.ranges) === JSON.stringify(ranges)) continue;
-   await store.coverage.put({ bookId: content.id, version: content.version, chapter, paragraph, ranges });
+   if (JSON.stringify(previous?.ranges) === JSON.stringify(ranges) && (store.scope === 'guest' || previous?.queued)) continue;
+   const row: ParagraphCoverage = { bookId: content.id, version: content.version, chapter, paragraph, ranges };
+   if (store.scope !== 'guest') { await queueCoverage(row, store); row.queued = true; }
+   await store.coverage.put(row);
   }
  });
 }

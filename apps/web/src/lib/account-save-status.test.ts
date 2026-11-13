@@ -15,7 +15,7 @@ it('counts local account changes, including sending operations and deletion tomb
  await toggleShelf('book', store);
  await store.outbox.toCollection().modify({ state: 'sending' });
  const status = await accountSaveStatus(store);
- expect(status).toEqual({ positions: 1, bookmarks: 1, sessions: 1, other: 1, total: 4, choices: 0, conflicts: 0, bookmarkChoices: 0, bookmarkConflicts: 0 });
+ expect(status).toEqual({ positions: 1, bookmarks: 1, sessions: 1, coverage: 0, other: 1, total: 4, choices: 0, conflicts: 0, bookmarkChoices: 0, bookmarkConflicts: 0 });
  expect(accountSaveHeading(status)).toBe('Сохранено на устройстве');
 });
 it('prioritizes persisted conflicts and uncertain saves after reopen', async () => {

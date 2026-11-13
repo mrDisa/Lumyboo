@@ -462,7 +462,9 @@ paths:
         which may predate other observations; it must not replace newer local coverage.
         Geometry is approximate, especially across layout/font changes. No proof of reading,
         completed book, minutes, goal, XP, streak or race result is produced.
-        The browser does not yet send local coverage through this protocol.
+        The browser explicitly sends account observations from the profile in bounded
+        batches, retaining immutable sending snapshots for retries. Guest observations
+        remain local. Coverage received from other devices is not yet applied locally.
       parameters:
         - $ref: '#/components/parameters/CSRFToken'
       requestBody:

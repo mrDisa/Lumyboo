@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { AccountPosition, PositionChoice } from './positions';
 import type { BookmarkChange } from './bookmarks';
 import type { ParagraphCoverage } from './reading-coverage';
+import type { CoverageReport } from './reading-coverage-sync';
 export interface SavedBookmarkChoice { id: string; change: BookmarkChange; conflict: boolean; coveredOperationIds: string[] }
 export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean; coveredPositionOperationIds?: string[] }
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
@@ -15,7 +16,8 @@ export type LocalChange =
   | { type: 'position.put'; key: string; value: Position }
   | { type: 'bookmark.put'; key: string; value: Bookmark }
   | { type: 'bookmark.delete'; key: string }
-  | { type: 'session.put'; key: string; value: ReadingSession };
+  | { type: 'session.put'; key: string; value: ReadingSession }
+  | { type: 'coverage.put'; key: string; value: CoverageReport };
 export type OperationScope = 'guest' | `account:${string}`;
 export interface PendingOperation { id: string; formatVersion: 1; scope: OperationScope; deviceId: string; sequence: number; entity: string; state: 'pending' | 'sending'; change: LocalChange }
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
@@ -90,7 +92,7 @@ export async function loadPosition(bookId: string, version: string, store: Local
 
 // Called inside the local write transaction; ownership is fixed by the
 // database instance, never by whichever cookie happens to be current.
-async function enqueue(change: LocalChange, store: LocalDatabase = db) {
+export async function enqueue(change: LocalChange, store: LocalDatabase = db) {
   const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
   meta.sequence += 1;
   await store.metadata.put(meta);

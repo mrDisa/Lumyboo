@@ -96,7 +96,7 @@ it('recovers a failed IndexedDB write, preserves skipped chapters and survives r
   expect((await store.coverage.get(['book', '1', 'p-1']))?.ranges).toEqual([[0, .2]]);
   expect((await store.coverage.get(['book', '1', 'p-5']))?.ranges).toEqual([[0, 1]]);
   expect(await store.coverage.get(['book', '1', 'p-2'])).toBeUndefined();
-  expect(await store.outbox.count()).toBe(0);
+  expect(await store.outbox.count()).toBe(2);
  } finally { put.mockRestore(); await store.delete(); }
 });
 it('keeps reader ownership until the final coverage flush has drained later observations', async () => {
