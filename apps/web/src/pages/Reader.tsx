@@ -69,6 +69,7 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession }) {
 function ReaderContent({ content, bookId, title, author, excerpt, source = db }: ReaderProps & { source?: LocalDatabase }) {
   const { settings, act, notify } = useApp(); const navigate = useNavigate();
   const [chapter, setChapter] = useState<number | null>(null); const [panel, setPanel] = useState<'contents' | 'settings' | 'bookmarks' | null>(null);
+  const [navigation, setNavigation] = useState(0);
   const [bookmarkActive, setBookmarkActive] = useState(false);
   const [protectedReading, setProtectedReading] = useState(false);
   const [protectionError, setProtectionError] = useState(false);
@@ -127,7 +128,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db }:
     function hide() { if (document.hidden) { locate(); void act(save); } }
     screen.addEventListener('scroll', locate, { passive: true }); document.addEventListener('visibilitychange', hide);
     return () => { disposed = true; clearTimeout(timer); screen.removeEventListener('scroll', locate); document.removeEventListener('visibilitychange', hide); void act(save); };
-  }, [chapter, bookId, protectedReading, settings.fontSize, settings.font, settings.lineHeight]);
+  }, [chapter, navigation, bookId, protectedReading, settings.fontSize, settings.font, settings.lineHeight]);
   // Timed data stays outside the reader's React state: text does not rerender every second.
   useEffect(() => {
     if (chapter === null || !protectedReading) return;
@@ -161,8 +162,10 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db }:
   if (chapter === null) return <Empty>Восстанавливаем место чтения…</Empty>;
   async function changeChapter(value: number, position?: Position) {
     if (!await act(flushReading)) return;
-    requested.current = position ?? null; setPanel(null); setChapter(value);
-    if (value === chapter && position) { current.current = position; const el = document.getElementById(position.paragraph); el?.scrollIntoView({ block: 'start' }); await act(() => savePosition(position, source)); }
+    requested.current = position ?? { bookId, version: content.version, chapter: value, paragraph: content.chapters[value].paragraphs[0].id, offset: 0, updatedAt: new Date().toISOString() };
+    // Every deliberate jump uses the same font-aware restoration, including
+    // bookmarks and the contents entry for the already displayed chapter.
+    setPanel(null); setChapter(value); setNavigation(value => value + 1);
   }
   async function leave() { if (!await act(flushReading)) return; if (source.scope === 'guest') await navigate({ to: '/book/$bookId', params: { bookId } }); else await navigate({ to: '/profile' }); }
   async function bookmark() {
