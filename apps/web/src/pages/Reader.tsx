@@ -12,6 +12,7 @@ import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, savePosition
 import { protectReading } from '../lib/update-guard';
 import { ownReading } from '../lib/reading-ownership';
 import { ReadingClock, localDay } from '../lib/reading';
+import { createReadingSessionRecorder } from '../lib/reading-session-recorder';
 import { createCoverageRecorder, sampleVisibleText, saveReadingCoverage } from '../lib/reading-coverage';
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
@@ -104,6 +105,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
   const [protectionError, setProtectionError] = useState(false);
   const sessionFlush = useRef<() => Promise<void>>(async () => {});
   const coverageRecorder = useMemo(() => createCoverageRecorder(samples => saveReadingCoverage(content, samples, source)), [content, source]);
+  const timeRecorder = useMemo(() => createReadingSessionRecorder(session => saveReadingSession(session, source)), [content, source]);
   const current = useRef<Position | null>(null); const requested = useRef<Position | null>(null);
   const ready = useRef(false); const flush = useRef<() => Promise<void>>(async () => {});
   const bookmarks = useLiveQuery(() => source.bookmarks.where('bookId').equals(bookId).filter(b => b.version === content.version).toArray(), [bookId, content.version, source], []);
@@ -166,22 +168,21 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     let id = crypto.randomUUID(); let failed = false;
     const persist = () => {
       const row = { id, day, bookId, seconds, version: content.version };
-      return saveReadingSession(row, source);
+      timeRecorder.record(row);
     };
     const report = () => { if (!failed) notify('Не удалось сохранить данные чтения. Проверь хранилище.'); failed = true; };
     const tick = (observe = true) => {
-      let previousDay: Promise<void> = Promise.resolve();
       const today = localDay();
-      if (today !== day) { previousDay = persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
+      if (today !== day) { persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
       const active = !document.hidden && document.hasFocus() && !panel && ready.current;
       const elapsed = clock.tick(performance.now(), active);
       if (observe && active && elapsed > 0) coverageRecorder.observe(sampleVisibleText(document.getElementById('screen')!));
       const coverage = coverageRecorder.flush();
       const total = Math.round((seconds + elapsed) * 1000) / 1000;
-      let fullSession: Promise<void> = Promise.resolve();
-      if (total > 86400) { seconds = 86400; fullSession = persist(); id = crypto.randomUUID(); seconds = total - 86400; }
+      if (total > 86400) { seconds = 86400; persist(); id = crypto.randomUUID(); seconds = total - 86400; }
       else seconds = total;
-      return Promise.all([previousDay, fullSession, persist(), coverage]).then(() => {});
+      persist();
+      return Promise.all([timeRecorder.flush(), coverage]).then(() => {});
     };
     // Cleanup can run after React has rendered a different chapter. Only the
     // periodic active-text tick may observe DOM; flushing never invents a view.
@@ -191,7 +192,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     const interval = setInterval(() => { void tick().catch(report); }, 1000);
     document.addEventListener('visibilitychange', pauseAndReport); window.addEventListener('blur', pauseAndReport);
     return () => { clearInterval(interval); pauseAndReport(); document.removeEventListener('visibilitychange', pauseAndReport); window.removeEventListener('blur', pauseAndReport); };
-  }, [bookId, chapter, panel, protectedReading, coverageRecorder]);
+  }, [bookId, chapter, panel, protectedReading, coverageRecorder, timeRecorder]);
   async function flushReading() { await Promise.all([flush.current(), sessionFlush.current()]); }
   useEffect(() => { registerSave(flushReading); }, [registerSave]);
   useEffect(() => protectReading(flushReading, () => setProtectedReading(true), () => {
