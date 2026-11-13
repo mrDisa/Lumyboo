@@ -9,6 +9,9 @@ coverage/
 __pycache__/
 *.pyc
 
+# Local design reference; the application lives in apps/web.
+/design/Lumyboo-Monochrome/
+
 # Local planning and work logs: never commit or force-add.
 /Lumyboo-Development-Plan.md
 /docs/PRODUCT-RULES.md
