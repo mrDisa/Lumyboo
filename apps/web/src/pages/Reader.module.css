@@ -3,3 +3,5 @@
 .tools svg { width:16px; }
 .text :global(.reader-text) { line-height:var(--reader-leading,1.95); }
 .text p { scroll-margin-top:20px; overflow-wrap:break-word; }
+.contentsItem { display:flex; flex-direction:column; align-items:flex-start; gap:8px; overflow-wrap:anywhere; }
+.contentsItem small { font-size:11px; line-height:1.6; color:var(--muted); font-weight:400; text-align:left; }
