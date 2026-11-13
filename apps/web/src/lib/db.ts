@@ -1,5 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type { AccountPosition, PositionChoice } from './positions';
+import type { BookmarkChange } from './bookmarks';
+export interface SavedBookmarkChoice { id: string; change: BookmarkChange; conflict: boolean; coveredOperationIds: string[] }
 export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean; coveredPositionOperationIds?: string[] }
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
 export interface Position { bookId: string; version: string; chapter: number; paragraph: string; offset: number; updatedAt: string }
@@ -18,6 +20,7 @@ export interface PendingOperation { id: string; formatVersion: 1; scope: Operati
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
 export const defaults: Settings = { id: 'local', theme: 'system', fontSize: 18, font: 'serif', lineHeight: 1.95, onboarded: false, name: '' };
 export class LocalDatabase extends Dexie {
+  bookmarkChoices!: Table<SavedBookmarkChoice, string>;
   positionChoices!: Table<SavedPositionChoice, string>;
   outbox!: Table<PendingOperation, string>;
   metadata!: Table<{ id: string; deviceId: string; sequence: number }, string>;
@@ -34,6 +37,7 @@ export class LocalDatabase extends Dexie {
     this.version(2).stores({ positionHistory: 'id, bookId, [bookId+version]' });
     this.version(3).stores({ outbox: 'id, sequence, [entity+state]', metadata: 'id' });
     this.version(4).stores({ positionChoices: 'bookId' });
+    this.version(5).stores({ bookmarkChoices: 'id' });
   }
 }
 export const db = new LocalDatabase();
