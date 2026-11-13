@@ -9,6 +9,7 @@ import { readingDuration } from '../lib/reading-session-history';
 export function ReaderTime({ store, bookId, version }: { store: LocalDatabase; bookId: string; version: string }) {
  const [day, setDay] = useState(localDay);
  const [attempt, setAttempt] = useState(0);
+ const [limit, setLimit] = useState(20);
  const [state, setState] = useState<{ value?: Awaited<ReturnType<typeof loadBookReadingTime>>; error?: boolean }>({});
  useEffect(() => {
   const refresh = () => setDay(localDay());
@@ -17,6 +18,7 @@ export function ReaderTime({ store, bookId, version }: { store: LocalDatabase; b
   document.addEventListener('visibilitychange', refresh);
   return () => { clearInterval(interval); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
  }, []);
+ useEffect(() => { setLimit(20); }, [store, bookId, version]);
  useEffect(() => {
   setState({});
   const subscription = liveQuery(() => loadBookReadingTime(store, bookId, version, day)).subscribe({
@@ -30,6 +32,15 @@ export function ReaderTime({ store, bookId, version }: { store: LocalDatabase; b
    <dt>Сегодня</dt><dd>{state.value.today === 0 ? '0 с' : readingDuration(Math.round(state.value.today * 1000))}</dd>
    <dt>За всё время</dt><dd>{state.value.total === 0 ? '0 с' : readingDuration(Math.round(state.value.total * 1000))}</dd>
   </dl>}
+  {state.value && <section className="section" aria-label="Время по дням">
+   <h3>По дням</h3>
+   {state.value.days.length ? <>
+    <dl className={styles.timeSummary}>{state.value.days.slice(0, limit).map(row => <div className={styles.timeDay} key={row.day}>
+     <dt><time dateTime={row.day}>{row.day.split('-').reverse().join('.')}</time></dt><dd>{readingDuration(Math.round(row.seconds * 1000))}</dd>
+    </div>)}</dl>
+    {state.value.days.length > limit && <button className="text-button" onClick={() => setLimit(value => value + 20)}>Показать ещё · осталось {state.value.days.length - limit}</button>}
+   </> : <p className="description">Пока нет сохранённого времени за этим изданием.</p>}
+  </section>}
   <p className="reader-note section">Сегодня — по дате устройства. Время из других изданий и с других устройств сюда не добавляется. Пока открыто это окно, чтение на паузе.</p>
  </>;
 }

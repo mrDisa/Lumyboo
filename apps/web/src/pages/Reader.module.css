@@ -13,3 +13,4 @@
 
 .timeSummary { display:grid; grid-template-columns:1fr auto; gap:16px; }
 .timeSummary dd { margin:0; font-weight:600; }
+.timeDay { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:16px; }
