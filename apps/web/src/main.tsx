@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createRootRoute, createRoute, createRouter, RouterProvider, Link } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Login } from './pages/Login';
 import { Downloads } from './pages/Downloads';
 import { App, ErrorBoundary } from './App';
 import { Home, Catalog, BookDetail } from './pages/Library';
@@ -11,6 +12,7 @@ import './styles/app.css';
 const Reader = lazy(() => import('./pages/Reader').then(m => ({ default: m.Reader })));
 const root = createRootRoute({ component: App, errorComponent: () => <div className="stage"><div className="phone"><main className="screen"><h1>Не удалось открыть экран</h1><p className="description">Подключись к сети и попробуй ещё раз. Сохранённые позиции и закладки остаются на устройстве.</p><button className="primary" onClick={() => location.reload()}>Попробовать снова</button><Link className="secondary section" to="/">На главную</Link></main></div></div>, notFoundComponent: () => <div className="empty">Такой страницы нет. <Link to="/">На главную</Link></div> });
 const routes = [
+  createRoute({ getParentRoute: () => root, path: '/login', component: Login }),
   createRoute({ getParentRoute: () => root, path: '/downloads', component: Downloads }),
   createRoute({ getParentRoute: () => root, path: '/', component: Home }),
   createRoute({ getParentRoute: () => root, path: '/catalog', component: Catalog }),

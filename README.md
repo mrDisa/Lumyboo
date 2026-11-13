@@ -27,7 +27,9 @@ npm run preview
 ```sh
 docker compose -f ops/compose.yaml up -d
 # Применить миграцию; состояние БД не удаляется:
-docker compose -f ops/compose.yaml exec -T postgres psql -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 < services/api/db/migrations/001_local_pilot.up.sql
+for migration in services/api/db/migrations/*.up.sql; do
+  docker compose -f ops/compose.yaml exec -T postgres psql -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 < "$migration"
+done
 export DATABASE_URL='postgres://lumyboo:local-development-only@127.0.0.1:5432/lumyboo?sslmode=disable'
 npm run api
 ```
@@ -35,6 +37,21 @@ npm run api
 API: `http://127.0.0.1:8080/healthz`, `/readyz`, `/api/v1/catalog?q=Достоевский&limit=20&offset=0`. Без DATABASE_URL API каталога доступен, readiness возвращает 503. MinIO: `http://127.0.0.1:9001`, реквизиты только для разработки — в `ops/compose.yaml`. Веб пока использует локальный каталог; интеграция серверного каталога впереди. Worker/River ещё не реализован.
 
 Compose не создаёт бакет автоматически; использование S3 появится с серверным импортом. Контейнер API можно собрать из `services/api/Dockerfile`. Секреты production не помещать в `.env.example` или compose.
+
+## Вход по почте (локальная проверка)
+
+В `ops/compose.yaml` есть Mailpit: SMTP `127.0.0.1:1025`, тестовый ящик `http://127.0.0.1:8025`. Письма не отправляются реальным получателям. Для входа примените обе миграции и запустите API с настройками из `.env.example`:
+
+```sh
+cp .env.example .env
+set -a
+. ./.env
+set +a
+export AUTH_SECRET="$(openssl rand -base64 32)"
+npm run api
+```
+
+В отдельном терминале: `npm run dev`, затем `/login`. `PUBLIC_ORIGIN` должен точно совпадать с адресом Vite. Пустой `AUTH_SECRET` оставляет вход отключённым. Коды живут 10 минут, имеют 5 попыток; повторная отправка — не чаще раза в минуту, дополнительно действуют общие лимиты по email/IP. Для production нужен постоянный секрет в защищённой конфигурации, HTTPS и SMTP с обязательным STARTTLS; провайдер ещё не выбран. Plaintext SMTP разрешён только на loopback в development. За reverse proxy нужно явно настроить `TRUSTED_PROXY_CIDRS`; заголовок X-Forwarded-For от остальных источников игнорируется. Вход не переносит гостевую полку и не включает синхронизацию.
 
 ## Проверки
 

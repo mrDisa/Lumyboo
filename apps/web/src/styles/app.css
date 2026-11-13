@@ -6,3 +6,5 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 @media(max-width:365px){.filter-row{margin-left:-19px;margin-right:-19px;padding-left:19px;padding-right:19px;}}
 .feature-banner h3{max-width:calc(100% - 65px);}.feature-banner .sculpture{width:83px;right:-12px;}
 .downloads-link{display:flex;align-items:center;gap:8px;margin:18px 0 0;}.downloads-link svg{width:17px;height:17px;}.downloads-summary{text-align:left;border-bottom:1px solid var(--line);padding-bottom:16px;}.download-card{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding:20px 0;}.download-cover{width:68px;flex:none;}.download-info{flex:1;min-width:0;}.download-info h3{font-size:14px;overflow-wrap:anywhere;}.download-info p{font-size:10px;color:var(--muted);margin-top:5px;}.download-read{display:flex;align-items:center;gap:8px;margin-top:8px;width:max-content;min-height:44px;}.download-read svg{width:17px;}.download-card>.circle{width:36px;height:36px;min-height:44px;}
+
+.account-email{overflow-wrap:anywhere;}
