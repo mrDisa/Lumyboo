@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Lumyboo API
   version: 0.1.0
-  description: Local pilot. Authentication, synchronization and rewards are not implemented.
+  description: Local pilot with email-code authentication and server sessions. Synchronization and rewards are not implemented.
 servers:
   - url: /api/v1
 paths:
@@ -37,14 +37,128 @@ paths:
                   offset: { type: integer }
                   limit: { type: integer }
         '400': { $ref: '#/components/responses/Error' }
+  /auth/code:
+    post:
+      operationId: requestLoginCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              additionalProperties: false
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        '202':
+          description: Code accepted for delivery; no account-existence information.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginChallenge' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/RateLimit' }
+        '503': { $ref: '#/components/responses/Error' }
+  /auth/verify:
+    post:
+      operationId: verifyLoginCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challengeId, code]
+              additionalProperties: false
+              properties:
+                challengeId: { type: string, minLength: 43, maxLength: 43 }
+                code: { type: string, pattern: '^[0-9]{6}$' }
+      responses:
+        '200':
+          description: A new HttpOnly session cookie is set; raw session tokens are never in JSON.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountSession' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/RateLimit' }
+        '503': { $ref: '#/components/responses/Error' }
+  /auth/session:
+    get:
+      operationId: getAccountSession
+      responses:
+        '200':
+          description: Current account only. Always Cache-Control no-store.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountSession' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /auth/logout:
+    post:
+      operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      responses:
+        '204': { description: Current session revoked and cookie cleared. }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /auth/logout-all:
+    post:
+      operationId: logoutAll
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      responses:
+        '204': { description: All sessions of the current user revoked. }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
+  parameters:
+    CSRFToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema: { type: string }
   responses:
+    RateLimit:
+      description: Rate limited; wait for Retry-After seconds.
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
     Error:
       description: Request error
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    LoginChallenge:
+      type: object
+      required: [challengeId, expiresIn, resendAfter, delivery]
+      properties:
+        challengeId: { type: string }
+        expiresIn: { type: integer }
+        resendAfter: { type: integer }
+        delivery: { type: string, enum: [email, test] }
+    AccountSession:
+      type: object
+      required: [user, csrfToken]
+      properties:
+        user:
+          type: object
+          required: [id, email]
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string, format: email }
+        csrfToken: { type: string }
     Book:
       type: object
       required: [id, title, author, genre, year, kind, version, url, sha256, bytes, rights, description, cover]

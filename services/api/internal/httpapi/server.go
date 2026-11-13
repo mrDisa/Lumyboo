@@ -34,7 +34,7 @@ type Book struct {
 
 type Pinger interface{ Ping(context.Context) error }
 
-func New(database Pinger) http.Handler {
+func New(database Pinger, options ...AuthOptions) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer, middleware.Timeout(15*time.Second))
 	r.Use(func(next http.Handler) http.Handler {
@@ -62,6 +62,11 @@ func New(database Pinger) http.Handler {
 		respond(w, 200, map[string]string{"status": "ready"})
 	})
 	r.Get("/api/v1/catalog", catalog)
+	var authentication AuthOptions
+	if len(options) > 0 {
+		authentication = options[0]
+	}
+	mountAuth(r, authentication)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) { failure(w, r, 404, "not_found", "Route not found") })
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 		failure(w, r, 405, "method_not_allowed", "Method not allowed")
