@@ -13,9 +13,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"lumyboo/services/api/internal/auth"
+	"lumyboo/services/api/internal/shelf"
 )
 
 type AuthOptions struct {
+	Shelf          shelf.Store
 	Service        *auth.Service
 	Origin         string
 	SecureCookies  bool

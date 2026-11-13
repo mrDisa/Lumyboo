@@ -118,6 +118,52 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
+  /shelf/:
+    get:
+      operationId: getAccountShelf
+      description: Current account only; never cached. Guest reading data stays separate.
+      responses:
+        '200':
+          description: Account shelf
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountShelf' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /shelf/import:
+    post:
+      operationId: importGuestShelf
+      description: Explicit additive copy. Existing account books are preserved; retries cannot create duplicates. Does not consume the guest outbox or transfer progress/bookmarks.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accountId, bookIds]
+              additionalProperties: false
+              properties:
+                accountId: { type: string, format: uuid, description: Expected account; must match the authenticated session. }
+                bookIds:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items: { type: string }
+      responses:
+        '200':
+          description: Merged account shelf
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountShelf' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
 components:
   parameters:
     CSRFToken:
@@ -140,6 +186,12 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    AccountShelf:
+      type: object
+      required: [accountId, bookIds]
+      properties:
+        accountId: { type: string, format: uuid }
+        bookIds: { type: array, items: { type: string } }
     LoginChallenge:
       type: object
       required: [challengeId, expiresIn, resendAfter, delivery]
