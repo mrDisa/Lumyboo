@@ -1,4 +1,6 @@
 import Dexie, { type Table } from 'dexie';
+import type { AccountPosition, PositionChoice } from './positions';
+export interface SavedPositionChoice { bookId: string; choice: PositionChoice; remote?: AccountPosition; conflict: boolean }
 export interface Settings { id: 'local'; theme: 'system' | 'light' | 'dark'; fontSize: number; font: 'serif' | 'sans'; lineHeight: number; onboarded: boolean; currentBook?: string; name: string }
 export interface Position { bookId: string; version: string; chapter: number; paragraph: string; offset: number; updatedAt: string }
 export interface Bookmark extends Position { id: string; label: string }
@@ -16,6 +18,7 @@ export interface PendingOperation { id: string; formatVersion: 1; scope: Operati
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
 export const defaults: Settings = { id: 'local', theme: 'system', fontSize: 18, font: 'serif', lineHeight: 1.95, onboarded: false, name: '' };
 export class LocalDatabase extends Dexie {
+  positionChoices!: Table<SavedPositionChoice, string>;
   outbox!: Table<PendingOperation, string>;
   metadata!: Table<{ id: string; deviceId: string; sequence: number }, string>;
   settings!: Table<Settings, string>;
@@ -30,6 +33,7 @@ export class LocalDatabase extends Dexie {
     this.version(1).stores({ settings: 'id', positions: 'bookId', bookmarks: 'id, bookId', shelf: 'bookId', downloads: 'bookId', sessions: 'id, day, bookId' });
     this.version(2).stores({ positionHistory: 'id, bookId, [bookId+version]' });
     this.version(3).stores({ outbox: 'id, sequence, [entity+state]', metadata: 'id' });
+    this.version(4).stores({ positionChoices: 'bookId' });
   }
 }
 export const db = new LocalDatabase();

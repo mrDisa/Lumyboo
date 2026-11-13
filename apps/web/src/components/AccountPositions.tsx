@@ -5,10 +5,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { AccountSession } from '../lib/auth';
 import { db } from '../lib/db';
+import { rememberPositionChoice, sendPositionChoice, forgetPositionChoice } from '../lib/position-choices';
 import { useApp } from '../lib/context';
 import { ApiError } from '../lib/api';
 import { loadBook, type Book } from '../lib/books';
-import { chooseAccountPosition, loadAccountPositions, positionChoice, samePosition, type AccountPosition, type PositionChoice, type ReadingLocator } from '../lib/positions';
+import { loadAccountPositions, positionChoice, samePosition, type AccountPosition, type PositionChoice, type ReadingLocator } from '../lib/positions';
 import { Modal } from './ui';
 import catalog from '../data/catalog.json';
 type Preview = { choice: PositionChoice; remote?: AccountPosition };
@@ -26,6 +27,8 @@ function Comparison({ preview }: { preview: Preview }) {
 export function AccountPositions({ session }: { session: AccountSession }) {
  const { notify } = useApp(); const client = useQueryClient();
  const [preview, setPreview] = useState<Preview | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [conflict, setConflict] = useState(false);
+ const store = accountDatabase(session.user.id);
+ const pending = useLiveQuery(() => store.positionChoices.toArray(), [session.user.id]);
  const guestPositions = useLiveQuery(() => db.positions.toArray());
  const accountPositions = useLiveQuery(() => accountDatabase(session.user.id).positions.toArray(), [session.user.id]);
  const localLoading = !accountPositions || !guestPositions;
@@ -40,16 +43,24 @@ export function AccountPositions({ session }: { session: AccountSession }) {
    await client.cancelQueries({ queryKey });
    // Keep this exact choice/UUID on uncertain responses. No automatic retry
    // against a newer revision: that would bypass the user's comparison.
-   await chooseAccountPosition(session, preview.choice);
+   await rememberPositionChoice(store, { bookId: preview.choice.position.bookId, ...preview, conflict: false });
+   await sendPositionChoice(store, session, preview.choice.position.bookId, preview.choice.operationId);
    setPreview(null); notify('Выбранное место сохранено в аккаунте');
    await client.invalidateQueries({ queryKey });
   } catch (error) {
    setError(error instanceof Error ? error.message : 'Не удалось сохранить. Попробуй ещё раз.');
-   if (error instanceof ApiError && error.status === 409) { setConflict(true); await client.invalidateQueries({ queryKey }); }
+   if (error instanceof ApiError && error.code === 'position_conflict') { setConflict(true); await client.invalidateQueries({ queryKey }); }
   } finally { setBusy(false); }
  }
- return <div className="section"><h3>Места чтения аккаунта</h3>{query.isPending || localLoading ? <p className="description" role="status">Загружаем места чтения…</p> : query.isError ? <><p className="description" role="status">{query.error.message}</p><button className="text-button" onClick={() => void query.refetch()}>Повторить загрузку</button></> : ids.length ? ids.map(id => {
+ async function discard() {
+  if (!preview || busy) return;
+  setBusy(true); setError('');
+  try { await forgetPositionChoice(store, preview.choice.position.bookId, preview.choice.operationId); await client.invalidateQueries({ queryKey }); setPreview(null); }
+  catch (error) { setError(error instanceof Error ? error.message : 'Не удалось отменить сохранение.'); }
+  finally { setBusy(false); }
+ }
+ return <div className="section"><h3>Места чтения аккаунта</h3>{pending?.map(saved => <div className="section" key={saved.bookId}><p className="description">{catalog.find(b => b.id === saved.bookId)?.title ?? saved.bookId}: {saved.conflict ? 'место аккаунта изменилось — нужно сравнить заново.' : 'сохранение не подтверждено. Можно повторить тот же выбор.'}</p><button className="secondary" disabled={busy} onClick={() => { setPreview({ choice: saved.choice, remote: saved.remote }); setConflict(saved.conflict); setError(''); }}>Открыть незавершённое сохранение</button></div>)}{query.isPending || localLoading ? <p className="description" role="status">Загружаем места чтения…</p> : query.isError ? <><p className="description" role="status">{query.error.message}</p><button className="text-button" onClick={() => void query.refetch()}>Повторить загрузку</button></> : ids.length ? ids.map(id => {
   const device = local?.find(p => p.bookId === id); const remote = query.data.positions.find(p => p.bookId === id);
-  return <div className="section" key={id}><h3>{catalog.find(b => b.id === id)?.title ?? id}</h3><p className="description">{accountPositions?.some(p => p.bookId === id) ? 'Аккаунт на устройстве' : 'Гостевое устройство'}: {device ? `глава ${device.chapter + 1}` : 'нет места'} · аккаунт: {remote ? `глава ${remote.chapter + 1}` : 'нет места'}</p>{device && (samePosition(device, remote) ? <p className="reader-note">Сохранённые места совпадают.</p> : <button className="secondary section" disabled={busy} onClick={() => { setPreview({ choice: positionChoice(device, remote), remote }); setError(''); setConflict(false); }}>Сравнить и сохранить</button>)}{catalog.some(book => book.id === id) && <Link className="secondary section" to="/account/read/$bookId" params={{ bookId: id }}>Открыть в читалке аккаунта</Link>}</div>;
- }) : <p className="description">Открой книгу — на устройстве появится место для сохранения.</p>}<p className="reader-note section">Перенос выполняется по твоему выбору. Читалка аккаунта использует отдельные места и закладки. Гостевое чтение остаётся отдельно. Сохранение места не отмечает книгу прочитанной.</p>{preview && <Modal title="Какое место оставить в аккаунте?" close={() => { if (!busy) setPreview(null); }}><p className="description account-email">Аккаунт: {session.user.email}</p><Comparison preview={preview} /><p className="description">При сохранении выбранное место устройства заменит место аккаунта. Прежний вариант аккаунта останется в истории. Место на устройстве не изменится.</p><p className="description" role="alert">{error}</p><button className="primary section" disabled={busy || conflict} aria-busy={busy} onClick={() => void save()}>{busy ? 'Сохраняем…' : 'Сохранить место устройства в аккаунте'}</button><button className="secondary section" disabled={busy} onClick={() => setPreview(null)}>{conflict ? 'Закрыть и сравнить заново' : preview.remote ? 'Оставить место аккаунта' : 'Пока оставить только на устройстве'}</button></Modal>}</div>;
+  return <div className="section" key={id}><h3>{catalog.find(b => b.id === id)?.title ?? id}</h3><p className="description">{accountPositions?.some(p => p.bookId === id) ? 'Аккаунт на устройстве' : 'Гостевое устройство'}: {device ? `глава ${device.chapter + 1}` : 'нет места'} · аккаунт: {remote ? `глава ${remote.chapter + 1}` : 'нет места'}</p>{device && (samePosition(device, remote) ? <p className="reader-note">Сохранённые места совпадают.</p> : <button className="secondary section" disabled={busy || query.isFetching || !pending || pending.some(saved => saved.bookId === id)} onClick={() => { setPreview({ choice: positionChoice(device, remote), remote }); setError(''); setConflict(false); }}>Сравнить и сохранить</button>)}{catalog.some(book => book.id === id) && <Link className="secondary section" to="/account/read/$bookId" params={{ bookId: id }}>Открыть в читалке аккаунта</Link>}</div>;
+ }) : <p className="description">Открой книгу — на устройстве появится место для сохранения.</p>}<p className="reader-note section">Перенос выполняется по твоему выбору. Читалка аккаунта использует отдельные места и закладки. Гостевое чтение остаётся отдельно. Сохранение места не отмечает книгу прочитанной.</p>{preview && <Modal title="Какое место оставить в аккаунте?" close={() => { if (!busy) setPreview(null); }}><p className="description account-email">Аккаунт: {session.user.email}</p><Comparison preview={preview} /><p className="description">При сохранении выбранное место устройства заменит место аккаунта. Прежний вариант аккаунта останется в истории. Место на устройстве не изменится.</p><p className="description" role="alert">{error}</p><button className="primary section" disabled={busy || conflict} aria-busy={busy} onClick={() => void save()}>{busy ? 'Сохраняем…' : 'Сохранить выбранное место в аккаунте'}</button><button className="secondary section" disabled={busy} onClick={() => setPreview(null)}>Закрыть</button>{pending?.some(saved => saved.choice.operationId === preview.choice.operationId) && <><p className="description section">Выбор сохранён на устройстве. Повтор отправит то же место, даже если ты продолжил чтение. Отмена не откатывает уже принятое сервером сохранение; перед новым выбором места будут загружены снова.</p><button className="text-button section" disabled={busy} onClick={() => void discard()}>{conflict ? 'Отменить этот выбор и сравнить заново' : 'Отменить дальнейшие повторы'}</button></>}</Modal>}</div>;
 }
