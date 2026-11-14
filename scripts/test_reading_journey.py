@@ -5,10 +5,31 @@ import http.server
 import threading
 import unittest
 
-from reading_journey import Frontend, LostReadingResponses
+from reading_journey import Frontend, JourneyControls, LostReadingResponses
 
 
 class ReadingResponseLossTests(unittest.TestCase):
+    def test_terminal_controls_are_explicit_and_isolated(self):
+        class Server:
+            def __init__(self):
+                self.api_offline = threading.Event()
+        a, b = Server(), Server()
+        expirations = []
+        controls = JourneyControls([a, b], lambda: expirations.append(True))
+        for command in ('', 'expire a', 'offline', 'offline c', 'online a extra'):
+            self.assertTrue(controls.execute(command).startswith('Commands:'))
+        self.assertEqual(expirations, [])
+        controls.execute('offline a')
+        self.assertTrue(a.api_offline.is_set())
+        self.assertFalse(b.api_offline.is_set())
+        controls.execute('offline b')
+        controls.execute('online a')
+        self.assertFalse(a.api_offline.is_set())
+        self.assertTrue(b.api_offline.is_set())
+        controls.execute('expire')
+        self.assertEqual(expirations, [True])
+        self.assertTrue(b.api_offline.is_set())
+
     def test_disabled_and_non_reading_requests_never_drop(self):
         path = '/api/v1/reading-sessions/apply'
         self.assertFalse(LostReadingResponses().consume('POST', path, 200))
@@ -70,6 +91,7 @@ class ReadingResponseLossTests(unittest.TestCase):
         upstream = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Upstream)
         frontend = http.server.ThreadingHTTPServer(('127.0.0.1', 0), QuietFrontend)
         frontend.api_port = upstream.server_port
+        frontend.api_offline = threading.Event()
         frontend.lost_responses = LostReadingResponses(True, True)
         servers = [upstream, frontend]
         threads = [threading.Thread(target=server.serve_forever, daemon=True) for server in servers]
@@ -88,6 +110,13 @@ class ReadingResponseLossTests(unittest.TestCase):
                 finally:
                     connection.close()
 
+            path = '/api/v1/positions/choose'
+            frontend.api_offline.set()
+            with self.assertRaises(http.client.RemoteDisconnected):
+                post(path)
+            self.assertEqual(received, [])  # A transport outage never reaches the real API.
+            self.assertIn(path, frontend.lost_responses.remaining)
+            frontend.api_offline.clear()
             for path in sorted(LostReadingResponses.paths | LostReadingResponses.save_paths):
                 with self.subTest(path=path):
                     with self.assertRaises(http.client.RemoteDisconnected):

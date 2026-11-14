@@ -8,15 +8,43 @@ import http.server
 import os
 from pathlib import Path
 import secrets
+import select
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class JourneyControls:
+    """Explicit terminal controls for this run's disposable environment only."""
+    def __init__(self, servers, expire):
+        self.servers = dict(zip(('a', 'b'), servers))
+        self.expire = expire
+
+    def execute(self, command):
+        parts = command.lower().split()
+        if parts == ['expire']:
+            self.expire()
+            return 'Expired all sessions in this run; sign in again to recover.'
+        if len(parts) == 2 and parts[0] in ('offline', 'online') and parts[1] in self.servers:
+            event = self.servers[parts[1]].api_offline
+            (event.set if parts[0] == 'offline' else event.clear)()
+            return f'Frontend {parts[1].upper()} API: {parts[0]} (static app remains available).'
+        return 'Commands: offline a | online a | offline b | online b | expire'
+
+
+def disconnect(handler):
+    handler.close_connection = True
+    try:
+        handler.connection.shutdown(socket.SHUT_RDWR)
+    except OSError:
+        pass  # The client may already have disconnected.
 
 
 class LostReadingResponses:
@@ -60,6 +88,9 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def proxy(self):
+        if self.server.api_offline.is_set():
+            disconnect(self)
+            return
         connection = http.client.HTTPConnection('127.0.0.1', self.server.api_port, timeout=35)
         try:
             size = int(self.headers.get('Content-Length', '0'))
@@ -75,11 +106,7 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
             # response so the real browser must retry its uncertain operation.
             if self.server.lost_responses.consume(self.command, self.path, response.status):
                 print(f'Lost successful reading response: frontend={self.server.server_port} path={self.path}', flush=True)
-                self.close_connection = True
-                try:
-                    self.connection.shutdown(socket.SHUT_RDWR)
-                except OSError:
-                    pass  # The client may already have disconnected.
+                disconnect(self)
                 return
             self.send_response(response.status)
             for key, value in response.getheaders():
@@ -101,6 +128,8 @@ def run():
                         help='Drop the first successful time and coverage POST response on each frontend, after API commit')
     parser.add_argument('--drop-first-save-response', action='store_true',
                         help='Drop the first successful position and bookmark POST response on each frontend, after API commit')
+    parser.add_argument('--interactive-faults', action='store_true',
+                        help='Read terminal commands: offline/online a/b, expire (all sessions in the disposable database)')
     args = parser.parse_args()
     container = args.postgres_container
     database = 'journey_' + secrets.token_hex(8)
@@ -122,6 +151,7 @@ def run():
         for port in (4311, 4312):
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
             server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response)
+            server.api_offline = threading.Event()
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
         with tempfile.TemporaryDirectory(prefix='lumyboo-journey-') as temporary:
@@ -163,10 +193,22 @@ def run():
             if args.drop_first_save_response:
                 print('Response loss enabled: first successful position/bookmark POST reply on EACH frontend will be disconnected after API commit.', flush=True)
             print('Separate cookies/IndexedDB; shared disposable database. Ctrl+C cleans up.', flush=True)
+            controls = JourneyControls(servers, lambda: sql("UPDATE auth_sessions SET expires_at = now() - interval '1 second';"))
+            interactive = args.interactive_faults
+            if interactive:
+                print(controls.execute('help'), flush=True)
             while True:
                 if any(process.poll() is not None for process in processes):
                     raise RuntimeError('API stopped during the journey')
-                time.sleep(1)
+                if interactive:
+                    if select.select([sys.stdin], [], [], 1)[0]:
+                        command = sys.stdin.readline()
+                        if command:
+                            print(controls.execute(command), flush=True)
+                        else:
+                            interactive = False
+                else:
+                    time.sleep(1)
     except KeyboardInterrupt:
         pass
     finally:
