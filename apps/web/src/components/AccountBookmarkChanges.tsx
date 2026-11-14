@@ -9,6 +9,7 @@ import { bookmarkReviews, reviewedBookmarkChange } from '../lib/bookmark-review'
 import { loadAccountBookmarkState, sameBookmark, type BookmarkChange, type BookmarkEntry, type BookmarkState } from '../lib/bookmarks';
 import { rememberBookmarkChoice, sendBookmarkChoice, forgetBookmarkChoice } from '../lib/bookmark-choices';
 import { loadBook, type Book } from '../lib/books';
+import { bookQueryOptions } from '../lib/book-query';
 import { ApiError } from '../lib/api';
 import { useApp } from '../lib/context';
 import { Modal } from './ui';
@@ -18,7 +19,7 @@ type Preview = { change: BookmarkChange; remote?: BookmarkState; conflict: boole
 const title = (entry: BookmarkEntry) => catalog.find(book => book.id === entry.bookId)?.title ?? entry.bookId;
 function Place({ heading, entry }: { heading: string; entry?: BookmarkEntry & { deleted?: boolean } }) {
  const book = catalog.find(book => book.id === entry?.bookId) as Book | undefined;
- const content = useQuery({ queryKey: ['book', book?.id], queryFn: () => loadBook(book!), enabled: !!book && !!entry && !entry.deleted, retry: false, staleTime: Infinity });
+ const content = useQuery({ ...bookQueryOptions(book), enabled: !!book && !!entry && !entry.deleted });
  const chapter = content.data && content.data.version === entry?.version && entry ? content.data.chapters[entry.chapter] : undefined;
  const paragraph = chapter?.paragraphs.findIndex(item => item.id === entry?.paragraph) ?? -1;
  return <div className="section"><h3>{heading}</h3><p className="description">{!entry ? 'Нет сохранённой закладки.' : entry.deleted ? 'Закладка удалена.' : `${entry.label || 'Без подписи'} · глава ${entry.chapter + 1}${paragraph >= 0 ? ` · абзац ${paragraph + 1}` : ''} · ${Math.round(entry.offset * 100)}% абзаца${book && entry.version !== book.version ? ' · прежнее издание' : ''}`}</p>{paragraph >= 0 && <p className="description">«{chapter!.paragraphs[paragraph].text.slice(0, 140)}…»</p>}{content.isError && <p className="reader-note">Текст для сравнения недоступен.</p>}</div>;

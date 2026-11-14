@@ -8,7 +8,8 @@ import { Link, useParams, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { books } from './Library';
-import { loadBook, type BookContent } from '../lib/books';
+import type { BookContent } from '../lib/books';
+import { bookQueryOptions } from '../lib/book-query';
 import { db, setSettings, toggleBookmark, bookmarkId, loadPosition, savePosition, saveReadingSession, deleteBookmark, type Position, type LocalDatabase } from '../lib/db';
 import { protectReading } from '../lib/update-guard';
 import { ownReading } from '../lib/reading-ownership';
@@ -25,7 +26,7 @@ import { ReceiveReaderCoverage } from '../components/ReceiveReaderCoverage';
 export function AccountReader() { return <Reader accountMode />; }
 export function Reader({ accountMode = false }: { accountMode?: boolean }) {
   const { bookId } = useParams({ strict: false }); const book = books.find(b => b.id === bookId);
-  const query = useQuery({ queryKey: ['book', bookId], queryFn: () => loadBook(book!), enabled: !!book, retry: false, staleTime: Infinity });
+  const query = useQuery(bookQueryOptions(book));
   if (!book) return <Empty>Книга не найдена. <Link to="/catalog">В каталог</Link></Empty>;
   if (query.isPending) return <Empty>Открываем историю…</Empty>;
   if (query.isError) return <Empty><p>{query.error.message}</p><button className="secondary section" onClick={() => void query.refetch()}>Попробовать снова</button><Link to="/book/$bookId" params={{ bookId: book.id }}>Вернуться к книге</Link></Empty>;
