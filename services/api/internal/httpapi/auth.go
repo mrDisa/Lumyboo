@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
+	"lumyboo/services/api/internal/dailygoals"
 	"lumyboo/services/api/internal/positions"
 	"lumyboo/services/api/internal/readingcoverage"
 	"lumyboo/services/api/internal/readingsessions"
@@ -21,6 +22,7 @@ import (
 )
 
 type AuthOptions struct {
+	DailyGoals      dailygoals.Store
 	ReadingCoverage readingcoverage.Store
 	ReadingSessions readingsessions.Store
 	Positions       positions.Store

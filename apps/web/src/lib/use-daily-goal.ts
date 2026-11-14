@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { liveQuery } from 'dexie';
 import type { LocalDatabase } from './db';
-import { ensureDailyGoal, type DailyGoal } from './daily-goal';
+import { prepareDailyGoal } from './account-daily-goal';
+import { type DailyGoal } from './daily-goal';
 
 export function useDailyGoal(store: LocalDatabase) {
  const [state, setState] = useState<{ goal?: DailyGoal; error?: boolean }>({});
@@ -10,7 +11,7 @@ export function useDailyGoal(store: LocalDatabase) {
   let disposed = false;
   let subscription: { unsubscribe: () => void } | undefined;
   setState({});
-  void ensureDailyGoal(store).then(() => {
+  void prepareDailyGoal(store).then(() => {
    if (disposed) return;
    subscription = liveQuery(() => store.dailyGoals.get('local')).subscribe({
     next: goal => setState({ goal }), error: () => setState({ error: true }),

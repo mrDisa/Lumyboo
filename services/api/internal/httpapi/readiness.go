@@ -25,6 +25,8 @@ func (p PostgresReadiness) Ping(ctx context.Context) error {
  SELECT user_id, book_id, book_version, locator, server_revision, recorded_at FROM reading_position_history LIMIT 0;
  SELECT id, user_id, book_id, book_version, locator, server_revision, deleted_at FROM bookmarks LIMIT 0;
  SELECT user_id, operation_id, result FROM processed_operations LIMIT 0;
+ SELECT user_id,time_zone,revision FROM daily_goal_settings LIMIT 0;
+ SELECT user_id,effective_from,minutes FROM daily_goal_changes LIMIT 0;
  SELECT user_id, session_id, device_id, book_id, book_version, reported_day, milliseconds, server_revision, created_at, updated_at FROM reading_sessions LIMIT 0;
  SELECT user_id, book_id, book_version, paragraph, ranges, updated_at FROM reading_coverage LIMIT 0;
  `)

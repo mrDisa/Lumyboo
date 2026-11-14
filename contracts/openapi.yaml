@@ -6,6 +6,51 @@ info:
 servers:
   - url: /api/v1
 paths:
+  /daily-goal:
+    get:
+      operationId: getDailyGoal
+      description: Account targets and accepted client reading time. Confirmation acknowledges storage, not independent evidence of reading or rewards.
+      parameters:
+        - name: day
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Historical target and accepted total; defaults to today in the account time zone.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountDailyGoal' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: chooseDailyGoal
+      description: Initialize settings or replace tomorrow's goal. The account time zone stays fixed. Operation IDs permit safe retries, revisions reject concurrent edits. Initial local history can be copied only on first setup.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DailyGoalChange' }
+      responses:
+        '200':
+          description: Current account settings, including on a retry.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, goal]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  goal: { $ref: '#/components/schemas/DailyGoalSettings' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
   /catalog:
     get:
       operationId: listBooks
@@ -529,6 +574,51 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    DailyGoalTarget:
+      type: object
+      required: [from, minutes]
+      properties:
+        from: { type: string, format: date }
+        minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
+    DailyGoalSettings:
+      type: object
+      required: [timeZone, revision, changes]
+      properties:
+        timeZone: { type: string, maxLength: 100 }
+        revision: { type: integer, minimum: 1 }
+        changes:
+          type: array
+          items: { $ref: '#/components/schemas/DailyGoalTarget' }
+    DailyGoalChange:
+      type: object
+      additionalProperties: false
+      required: [accountId, operationId, expectedRevision, timeZone, from, minutes]
+      properties:
+        accountId: { type: string, format: uuid }
+        operationId: { type: string, format: uuid }
+        expectedRevision: { type: integer, minimum: 0 }
+        timeZone: { type: string, maxLength: 100 }
+        from: { type: string, format: date }
+        minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
+        initialChanges:
+          type: array
+          maxItems: 3660
+          items: { $ref: '#/components/schemas/DailyGoalTarget' }
+    AccountDailyGoal:
+      type: object
+      required: [accountId, goal, progress]
+      properties:
+        accountId: { type: string, format: uuid }
+        goal: { $ref: '#/components/schemas/DailyGoalSettings' }
+        progress:
+          type: object
+          required: [day, minutes, milliseconds, complete]
+          properties:
+            day: { type: string, format: date }
+            minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
+            milliseconds: { type: integer, minimum: 0 }
+            complete: { type: boolean }
+
     CoverageRange:
       type: array
       description: Exactly [from, to], with from less than to, in integer millionths of a paragraph.

@@ -4,6 +4,24 @@
  */
 
 export interface paths {
+    "/daily-goal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Account targets and accepted client reading time. Confirmation acknowledges storage, not independent evidence of reading or rewards. */
+        get: operations["getDailyGoal"];
+        put?: never;
+        /** @description Initialize settings or replace tomorrow's goal. The account time zone stays fixed. Operation IDs permit safe retries, revisions reject concurrent edits. Initial local history can be copied only on first setup. */
+        post: operations["chooseDailyGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/catalog": {
         parameters: {
             query?: never;
@@ -366,6 +384,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DailyGoalTarget: {
+            /** Format: date */
+            from: string;
+            /** @enum {integer} */
+            minutes: 5 | 10 | 20 | 30 | 60;
+        };
+        DailyGoalSettings: {
+            timeZone: string;
+            revision: number;
+            changes: components["schemas"]["DailyGoalTarget"][];
+        };
+        DailyGoalChange: {
+            /** Format: uuid */
+            accountId: string;
+            /** Format: uuid */
+            operationId: string;
+            expectedRevision: number;
+            timeZone: string;
+            /** Format: date */
+            from: string;
+            /** @enum {integer} */
+            minutes: 5 | 10 | 20 | 30 | 60;
+            initialChanges?: components["schemas"]["DailyGoalTarget"][];
+        };
+        AccountDailyGoal: {
+            /** Format: uuid */
+            accountId: string;
+            goal: components["schemas"]["DailyGoalSettings"];
+            progress: {
+                /** Format: date */
+                day: string;
+                /** @enum {integer} */
+                minutes: 5 | 10 | 20 | 30 | 60;
+                milliseconds: number;
+                complete: boolean;
+            };
+        };
         /** @description Exactly [from, to], with from less than to, in integer millionths of a paragraph. */
         CoverageRange: number[];
         ReadingCoverage: {
@@ -539,6 +594,68 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getDailyGoal: {
+        parameters: {
+            query?: {
+                day?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Historical target and accepted total; defaults to today in the account time zone. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDailyGoal"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    chooseDailyGoal: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["CSRFToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyGoalChange"];
+            };
+        };
+        responses: {
+            /** @description Current account settings, including on a retry. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        goal: components["schemas"]["DailyGoalSettings"];
+                    };
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
     listBooks: {
         parameters: {
             query?: {

@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
+	"lumyboo/services/api/internal/dailygoals"
 	"lumyboo/services/api/internal/httpapi"
 	"lumyboo/services/api/internal/positions"
 	"lumyboo/services/api/internal/readingcoverage"
@@ -52,7 +53,7 @@ func main() {
 			slog.Error("invalid authentication configuration")
 			os.Exit(1)
 		}
-		authentication = httpapi.AuthOptions{ReadingCoverage: readingcoverage.Postgres{Pool: pool}, ReadingSessions: readingsessions.Postgres{Pool: pool}, Positions: positions.Postgres{Pool: pool}, Bookmarks: bookmarks.Postgres{Pool: pool}, Shelf: shelf.Postgres{Pool: pool}, Service: service, Origin: config.Origin, SecureCookies: config.SecureCookies, TestDelivery: config.SMTP.AllowInsecure, TrustedProxies: config.TrustedProxies}
+		authentication = httpapi.AuthOptions{DailyGoals: dailygoals.Postgres{Pool: pool}, ReadingCoverage: readingcoverage.Postgres{Pool: pool}, ReadingSessions: readingsessions.Postgres{Pool: pool}, Positions: positions.Postgres{Pool: pool}, Bookmarks: bookmarks.Postgres{Pool: pool}, Shelf: shelf.Postgres{Pool: pool}, Service: service, Origin: config.Origin, SecureCookies: config.SecureCookies, TestDelivery: config.SMTP.AllowInsecure, TrustedProxies: config.TrustedProxies}
 		go func() {
 			ticker := time.NewTicker(15 * time.Minute)
 			defer ticker.Stop()

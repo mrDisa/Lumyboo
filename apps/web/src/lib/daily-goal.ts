@@ -4,6 +4,8 @@ import { localDay, sumReadingSeconds } from './reading';
 export const goalOptions = [5, 10, 20, 30, 60] as const;
 export interface DailyGoal {
  id: 'local';
+ revision?: number;
+ pending?: import('./account-daily-goal').PendingGoalChange;
  timeZone: string;
  changes: { from: string; minutes: number }[];
 }
