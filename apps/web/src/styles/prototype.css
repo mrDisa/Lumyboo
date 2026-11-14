@@ -136,3 +136,5 @@ body{background:var(--bg)}.phone{box-shadow:0 35px 100px #00000012,0 0 0 8px var
 @media(max-width:365px){.onboard-art .sculpture{left:50%;width:238px}}
 
 .stats-time{grid-template-columns:repeat(2,1fr)}
+
+.reading-day-books{list-style:none;padding:0}

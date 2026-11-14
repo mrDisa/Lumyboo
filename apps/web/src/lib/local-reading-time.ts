@@ -20,3 +20,20 @@ export function loadLocalReadingTime(store: LocalDatabase, day: string) {
   bookmarks: await store.bookmarks.count(),
  }));
 }
+
+export async function loadLocalReadingDay(store: LocalDatabase, day: string) {
+ const sessions = await store.sessions.where('day').equals(day).toArray();
+ const editions = new Map<string, { bookId: string; version?: string; milliseconds: number }>();
+ for (const session of sessions) {
+  const milliseconds = Math.round(session.seconds * 1000);
+  if (milliseconds <= 0) continue;
+  const key = JSON.stringify([session.bookId, session.version ?? null]);
+  const row = editions.get(key) ?? { bookId: session.bookId, version: session.version, milliseconds: 0 };
+  row.milliseconds += milliseconds;
+  editions.set(key, row);
+ }
+ return {
+  milliseconds: [...editions.values()].reduce((sum, row) => sum + row.milliseconds, 0),
+  editions: [...editions.values()].sort((a, b) => b.milliseconds - a.milliseconds || a.bookId.localeCompare(b.bookId) || (a.version ?? '').localeCompare(b.version ?? '')),
+ };
+}
