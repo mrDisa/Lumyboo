@@ -5,6 +5,7 @@ import base64
 import functools
 import http.client
 import http.server
+import json
 import os
 from pathlib import Path
 import secrets
@@ -93,19 +94,33 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def proxy(self):
+        started = time.monotonic()
+        status, request_id, phase, outcome = None, None, 'upstream', 'upstream_error'
+        def trace():
+            if getattr(self.server, 'trace_api', False):
+                # Deliberately exclude bodies, cookies, headers and URL queries.
+                print(json.dumps({'event': 'journey_api', 'frontend': self.server.server_port,
+                                  'method': self.command, 'path': self.path.split('?', 1)[0],
+                                  'status': status, 'requestId': request_id, 'outcome': outcome,
+                                  'elapsedMs': round((time.monotonic() - started) * 1000)}), flush=True)
         if self.server.api_offline.is_set():
             disconnect(self)
+            outcome = 'injected_offline'
+            trace()
             return
         connection = http.client.HTTPConnection('127.0.0.1', self.server.api_port, timeout=35)
         try:
             size = int(self.headers.get('Content-Length', '0'))
             if size < 0 or size > 2 * 1024 * 1024:
+                status, phase, outcome = 413, 'downstream', 'rejected_request'
                 self.send_error(413)
                 return
             headers = {k: v for k, v in self.headers.items()
                        if k.lower() not in ('host', 'connection', 'transfer-encoding')}
             connection.request(self.command, self.path, self.rfile.read(size), headers)
             response = connection.getresponse()
+            status = response.status
+            request_id = response.getheader('X-Request-ID')
             body = response.read()
             # The real API has finished and committed. For verify, distinguish
             # losing Set-Cookie from receiving it before the body is lost.
@@ -115,7 +130,9 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
             if lost and not after_headers:
                 print(f'Lost successful response: frontend={self.server.server_port} path={self.path}', flush=True)
                 disconnect(self)
+                outcome = 'injected_response_loss'
                 return
+            phase = 'downstream'
             self.send_response(response.status)
             for key, value in response.getheaders():
                 if key.lower() not in ('connection', 'transfer-encoding', 'content-length', 'cache-control'):
@@ -126,17 +143,31 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
                 self.wfile.flush()
                 print(f'Lost successful response body: frontend={self.server.server_port} path={self.path}', flush=True)
                 disconnect(self)
+                outcome = 'injected_body_loss'
                 return
             self.wfile.write(body)
+            outcome = 'delivered'
         except (OSError, http.client.HTTPException, ValueError):
-            self.send_error(502)
+            if phase == 'downstream':
+                # A cancelled browser request is not an upstream API failure.
+                # Never append a second HTTP response to already-sent headers.
+                outcome = 'client_disconnected'
+                self.close_connection = True
+            else:
+                try:
+                    self.send_error(502)
+                except OSError:
+                    self.close_connection = True
         finally:
             connection.close()
+            trace()
 
 
 def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--postgres-container', default='ops-postgres-1')
+    parser.add_argument('--trace-api', action='store_true',
+                        help='Log API status, request ID, timing and delivery outcome, without bodies/cookies/query strings')
     parser.add_argument('--drop-first-reading-response', action='store_true',
                         help='Drop the first successful time and coverage POST response on each frontend, after API commit')
     parser.add_argument('--drop-first-save-response', action='store_true',
@@ -169,6 +200,7 @@ def run():
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
             server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response, args.drop_first_verify_response)
             server.api_offline = threading.Event()
+            server.trace_api = args.trace_api
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
         with tempfile.TemporaryDirectory(prefix='lumyboo-journey-') as temporary:

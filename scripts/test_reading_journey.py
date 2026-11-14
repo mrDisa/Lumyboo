@@ -2,13 +2,75 @@
 from concurrent.futures import ThreadPoolExecutor
 import http.client
 import http.server
+import io
+import json
 import threading
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import Mock, patch
 
 from reading_journey import Frontend, JourneyControls, LostReadingResponses
 
 
 class ReadingResponseLossTests(unittest.TestCase):
+    def test_trace_distinguishes_delivery_cancellation_and_upstream_failure(self):
+        for failure in (None, 'client', 'upstream'):
+            with self.subTest(failure=failure):
+                handler = object.__new__(Frontend)
+                handler.server = Mock(server_port=4311, trace_api=True,
+                                      api_port=8311, api_offline=threading.Event(),
+                                      lost_responses=LostReadingResponses())
+                handler.command = 'GET'
+                handler.path = '/api/v1/positions/?private=hidden-query'
+                handler.headers = {'Cookie': 'hidden-cookie', 'Authorization': 'hidden-auth'}
+                handler.rfile = io.BytesIO()
+                handler.wfile = Mock()
+                handler.send_response = Mock()
+                handler.send_header = Mock()
+                handler.end_headers = Mock()
+                handler.send_error = Mock()
+                response = Mock(status=200)
+                response.getheader.return_value = 'test-request-id'
+                response.getheaders.return_value = [('Set-Cookie', 'hidden-set-cookie')]
+                response.read.return_value = b'hidden-body'
+                connection = Mock()
+                connection.getresponse.return_value = response
+                if failure == 'client':
+                    handler.wfile.write.side_effect = BrokenPipeError()
+                if failure == 'upstream':
+                    connection.getresponse.side_effect = ConnectionResetError()
+                output = io.StringIO()
+                with patch('reading_journey.http.client.HTTPConnection', return_value=connection), redirect_stdout(output):
+                    handler.proxy()
+                record = json.loads(output.getvalue())
+                self.assertEqual(record['path'], '/api/v1/positions/')
+                self.assertEqual(record['outcome'], {None: 'delivered', 'client': 'client_disconnected',
+                                                    'upstream': 'upstream_error'}[failure])
+                self.assertEqual(record['status'], None if failure == 'upstream' else 200)
+                self.assertEqual(record['requestId'], None if failure == 'upstream' else 'test-request-id')
+                self.assertGreaterEqual(record['elapsedMs'], 0)
+                self.assertNotIn('hidden-', output.getvalue())
+                if failure == 'upstream':
+                    handler.send_error.assert_called_once_with(502)
+                else:
+                    handler.send_error.assert_not_called()
+                connection.close.assert_called_once()
+
+    def test_trace_is_opt_in_and_offline_is_identified(self):
+        handler = object.__new__(Frontend)
+        handler.server = Mock(server_port=4311, trace_api=False, api_offline=threading.Event())
+        handler.server.api_offline.set()
+        handler.command, handler.path = 'GET', '/api/v1/positions/'
+        handler.connection = Mock()
+        output = io.StringIO()
+        with redirect_stdout(output):
+            handler.proxy()
+        self.assertEqual(output.getvalue(), '')
+        handler.server.trace_api = True
+        with redirect_stdout(output):
+            handler.proxy()
+        self.assertEqual(json.loads(output.getvalue())['outcome'], 'injected_offline')
+
     def test_terminal_controls_are_explicit_and_isolated(self):
         class Server:
             def __init__(self):
