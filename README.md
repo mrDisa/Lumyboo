@@ -36,7 +36,7 @@ export DATABASE_URL='postgres://lumyboo:local-development-only@127.0.0.1:5432/lu
 npm run api
 ```
 
-API: `http://127.0.0.1:8080/healthz`, `/readyz`, `/api/v1/catalog?q=Достоевский&limit=20&offset=0`. Без DATABASE_URL API каталога доступен, readiness возвращает 503. MinIO: `http://127.0.0.1:9001`, реквизиты только для разработки — в `ops/compose.yaml`. Веб пока использует локальный каталог; интеграция серверного каталога впереди. Worker/River ещё не реализован.
+API: `http://127.0.0.1:8080/healthz`, `/readyz`, `/api/v1/catalog?q=Достоевский&limit=20&offset=0`. Без DATABASE_URL API каталога доступен, readiness возвращает 503. `/readyz` также возвращает 503 при отсутствии необходимых таблиц/колонок API аккаунтов или прав чтения; проверка не применяет миграции автоматически. MinIO: `http://127.0.0.1:9001`, реквизиты только для разработки — в `ops/compose.yaml`. Веб пока использует локальный каталог; интеграция серверного каталога впереди. Worker/River ещё не реализован.
 
 Compose не создаёт бакет автоматически; использование S3 появится с серверным импортом. Контейнер API можно собрать из `services/api/Dockerfile`. Секреты production не помещать в `.env.example` или compose.
 

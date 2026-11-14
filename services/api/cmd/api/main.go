@@ -38,7 +38,7 @@ func main() {
 			os.Exit(1)
 		}
 		defer pool.Close()
-		database = pool
+		database = httpapi.PostgresReadiness{Pool: pool}
 	}
 	var authentication httpapi.AuthOptions
 	if config != nil {
