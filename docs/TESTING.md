@@ -447,7 +447,7 @@ TEST_DATABASE_URL='postgres://lumyboo:test@127.0.0.1:55434/lumyboo?sslmode=disab
 ```sh
 TEST_DATABASE_URL='postgres://lumyboo:local-development-only@127.0.0.1:5432/lumyboo?sslmode=disable' \
   go -C services/api test -race -count=1 \
-  -run 'TestPostgres(ReadingJourneyTwoSessions|ReadinessRequiresAccountSchema)' -v ./internal/httpapi
+  -run 'TestPostgres(ReadingJourneyTwoSessions|AccountSwitchWithLostVerifyReply|ReadinessRequiresAccountSchema)' -v ./internal/httpapi
 ```
 
 `TestPostgresReadingJourneyTwoSessions` использует HTTPS-сервер, Secure/HttpOnly
@@ -988,3 +988,30 @@ python3 scripts/reading_journey.py --drop-first-verify-response before-headers -
 Тесты стенда проверяют разделение ошибки API и отмены браузером, отсутствие
 второго ответа после обрыва записи, opt-in и исключение секретов из трассировки;
 TCP-проверка потери ответа остаётся отдельной частью этого набора.
+
+
+### Потеря ответа при смене уже открытого аккаунта: HTTPS/API
+
+`TestPostgresAccountSwitchWithLostVerifyReply` проверяет настоящий обрыв TLS-
+соединения после успешного выполнения `/auth/verify` в PostgreSQL. Перед сбоем
+первая сессия вошла в A и сохранила место главы 2 и закладку; независимая сессия
+того же A остаётся открытой. Затем первая сессия отправляет настоящий код B.
+
+- `before-headers`: новая cookie не доставлена, прежняя сессия A уже отозвана.
+  Получение сессии, мест и закладок возвращает 401. Повтор использованного кода
+  отклонён; восстановление выполняется новым OTP B. Перед сдвигом ограничения
+  повторной отправки в одноразовой схеме проверяется 429.
+- `after-headers`: получены Set-Cookie и HTTP 200, тело оборвано с исходным
+  Content-Length. Cookie jar принимает cookie B; последующий GET сессии
+  подтверждает B, его места и закладки пусты.
+
+В обоих вариантах повтор старого кода не создаёт доступ, прежняя cookie A
+не открывает отозванную сессию. Независимая сессия A всё ещё получает исходное
+место и закладку. Тест использует общий HTTPS-стенд предыдущего раздела,
+настоящие OTP/API/БД и тестовый почтовый ящик; разрыв выполняется сервером через
+hijack соединения, без подмены ошибки HTTP-клиента. Сертификату доверяет только
+тестовый клиент, системное доверие не меняется.
+
+Это проверка протокола и изоляции серверных данных. Она не заменяет проверку
+React-интерфейса и уведомлений двух браузерных вкладок, публичного HTTPS-стенда,
+Android/iPhone или установленной PWA при смене уже открытого аккаунта.

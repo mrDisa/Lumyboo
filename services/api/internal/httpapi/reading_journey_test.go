@@ -185,8 +185,8 @@ func journeyEqual(t *testing.T, got, want any) {
 	}
 }
 
-func TestPostgresReadingJourneyTwoSessions(t *testing.T) {
-	pool := journeyDatabase(t)
+func journeyServer(t *testing.T, pool *pgxpool.Pool, wrappers ...func(http.Handler) http.Handler) (*journeyMailbox, func() *journeyDevice) {
+	t.Helper()
 	mailbox := &journeyMailbox{codes: map[string]string{}}
 	service, err := auth.New(auth.NewPostgres(pool), mailbox, []byte(strings.Repeat("s", 32)))
 	if err != nil {
@@ -200,6 +200,9 @@ func TestPostgresReadingJourneyTwoSessions(t *testing.T) {
 		Bookmarks: bookmarks.Postgres{Pool: pool}, ReadingSessions: readingsessions.Postgres{Pool: pool},
 		ReadingCoverage: readingcoverage.Postgres{Pool: pool},
 	})
+	for _, wrap := range wrappers {
+		server.Config.Handler = wrap(server.Config.Handler)
+	}
 	server.StartTLS()
 	t.Cleanup(server.Close)
 	device := func() *journeyDevice {
@@ -212,6 +215,12 @@ func TestPostgresReadingJourneyTwoSessions(t *testing.T) {
 		client.Timeout = 10 * time.Second
 		return &journeyDevice{t: t, client: &client, origin: origin}
 	}
+	return mailbox, device
+}
+
+func TestPostgresReadingJourneyTwoSessions(t *testing.T) {
+	pool := journeyDatabase(t)
+	mailbox, device := journeyServer(t, pool)
 	a, b, other, guest := device(), device(), device(), device()
 	guest.request("GET", "/positions/", nil, 401)
 	a.login("reader@example.test", mailbox)
