@@ -350,3 +350,25 @@ func TestPostgresReadinessRequiresAccountSchema(t *testing.T) {
 	check("/readyz", 503)
 	check("/healthz", 200)
 }
+
+// Every shipped edition needs version metadata before account reading can
+// reference it. Missing rows otherwise surface as 503s from foreign keys.
+func TestPostgresCatalogEditionsHaveReadingMetadata(t *testing.T) {
+	pool := journeyDatabase(t)
+	var books []Book
+	if err := json.Unmarshal(seed, &books); err != nil {
+		t.Fatal(err)
+	}
+	for _, book := range books {
+		t.Run(book.ID, func(t *testing.T) {
+			var hash, objectKey string
+			err := pool.QueryRow(context.Background(), `SELECT content_hash,object_key FROM book_versions WHERE book_id=$1 AND version=$2`, book.ID, book.Version).Scan(&hash, &objectKey)
+			if err != nil {
+				t.Fatalf("missing account reading edition: %v", err)
+			}
+			if hash != book.SHA256 || objectKey != book.URL {
+				t.Fatalf("reading edition differs from catalog: hash=%s object_key=%s", hash, objectKey)
+			}
+		})
+	}
+}

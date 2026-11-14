@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { useAccount } from './auth';
+import { readLocalAccount, rememberLocalAccount } from './local-account';
 
 // Run the hook's actions and subscriptions with two independent tab clients.
 // React rendering is not needed to verify session invalidation and ordering.
@@ -7,7 +8,7 @@ const harness = vi.hoisted(() => ({
  client: {} as Record<string, ReturnType<typeof vi.fn>>,
  effects: [] as Array<() => void>,
 }));
-vi.mock('react', () => ({ useEffect: (effect: () => void) => harness.effects.push(effect) }));
+vi.mock('react', () => ({ useEffect: (effect: () => void) => harness.effects.push(effect), useSyncExternalStore: vi.fn() }));
 vi.mock('@tanstack/react-query', () => ({
  useQueryClient: () => harness.client,
  useQuery: () => ({ isSuccess: true, isFetching: false, data: null }),
@@ -34,8 +35,9 @@ function tab() {
 }
 beforeEach(() => {
  vi.stubGlobal('BroadcastChannel', Channel);
- vi.stubGlobal('localStorage', { setItem: vi.fn() });
- vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn() });
+ const values = new Map<string, string>();
+ vi.stubGlobal('localStorage', { getItem: (key: string) => values.get(key) ?? null, setItem: vi.fn((key: string, value: string) => values.set(key, value)), removeItem: (key: string) => values.delete(key) });
+ vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn() });
 });
 afterEach(() => { listeners.clear(); harness.effects = []; vi.unstubAllGlobals(); });
 
@@ -47,6 +49,7 @@ it.each(['verify', 'logout', 'logout-all'] as const)('invalidates the other tab 
  fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
  vi.stubGlobal('fetch', fetch);
  const a = tab(); const b = tab();
+ rememberLocalAccount({ id: '00000000-0000-4000-8000-000000000001', email: 'local@example.test' });
  await expect(action === 'verify'
   ? a.account.verified('challenge', '123456')
   : a.account.logout(action === 'logout-all', 'account-a')).rejects.toBeInstanceOf(TypeError);
@@ -58,6 +61,7 @@ it.each(['verify', 'logout', 'logout-all'] as const)('invalidates the other tab 
  }
  expect(localStorage.setItem).toHaveBeenCalledWith('lumyboo-auth-changed', expect.any(String));
  expect(fetch.mock.calls.at(-1)?.[0]).toBe(`/api/v1/auth/${action}`);
+ expect(readLocalAccount()).toBeNull();
 });
 
 it('uses storage events when BroadcastChannel is unavailable after an uncertain logout', async () => {
@@ -66,7 +70,7 @@ it('uses storage events when BroadcastChannel is unavailable after an uncertain 
  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(session))).mockRejectedValueOnce(new TypeError('lost')));
  const a = tab(); const b = tab();
  await expect(a.account.logout()).rejects.toBeInstanceOf(TypeError);
- const [key, newValue] = vi.mocked(localStorage.setItem).mock.calls[0];
+ const [key, newValue] = vi.mocked(localStorage.setItem).mock.calls.find(call => call[0] === 'lumyboo-auth-changed')!;
  const storage = vi.mocked(window.addEventListener).mock.calls.filter(call => call[0] === 'storage')[1]?.[1] as EventListener;
  storage({ key, newValue } as StorageEvent);
  await vi.waitFor(() => expect(b.client.invalidateQueries).toHaveBeenCalled());
