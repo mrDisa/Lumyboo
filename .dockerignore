@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+Lumyboo-Development-Plan.md
+docs/PRODUCT-RULES.md
+docs/STATUS.md
+docs/QA.md
+design
+apps/web/qa-local.html

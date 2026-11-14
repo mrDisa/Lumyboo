@@ -1,0 +1,28 @@
+{$STAGING_HOST} {
+	basic_auth {
+		{$STAGING_USER} {$STAGING_PASSWORD_HASH}
+	}
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy api:8080 {
+			header_up -Authorization
+		}
+	}
+	handle /healthz {
+		reverse_proxy api:8080
+	}
+	handle /readyz {
+		reverse_proxy api:8080
+	}
+	handle /books/* {
+		root * /srv
+		file_server
+	}
+	handle {
+		root * /srv
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,66 @@
+name: lumyboo-staging
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: ops/staging/Dockerfile
+    restart: unless-stopped
+    environment:
+      STAGING_HOST: ${STAGING_HOST:?Set STAGING_HOST}
+      STAGING_USER: ${STAGING_USER:?Set STAGING_USER}
+      STAGING_PASSWORD_HASH: ${STAGING_PASSWORD_HASH:?Set STAGING_PASSWORD_HASH}
+    ports: ["80:80", "443:443"]
+    volumes: ["caddy_data:/data", "caddy_config:/config"]
+    networks:
+      edge:
+        ipv4_address: 172.30.84.2
+    depends_on: [api]
+  api:
+    build: ../../services/api
+    restart: unless-stopped
+    environment:
+      API_ADDRESS: 0.0.0.0:8080
+      APP_ENV: staging
+      PUBLIC_ORIGIN: https://${STAGING_HOST:?Set STAGING_HOST}
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
+      DATABASE_URL: postgres://lumyboo:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/lumyboo?sslmode=disable
+      SMTP_ADDRESS: ${SMTP_ADDRESS:?Set SMTP_ADDRESS}
+      SMTP_FROM: ${SMTP_FROM:?Set SMTP_FROM}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_ALLOW_INSECURE: "false"
+      TRUSTED_PROXY_CIDRS: 172.30.84.2/32
+    networks:
+      edge:
+        ipv4_address: 172.30.84.3
+      database: {}
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lumyboo
+      POSTGRES_DB: lumyboo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../services/api/db/migrations:/migrations:ro
+    networks: [database]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumyboo -d lumyboo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+networks:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.84.0/29
+  database:
+    internal: true
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
