@@ -29,6 +29,25 @@ class ReadingResponseLossTests(unittest.TestCase):
         self.assertEqual(sum(results), 1)
         self.assertTrue(LostReadingResponses(True).consume('POST', path, 200))
 
+    def test_save_faults_are_opt_in_and_do_not_consume_errors(self):
+        faults = LostReadingResponses(save_enabled=True)
+        for path in LostReadingResponses.save_paths:
+            self.assertFalse(LostReadingResponses(True).consume('POST', path, 200))
+            for method, status in [('GET', 200), ('POST', 401), ('POST', 409), ('POST', 503)]:
+                self.assertFalse(faults.consume(method, path, status))
+            self.assertTrue(faults.consume('POST', path, 200))
+            self.assertFalse(faults.consume('POST', path, 200))
+            self.assertTrue(LostReadingResponses(save_enabled=True).consume('POST', path, 200))
+        for path in LostReadingResponses.paths:
+            self.assertFalse(faults.consume('POST', path, 200))
+
+    def test_both_modes_can_be_combined(self):
+        faults = LostReadingResponses(True, True)
+        for path in LostReadingResponses.paths | LostReadingResponses.save_paths:
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                results = list(pool.map(lambda _: faults.consume('POST', path, 200), range(50)))
+            self.assertEqual(sum(results), 1)
+
     def test_real_connection_is_closed_after_upstream_body_and_retry_is_forwarded(self):
         received = []
 
@@ -51,7 +70,7 @@ class ReadingResponseLossTests(unittest.TestCase):
         upstream = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Upstream)
         frontend = http.server.ThreadingHTTPServer(('127.0.0.1', 0), QuietFrontend)
         frontend.api_port = upstream.server_port
-        frontend.lost_responses = LostReadingResponses(True)
+        frontend.lost_responses = LostReadingResponses(True, True)
         servers = [upstream, frontend]
         threads = [threading.Thread(target=server.serve_forever, daemon=True) for server in servers]
         for thread in threads:
@@ -59,21 +78,24 @@ class ReadingResponseLossTests(unittest.TestCase):
         try:
             payload = b'{"operationId":"same-on-retry"}'
 
-            def post():
+            def post(path):
                 connection = http.client.HTTPConnection('127.0.0.1', frontend.server_port, timeout=3)
                 try:
-                    connection.request('POST', '/api/v1/reading-sessions/apply', payload,
+                    connection.request('POST', path, payload,
                                        {'Content-Type': 'application/json'})
                     response = connection.getresponse()
                     return response.status, response.read()
                 finally:
                     connection.close()
 
-            with self.assertRaises(http.client.RemoteDisconnected):
-                post()
-            self.assertEqual(len(received), 1)
-            self.assertEqual(post(), (200, b'{"committed":true}'))
-            self.assertEqual(received, [('/api/v1/reading-sessions/apply', payload)] * 2)
+            for path in sorted(LostReadingResponses.paths | LostReadingResponses.save_paths):
+                with self.subTest(path=path):
+                    with self.assertRaises(http.client.RemoteDisconnected):
+                        post(path)
+                    self.assertEqual(received[-1], (path, payload))
+                    self.assertEqual(post(path), (200, b'{"committed":true}'))
+                    self.assertEqual(received[-2:], [(path, payload)] * 2)
+            self.assertEqual(len(received), 8)
         finally:
             for server in servers:
                 server.shutdown()

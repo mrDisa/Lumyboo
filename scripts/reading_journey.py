@@ -24,8 +24,11 @@ class LostReadingResponses:
     paths = frozenset(('/api/v1/reading-sessions/apply',
                        '/api/v1/reading-coverage/apply'))
 
-    def __init__(self, enabled=False):
-        self.remaining = set(self.paths) if enabled else set()
+    save_paths = frozenset(('/api/v1/positions/choose',
+                            '/api/v1/bookmarks/apply'))
+
+    def __init__(self, enabled=False, save_enabled=False):
+        self.remaining = (set(self.paths) if enabled else set()) | (set(self.save_paths) if save_enabled else set())
         self.lock = threading.Lock()
 
     def consume(self, method, path, status):
@@ -96,6 +99,8 @@ def run():
     parser.add_argument('--postgres-container', default='ops-postgres-1')
     parser.add_argument('--drop-first-reading-response', action='store_true',
                         help='Drop the first successful time and coverage POST response on each frontend, after API commit')
+    parser.add_argument('--drop-first-save-response', action='store_true',
+                        help='Drop the first successful position and bookmark POST response on each frontend, after API commit')
     args = parser.parse_args()
     container = args.postgres_container
     database = 'journey_' + secrets.token_hex(8)
@@ -116,7 +121,7 @@ def run():
         handler = functools.partial(Frontend, directory=str(ROOT / 'apps/web/dist'))
         for port in (4311, 4312):
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
-            server.lost_responses = LostReadingResponses(args.drop_first_reading_response)
+            server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response)
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
         with tempfile.TemporaryDirectory(prefix='lumyboo-journey-') as temporary:
@@ -155,6 +160,8 @@ def run():
             print('Mailpit: http://127.0.0.1:8025 — use a unique @example.test email.', flush=True)
             if args.drop_first_reading_response:
                 print('Response loss enabled: first successful time/coverage POST reply on EACH frontend will be disconnected after API commit.', flush=True)
+            if args.drop_first_save_response:
+                print('Response loss enabled: first successful position/bookmark POST reply on EACH frontend will be disconnected after API commit.', flush=True)
             print('Separate cookies/IndexedDB; shared disposable database. Ctrl+C cleans up.', flush=True)
             while True:
                 if any(process.poll() is not None for process in processes):
