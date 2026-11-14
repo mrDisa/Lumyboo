@@ -144,3 +144,65 @@ func TestPostgresDailyGoalStreakLateReports(t *testing.T) {
 	check("2026-03-07", 2)
 	b.request("GET", "/daily-goal", nil, 404)
 }
+
+func TestPostgresGuestGoalImportPreservesAccountDays(t *testing.T) {
+	pool := journeyDatabase(t)
+	mailbox, device := journeyServer(t, pool)
+	a, b := device(), device()
+	a.login("guest-goal-import@example.test", mailbox)
+	b.login("guest-goal-other@example.test", mailbox)
+	ctx := context.Background()
+	owner := a.session.User.ID
+	store := dailygoals.Postgres{Pool: pool, Now: func() time.Time { return time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC) }}
+	initial := dailygoals.Change{OperationID: journeyID(t), TimeZone: "UTC", From: "2026-11-15", Minutes: 30, InitialChanges: []dailygoals.Target{{From: "2026-11-10", Minutes: 20}}}
+	if _, err := store.Apply(ctx, owner, initial); err != nil {
+		t.Fatal(err)
+	}
+	imported := dailygoals.Change{OperationID: journeyID(t), ExpectedRevision: 1, TimeZone: "UTC", From: "2026-11-15", Minutes: 5, InitialChanges: []dailygoals.Target{{From: "2026-11-01", Minutes: 10}, {From: "2026-11-05", Minutes: 5}}}
+	goal, err := store.Apply(ctx, owner, imported)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dailygoals.Minutes(goal, "2026-11-04") != 10 || dailygoals.Minutes(goal, "2026-11-09") != 5 || dailygoals.Minutes(goal, "2026-11-10") != 20 || dailygoals.Minutes(goal, "2026-11-14") != 20 || dailygoals.Minutes(goal, "2026-11-15") != 5 {
+		t.Fatal(goal)
+	}
+	retry, err := store.Apply(ctx, owner, imported)
+	if err != nil || retry.Revision != goal.Revision {
+		t.Fatalf("%+v %v", retry, err)
+	}
+	imported.OperationID = journeyID(t)
+	if _, err = store.Apply(ctx, owner, imported); err != dailygoals.ErrConflict {
+		t.Fatal(err)
+	}
+	imported.ExpectedRevision = 2
+	imported.InitialChanges = []dailygoals.Target{{From: "2026-11-10", Minutes: 60}}
+	if _, err = store.Apply(ctx, owner, imported); err != dailygoals.ErrInvalid {
+		t.Fatal(err)
+	}
+	imported.InitialChanges = []dailygoals.Target{{From: "2026-10-01", Minutes: 10}}
+	imported.TimeZone = "Europe/Moscow"
+	if _, err = store.Apply(ctx, owner, imported); err != dailygoals.ErrConflict {
+		t.Fatal(err)
+	}
+	if _, err = store.Get(ctx, b.session.User.ID, ""); err != dailygoals.ErrNotFound {
+		t.Fatal(err)
+	}
+	// Reading before a configured goal used the default 20 minutes. Importing
+	// a historical target must not change that previously visible result.
+	_, err = pool.Exec(ctx, `INSERT INTO reading_sessions(user_id,session_id,device_id,book_id,book_version,reported_day,milliseconds,server_revision) VALUES($1,$2,$3,'room-for-stories','1','2026-10-15',600000,1)`, owner, journeyID(t), journeyID(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	imported.TimeZone = "UTC"
+	if _, err = store.Apply(ctx, owner, imported); err != dailygoals.ErrHistoryConflict {
+		t.Fatal(err)
+	}
+	imported.InitialChanges = nil
+	if _, err = store.Apply(ctx, owner, imported); err != nil {
+		t.Fatal(err)
+	}
+	old, err := store.Get(ctx, owner, "2026-10-15")
+	if err != nil || old.Progress.Minutes != 20 || old.Progress.Complete {
+		t.Fatalf("%+v %v", old, err)
+	}
+}

@@ -601,6 +601,7 @@ components:
         from: { type: string, format: date }
         minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
         initialChanges:
+          description: Initial history, or explicitly imported history strictly before the first saved account target. Existing account days cannot be replaced.
           type: array
           maxItems: 3660
           items: { $ref: '#/components/schemas/DailyGoalTarget' }

@@ -21,7 +21,7 @@ beforeEach(async () => {
  vi.stubGlobal('fetch', vi.fn(async (_url, init) => {
   if (init?.method === 'POST') {
    const body = JSON.parse(String(init.body)); sent.push(body);
-   remote = { timeZone: body.timeZone, revision: (remote?.revision ?? 0) + 1, changes: body.initialChanges ?? remote?.changes ?? [] };
+   remote = { timeZone: body.timeZone, revision: (remote?.revision ?? 0) + 1, changes: [...(body.initialChanges ?? []), ...(remote?.changes ?? [])] };
    remote.changes = [...remote.changes.filter(c => c.from !== body.from), { from: body.from, minutes: body.minutes }];
    return response({ accountId: id, goal: remote });
   }
@@ -85,4 +85,40 @@ it('keeps the existing account zone and time available during an API outage', as
  vi.mocked(getSession).mockRejectedValue(new TypeError('offline'));
  expect(await prepareDailyGoal(store)).toEqual(local);
  expect(fetch).not.toHaveBeenCalled();
+});
+
+it('explicitly imports only earlier guest targets and tomorrow, preserving guest data and account history', async () => {
+ remote = { timeZone: 'UTC', revision: 3, changes: [{ from: '2026-11-10', minutes: 30 }] };
+ const guest = { id: 'local' as const, timeZone: 'UTC', changes: [{ from: '2026-11-01', minutes: 5 }, { from: '2026-11-12', minutes: 10 }] };
+ const before = structuredClone(guest);
+ await syncAccountGoal(store, undefined, { guest, expectedRevision: 3 });
+ expect(sent[0]).toMatchObject({ expectedRevision: 3, minutes: 10, timeZone: 'UTC', initialChanges: [{ from: '2026-11-01', minutes: 5 }] });
+ expect(guest).toEqual(before);
+ expect((await store.dailyGoals.get('local'))?.changes).toContainEqual({ from: '2026-11-10', minutes: 30 });
+});
+it('does not silently replace the goal when another device changes it after preview', async () => {
+ remote = { timeZone: 'UTC', revision: 4, changes: [{ from: '2026-11-01', minutes: 30 }] };
+ await expect(syncAccountGoal(store, undefined, { guest: { id: 'local', timeZone: 'UTC', changes: [{ from: '2026-11-01', minutes: 5 }] }, expectedRevision: 3 })).rejects.toThrow('Открой перенос заново');
+ expect(sent).toEqual([]);
+});
+it('keeps different calendar zones separate and lets the user omit history', async () => {
+ remote = { timeZone: 'America/New_York', revision: 2, changes: [{ from: '2026-11-10', minutes: 30 }] };
+ const guest = { id: 'local' as const, timeZone: 'UTC', changes: [{ from: '2026-11-01', minutes: 5 }] };
+ await syncAccountGoal(store, undefined, { guest, expectedRevision: 2 });
+ expect(sent[0]).toMatchObject({ timeZone: 'America/New_York', minutes: 5, initialChanges: [] });
+ remote = { timeZone: 'UTC', revision: 3, changes: [{ from: '2026-11-10', minutes: 30 }] };
+ await syncAccountGoal(store, undefined, { guest, expectedRevision: 3, includeHistory: false });
+ expect(sent[1].initialChanges).toEqual([]);
+});
+it('retries the identical guest import after losing its response', async () => {
+ remote = { timeZone: 'UTC', revision: 2, changes: [{ from: '2026-11-10', minutes: 30 }] };
+ const guest = { id: 'local' as const, timeZone: 'UTC', changes: [{ from: '2026-11-01', minutes: 5 }] };
+ const original = fetch;
+ vi.stubGlobal('fetch', vi.fn(async (url, init) => { if (init?.method === 'POST') throw new TypeError('lost'); return original(url, init); }));
+ await expect(syncAccountGoal(store, undefined, { guest, expectedRevision: 2 })).rejects.toThrow();
+ const pending = (await store.dailyGoals.get('local'))!.pending;
+ store.close(); await store.open();
+ vi.stubGlobal('fetch', original);
+ await syncAccountGoal(store);
+ expect(sent[0]).toEqual(pending);
 });

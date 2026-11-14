@@ -73,6 +73,8 @@ func dailyGoalFailure(w http.ResponseWriter, r *http.Request, err error) {
 		failure(w, r, 404, "daily_goal_not_found", "Настрой дневную цель.")
 	case errors.Is(err, dailygoals.ErrInvalid):
 		failure(w, r, 400, "invalid_request", "Дата изменилась. Обнови цель и повтори выбор.")
+	case errors.Is(err, dailygoals.ErrHistoryConflict):
+		failure(w, r, 409, "daily_goal_history_conflict", "В аккаунте есть чтение до настройки цели. Сними выбор ранней истории, чтобы сохранить прошлые результаты, и повтори перенос.")
 	case errors.Is(err, dailygoals.ErrConflict):
 		failure(w, r, 409, "daily_goal_conflict", "Цель изменилась. Обнови её и повтори выбор.")
 	default:

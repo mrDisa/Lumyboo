@@ -406,6 +406,7 @@ export interface components {
             from: string;
             /** @enum {integer} */
             minutes: 5 | 10 | 20 | 30 | 60;
+            /** @description Initial history, or explicitly imported history strictly before the first saved account target. Existing account days cannot be replaced. */
             initialChanges?: components["schemas"]["DailyGoalTarget"][];
         };
         AccountDailyGoal: {

@@ -1,3 +1,4 @@
+import { GuestGoalImport } from './GuestGoalImport';
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { LocalDatabase } from '../lib/db';
@@ -66,7 +67,7 @@ export function DailyGoalCard({ store }: { store: LocalDatabase }) {
    <button className="text-button section" aria-expanded={editing} onClick={() => setEditing(!editing)}>Изменить цель</button>
    {editing && <><p className="description section">Новая цель действует с завтрашнего дня. Сегодняшний план и прошлые дни сохраняются.</p><div className="choice-row goal-options" aria-label="Цель на завтра">{goalOptions.map(minutes => <button className={`pill ${tomorrow === minutes ? 'active' : ''}`} aria-pressed={tomorrow === minutes} key={minutes} disabled={busy} onClick={() => void choose(minutes)}>{minutes} мин</button>)}</div></>}
    <p className="reader-note section">{store.scope === 'guest' ? 'Цель и результат на этом устройстве. Учитывается только гостевое чтение.' : accepted ? 'Подтверждено аккаунтом · время с подключённых устройств на момент обновления.' : 'Предварительный результат: чтение этого аккаунта на устройстве.'}</p>
-   {store.scope !== 'guest' && <><p className="reader-note">На этом устройстве — {readingDuration(progress.seconds * 1000)}. Это время может уже входить в подтверждённый итог; значения не складываются. Неотправленные записи сохраняются до подключения.</p>{remoteError && <p className="description" role="alert">{remoteError}</p>}<button className="text-button section" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Обновить цель и итог аккаунта</button></>}
+   {store.scope !== 'guest' && <><p className="reader-note">На этом устройстве — {readingDuration(progress.seconds * 1000)}. Это время может уже входить в подтверждённый итог; значения не складываются. Неотправленные записи сохраняются до подключения.</p><GuestGoalImport store={store} saved={value => { setConfirmed(value); setRemoteError(''); }} />{remoteError && <p className="description" role="alert">{remoteError}</p>}<button className="text-button section" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Обновить цель и итог аккаунта</button></>}
   </>}
  </section>;
 }

@@ -17,6 +17,7 @@ import (
 
 var ErrInvalid = errors.New("invalid daily goal")
 var ErrConflict = errors.New("daily goal changed")
+var ErrHistoryConflict = errors.New("account reading predates saved goal")
 var ErrNotFound = errors.New("daily goal not configured")
 
 type Target struct {
@@ -193,6 +194,36 @@ func (s Postgres) Apply(ctx context.Context, owner string, c Change) (Goal, erro
 	if c.From != today.AddDate(0, 0, 1).Format("2006-01-02") {
 		return Goal{}, ErrInvalid
 	}
+	if g.Revision > 0 && len(c.InitialChanges) > 0 {
+		// Import only history before the first account target. Existing days win.
+		var earlierReading bool
+		if len(g.Changes) > 0 {
+			if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM reading_sessions WHERE user_id=$1 AND reported_day<$2::text::date)`, owner, g.Changes[0].From).Scan(&earlierReading); err != nil {
+				return Goal{}, err
+			}
+		}
+		if earlierReading {
+			return Goal{}, ErrHistoryConflict
+		}
+		last := ""
+		if len(c.InitialChanges) > 3660 || len(g.Changes) == 0 {
+			return Goal{}, ErrInvalid
+		}
+		for _, target := range c.InitialChanges {
+			check := c
+			check.From = target.From
+			check.Minutes = target.Minutes
+			if !Valid(check) || target.From <= last || target.From >= g.Changes[0].From {
+				return Goal{}, ErrInvalid
+			}
+			last = target.From
+		}
+		for _, target := range c.InitialChanges {
+			if _, err = tx.Exec(ctx, `INSERT INTO daily_goal_changes(user_id,effective_from,minutes) VALUES($1,$2::text::date,$3)`, owner, target.From, target.Minutes); err != nil {
+				return Goal{}, err
+			}
+		}
+	}
 	if g.Revision == 0 {
 		last := ""
 		if len(c.InitialChanges) > 3660 {
@@ -221,9 +252,6 @@ func (s Postgres) Apply(ctx context.Context, owner string, c Change) (Goal, erro
 			}
 		}
 	} else {
-		if len(c.InitialChanges) > 0 {
-			return Goal{}, ErrInvalid
-		}
 		if _, err = tx.Exec(ctx, `UPDATE daily_goal_settings SET revision=revision+1 WHERE user_id=$1`, owner); err != nil {
 			return Goal{}, err
 		}

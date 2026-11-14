@@ -15,7 +15,7 @@ export function nextGoalDay(day: string) {
  date.setUTCDate(date.getUTCDate() + 1);
  return date.toISOString().slice(0, 10);
 }
-export function goalMinutes(goal: DailyGoal, day: string) {
+export function goalMinutes(goal: Pick<DailyGoal, 'changes'>, day: string) {
  return goal.changes.filter(row => row.from <= day).sort((a, b) => b.from.localeCompare(a.from))[0]?.minutes ?? 20;
 }
 export async function ensureDailyGoal(store: LocalDatabase, date = new Date(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {

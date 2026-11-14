@@ -2,7 +2,7 @@ import type { LocalDatabase } from './db';
 import { ApiError, requestJSON } from './api';
 import { getSession, type AccountSession } from './auth';
 import { authGeneration } from './local-account';
-import { ensureDailyGoal, goalDay, goalMinutes, nextGoalDay } from './daily-goal';
+import { ensureDailyGoal, goalDay, goalMinutes, nextGoalDay, type DailyGoal } from './daily-goal';
 import type { components } from './api.generated';
 export type GoalSnapshot = components['schemas']['AccountDailyGoal'];
 type Mutation = components['schemas']['DailyGoalChange'];
@@ -33,7 +33,7 @@ async function sendPending(store: LocalDatabase, session: AccountSession, genera
  await saveGoal(store, response.goal);
 }
 // An account-specific lock keeps a retry immutable across tabs and clicks.
-export async function syncAccountGoal(store: LocalDatabase, minutes?: number): Promise<GoalSnapshot> {
+export async function syncAccountGoal(store: LocalDatabase, minutes?: number, imported?: { guest: DailyGoal; expectedRevision: number; includeHistory?: boolean }): Promise<GoalSnapshot> {
  if (minutes !== undefined && ![5, 10, 20, 30, 60].includes(minutes)) throw new Error('Выбери цель из списка.');
  if (store.scope === 'guest') throw new Error('Открой аккаунт.');
  if (!navigator.locks) throw new Error('Для сохранения цели нужен обновлённый браузер и HTTPS или localhost.');
@@ -50,12 +50,14 @@ export async function syncAccountGoal(store: LocalDatabase, minutes?: number): P
   catch (error) { if (!(error instanceof ApiError && error.code === 'daily_goal_not_found')) throw error; }
   assertOwner(store, verified, generation);
   if (remote && remote.accountId !== verified.user.id) throw new Error('Аккаунт изменился.');
+  if (imported && (remote?.goal.revision ?? 0) !== imported.expectedRevision) throw new Error('Цель аккаунта изменилась. Открой перенос заново.');
   if (remote) await saveGoal(store, remote.goal);
-  if (remote && minutes === undefined) return remote;
-  if (!remote || minutes !== undefined) {
-   const goal = remote?.goal ?? local;
+  if (remote && minutes === undefined && !imported) return remote;
+  if (!remote || minutes !== undefined || imported) {
+   const goal = remote?.goal ?? imported?.guest ?? local;
    const from = nextGoalDay(goalDay(goal.timeZone));
-   const pending: Mutation = { accountId: verified.user.id, operationId: crypto.randomUUID(), expectedRevision: remote?.goal.revision ?? 0, timeZone: goal.timeZone, from, minutes: (minutes ?? goalMinutes(local, from)) as Mutation['minutes'], ...(!remote ? { initialChanges: local.changes as Mutation['initialChanges'] } : {}) };
+   const history = imported?.includeHistory === false ? [] : imported ? guestGoalHistory(imported.guest, remote?.goal) : undefined;
+   const pending: Mutation = { accountId: verified.user.id, operationId: crypto.randomUUID(), expectedRevision: remote?.goal.revision ?? 0, timeZone: goal.timeZone, from, minutes: (imported ? goalMinutes(imported.guest, nextGoalDay(goalDay(imported.guest.timeZone))) : minutes ?? goalMinutes(local, from)) as Mutation['minutes'], ...(imported ? { initialChanges: history as Mutation['initialChanges'] } : !remote ? { initialChanges: local.changes as Mutation['initialChanges'] } : {}) };
    await store.dailyGoals.update('local', { pending });
    await sendPending(store, verified, generation);
   }
@@ -76,4 +78,13 @@ export async function prepareDailyGoal(store: LocalDatabase) {
   try { await syncAccountGoal(store); } catch { /* The card offers a separate account refresh and error. */ }
  }
  return await store.dailyGoals.get('local') ?? local;
+}
+
+// Account history always wins from its first saved target onward. Different
+// zones retain separate histories because their calendar days are not equivalent.
+export function guestGoalHistory(guest: DailyGoal, account?: GoalSnapshot['goal']) {
+ if (!account) return guest.changes;
+ if (guest.timeZone !== account.timeZone) return [];
+ const first = account.changes[0]?.from;
+ return first ? guest.changes.filter(change => change.from < first) : [];
 }
