@@ -17,6 +17,7 @@ import { createCoverageRecorder, sampleVisibleText, saveReadingCoverage } from '
 import { useApp } from '../lib/context';
 import { Empty, Icon, Modal } from '../components/ui';
 import styles from './Reader.module.css';
+import { createReaderPositionSave } from '../lib/reader-position-save';
 import { ReaderTime } from '../components/ReaderTime';
 import { ReaderContents } from '../components/ReaderContents';
 import { ReceiveReaderCoverage } from '../components/ReceiveReaderCoverage';
@@ -55,6 +56,7 @@ function AccountReaderGate(props: ReaderProps) {
 function AccountReaderStart(props: ReaderProps & { session: AccountSession; registerSave: RegisterSave }) {
  const store = accountDatabase(props.session.user.id);
  const preparation = useRef<Promise<void>>(Promise.resolve());
+ const saveAccountPosition = useRef<(() => Promise<void>) | undefined>(undefined);
  useEffect(() => { props.registerSave(() => preparation.current); }, [props.registerSave]);
  const [attempt, setAttempt] = useState(0);
  const [ready, setReady] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const starting = useRef(false);
@@ -80,6 +82,7 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession; regi
    const current = await getSession();
    if (current?.user.id !== props.session.user.id) throw new Error('Аккаунт изменился. Открой книгу из профиля заново.');
    await prepareAccountBook(store, props.content, data.remote, data.bookmarks, useRemote, data.local);
+   saveAccountPosition.current = createReaderPositionSave(store, props.content, data.remote);
    setReady(true);
   } catch (error) { setError(error instanceof Error ? error.message : 'Не удалось подготовить чтение. Открой книгу заново.'); }
   finally { setBusy(false); }
@@ -94,14 +97,17 @@ function AccountReaderStart(props: ReaderProps & { session: AccountSession; regi
   finally { setBusy(false); }
  }
  useEffect(() => { if (data && !requiresChoice && !starting.current) { starting.current = true; void start(!data.local && remoteValid); } }, [data, requiresChoice]);
- if (ready) return <ReaderContent {...props} source={store} />;
+ if (ready) return <ReaderContent {...props} source={store} saveAccountPosition={saveAccountPosition.current} />;
  if (query.isError) return <Empty><p>{query.error.message}</p><p className="description">Если ты уже читал это издание в аккаунте на этом устройстве, можно продолжить с сохранённого места и местными закладками. Для проверки входа нужна сеть.</p><button className="primary section" disabled={busy || query.isFetching} aria-busy={busy} onClick={() => void startLocal()}>Продолжить с места на устройстве</button><p className="description" role="alert">{error}</p><button className="secondary section" disabled={busy || query.isFetching} onClick={() => { setError(''); void query.refetch(); }}>Попробовать снова</button><Link className="secondary section" to="/profile">В профиль</Link></Empty>;
  if (!data) return <Empty>Загружаем место и закладки аккаунта…</Empty>;
  return <><h1>Продолжим историю.</h1><p className="description account-email">{props.session.user.email}</p>{requiresChoice && <><p className="description">На устройстве: {describe(data.local)}. В аккаунте: {describe(data.remote)}.</p><p className="description">Выбери, откуда продолжить. Другой вариант останется в истории или аккаунте. Гостевые данные сохранятся отдельно.</p>{data.savedChoice && <p className="description" role="status">{data.savedChoice.conflict ? 'Есть конфликт сохранённого места. Сравни места заново в профиле.' : 'Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.'} Можно продолжить чтение на этом устройстве — сохранённый выбор останется доступен в профиле.</p>}{remoteValid && !data.savedChoice && <button className="primary section" disabled={busy} onClick={() => void start(true)}>Продолжить с места аккаунта</button>}<button className="secondary section" disabled={busy} onClick={() => void start(false)}>{localValid ? 'Продолжить с места на этом устройстве' : 'Начать текущее издание с начала'}</button></>}<p className="description" role="alert">{error || (busy ? 'Подготавливаем чтение…' : '')}</p>{error && <button className="secondary section" disabled={busy || query.isFetching} onClick={() => { starting.current = false; setError(''); setAttempt(value => value + 1); }}>Обновить места и попробовать снова</button>}<Link className="secondary section" to="/profile">В профиль</Link></>;
 }
-function ReaderContent({ content, bookId, title, author, excerpt, source = db, registerSave, session }: ReaderProps & { source?: LocalDatabase; registerSave: RegisterSave; session?: AccountSession }) {
+function ReaderContent({ content, bookId, title, author, excerpt, source = db, registerSave, session, saveAccountPosition }: ReaderProps & { source?: LocalDatabase; registerSave: RegisterSave; session?: AccountSession; saveAccountPosition?: () => Promise<void> }) {
   const { settings, act, notify } = useApp(); const navigate = useNavigate();
   const [chapter, setChapter] = useState<number | null>(null); const [panel, setPanel] = useState<'contents' | 'settings' | 'bookmarks' | 'time' | null>(null);
+  const [exitState, setExitState] = useState<{ error?: string; localSaved?: boolean } | null>(null);
+  const exiting = useRef(false);
+  const exitRequest = useRef(false);
   const [navigation, setNavigation] = useState(0);
   const [bookmarkActive, setBookmarkActive] = useState(false);
   const [protectedReading, setProtectedReading] = useState(false);
@@ -182,7 +188,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     const tick = (observe = true) => {
       const today = localDay();
       if (today !== day) { persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
-      const active = !document.hidden && document.hasFocus() && !panel && ready.current;
+      const active = !document.hidden && document.hasFocus() && !panel && !exiting.current && ready.current;
       const elapsed = clock.tick(performance.now(), active);
       if (observe && active && elapsed > 0) coverageRecorder.observe(sampleVisibleText(document.getElementById('screen')!));
       const coverage = coverageRecorder.flush();
@@ -216,12 +222,38 @@ function ReaderContent({ content, bookId, title, author, excerpt, source = db, r
     // bookmarks and the contents entry for the already displayed chapter.
     setPanel(null); setChapter(value); setNavigation(value => value + 1);
   }
-  async function leave() { if (!await act(flushReading)) return; if (source.scope === 'guest') await navigate({ to: '/book/$bookId', params: { bookId } }); else await navigate({ to: '/profile' }); }
+  async function returnFromReader() {
+    if (source.scope === 'guest') await navigate({ to: '/book/$bookId', params: { bookId } });
+    else await navigate({ to: '/profile' });
+  }
+  async function leave() {
+    if (exitRequest.current) return;
+    exitRequest.current = true;
+    exiting.current = true;
+    setExitState({});
+    let localSaved = false;
+    try {
+      await flushReading();
+      localSaved = true;
+      if (source.scope !== 'guest') {
+        if (!saveAccountPosition) throw new Error('Место аккаунта не удалось загрузить перед чтением. Сравни места в профиле.');
+        await saveAccountPosition();
+      }
+      await returnFromReader();
+    } catch (error) {
+      setExitState({ localSaved, error: error instanceof Error ? error.message : 'Не удалось сохранить место.' });
+    } finally { exitRequest.current = false; }
+  }
+  function closeExit() {
+    if (!exitState?.error) return;
+    if (exitState.localSaved) void returnFromReader();
+    else { exiting.current = false; setExitState(null); }
+  }
   async function bookmark() {
     if (!current.current) return;
     const p = { ...current.current };
     if (await act(() => toggleBookmark(p, content.chapters[chapter!].title, source), 'Закладки сохранены на устройстве')) setBookmarkActive(!!await source.bookmarks.get(bookmarkId(p)));
   }
   const active = content.chapters[chapter];
-  return <><ReceiveReaderCoverage store={source} content={content} session={session} /><header className="reader-head"><button className="circle" aria-label="Закрыть читалку" onClick={() => void leave()}><Icon name="back" /></button><div className="title"><b>{title}</b>{author}</div><button className="circle" aria-label="Настройки чтения" onClick={() => setPanel('settings')}>Aa</button><button className="circle" aria-label="Поставить или убрать закладку" aria-pressed={bookmarkActive} onClick={() => void bookmark()}><Icon name="bookmark" /></button></header><div className={styles.tools}><button className="text-button" onClick={() => setPanel('contents')}><Icon name="list" />Оглавление</button><button className="text-button" onClick={() => setPanel('bookmarks')}>Закладки · {bookmarks.length}</button><button className="text-button" onClick={() => setPanel('time')}>Время чтения</button></div><article className={`reader-page ${styles.text}`} style={{ '--reader-size': `${settings.fontSize}px`, '--reader-leading': settings.lineHeight } as CSSProperties}><div className="chapter">{excerpt ? 'ОРИГИНАЛЬНЫЙ ФРАГМЕНТ' : 'ТЕСТОВЫЙ ПОЛНЫЙ ТЕКСТ'} · {chapter + 1} / {content.chapters.length}</div><h1>{active.title}</h1><div className={`reader-text ${settings.font === 'sans' ? 'sans' : ''}`}>{active.paragraphs.map(p => <p id={p.id} data-paragraph key={p.id}>{p.text}</p>)}</div></article><footer className="reader-footer"><div className="page-controls"><button className="circle" disabled={chapter === 0} aria-label="Предыдущая глава" onClick={() => void changeChapter(chapter - 1)}><Icon name="back" /></button><small>Глава {chapter + 1} из {content.chapters.length}</small><button className="circle" disabled={chapter === content.chapters.length - 1} aria-label="Следующая глава" onClick={() => void changeChapter(chapter + 1)}><Icon name="arrow" /></button></div>{chapter === content.chapters.length - 1 && <p className="reader-note">Конец {excerpt ? 'фрагмента' : 'текста'}. Переход сюда не отмечает книгу прочитанной.</p>}<button className="primary section" onClick={() => void leave()}>Сохранить и выйти<Icon name="check" /></button><p className="reader-note section">{source.scope === 'guest' ? 'Гостевое место сохранено на устройстве' : 'Место этого аккаунта сохранено на устройстве. Отправить его на сервер можно в профиле.'}</p></footer>{panel && <Modal title={panel === 'contents' ? 'Оглавление' : panel === 'bookmarks' ? 'Твои закладки' : panel === 'time' ? 'Время за книгой' : 'Твоё пространство'} close={() => setPanel(null)}>{panel === 'time' ? <ReaderTime store={source} bookId={bookId} version={content.version} /> : panel === 'contents' ? <ReaderContents content={content} store={source} chapter={chapter} changeChapter={value => void changeChapter(value)} openParagraph={(value, paragraph, offset) => void changeChapter(value, { bookId, version: content.version, chapter: value, paragraph, offset, updatedAt: new Date().toISOString() })} /> : panel === 'bookmarks' ? bookmarks.length ? bookmarks.map(b => <div className="bookmark-row" key={b.id}><button className="text-button" onClick={() => void changeChapter(b.chapter, b)}>{b.label}</button><button className="circle" aria-label={`Удалить закладку: ${b.label}`} onClick={() => void act(() => deleteBookmark(b.id, source))}><Icon name="close" /></button></div>) : <Empty>Сохрани первый момент кнопкой закладки.</Empty> : <><label htmlFor="font-size">Размер текста · {settings.fontSize}</label><input id="font-size" type="range" min="15" max="32" value={settings.fontSize} onChange={e => void act(() => setSettings({ fontSize: Number(e.target.value) }))} /><label>Начертание</label><div className="choice-row">{(['serif', 'sans'] as const).map((font, i) => <button className={`pill ${settings.font === font ? 'active' : ''}`} key={font} aria-pressed={settings.font === font} onClick={() => void act(() => setSettings({ font }))}>{['Книжное', 'Современное'][i]}</button>)}</div><label htmlFor="line-height">Межстрочный интервал</label><select id="line-height" value={settings.lineHeight} onChange={e => void act(() => setSettings({ lineHeight: Number(e.target.value) }))}>{[1.5, 1.75, 1.95, 2.2].map(n => <option key={n} value={n}>{n}</option>)}</select></>}</Modal>}</>;
+  return <><ReceiveReaderCoverage store={source} content={content} session={session} /><header className="reader-head"><button className="circle" aria-label="Закрыть читалку" onClick={() => void leave()}><Icon name="back" /></button><div className="title"><b>{title}</b>{author}</div><button className="circle" aria-label="Настройки чтения" onClick={() => setPanel('settings')}>Aa</button><button className="circle" aria-label="Поставить или убрать закладку" aria-pressed={bookmarkActive} onClick={() => void bookmark()}><Icon name="bookmark" /></button></header><div className={styles.tools}><button className="text-button" onClick={() => setPanel('contents')}><Icon name="list" />Оглавление</button><button className="text-button" onClick={() => setPanel('bookmarks')}>Закладки · {bookmarks.length}</button><button className="text-button" onClick={() => setPanel('time')}>Время чтения</button></div><article className={`reader-page ${styles.text}`} style={{ '--reader-size': `${settings.fontSize}px`, '--reader-leading': settings.lineHeight } as CSSProperties}><div className="chapter">{excerpt ? 'ОРИГИНАЛЬНЫЙ ФРАГМЕНТ' : 'ТЕСТОВЫЙ ПОЛНЫЙ ТЕКСТ'} · {chapter + 1} / {content.chapters.length}</div><h1>{active.title}</h1><div className={`reader-text ${settings.font === 'sans' ? 'sans' : ''}`}>{active.paragraphs.map(p => <p id={p.id} data-paragraph key={p.id}>{p.text}</p>)}</div></article><footer className="reader-footer"><div className="page-controls"><button className="circle" disabled={chapter === 0} aria-label="Предыдущая глава" onClick={() => void changeChapter(chapter - 1)}><Icon name="back" /></button><small>Глава {chapter + 1} из {content.chapters.length}</small><button className="circle" disabled={chapter === content.chapters.length - 1} aria-label="Следующая глава" onClick={() => void changeChapter(chapter + 1)}><Icon name="arrow" /></button></div>{chapter === content.chapters.length - 1 && <p className="reader-note">Конец {excerpt ? 'фрагмента' : 'текста'}. Переход сюда не отмечает книгу прочитанной.</p>}<button className="primary section" onClick={() => void leave()}>Сохранить и выйти<Icon name="check" /></button><p className="reader-note section">{source.scope === 'guest' ? 'Гостевое место сохранено на устройстве' : 'Место этого аккаунта сохранено на устройстве. При выходе из читалки сохраняем его в аккаунте.'}</p></footer>{exitState && <Modal title="Сохранение места" close={closeExit}>{exitState.error ? <><p className="description" role="alert">{exitState.error}</p><p className="description section">{exitState.localSaved ? 'Место сохранено на устройстве. Сохранение в аккаунте не подтверждено; другой вариант не перезаписывается без проверки.' : 'Не удалось сохранить чтение на устройстве. Проверь хранилище и повтори.'}</p><button className="primary section" onClick={() => void leave()}>Повторить сохранение</button>{exitState.localSaved && <button className="secondary section" onClick={() => void returnFromReader()}>Выйти с местом на устройстве</button>}</> : <p className="description" role="status">Сохраняем место…</p>}</Modal>}{panel && <Modal title={panel === 'contents' ? 'Оглавление' : panel === 'bookmarks' ? 'Твои закладки' : panel === 'time' ? 'Время за книгой' : 'Твоё пространство'} close={() => setPanel(null)}>{panel === 'time' ? <ReaderTime store={source} bookId={bookId} version={content.version} /> : panel === 'contents' ? <ReaderContents content={content} store={source} chapter={chapter} changeChapter={value => void changeChapter(value)} openParagraph={(value, paragraph, offset) => void changeChapter(value, { bookId, version: content.version, chapter: value, paragraph, offset, updatedAt: new Date().toISOString() })} /> : panel === 'bookmarks' ? bookmarks.length ? bookmarks.map(b => <div className="bookmark-row" key={b.id}><button className="text-button" onClick={() => void changeChapter(b.chapter, b)}>{b.label}</button><button className="circle" aria-label={`Удалить закладку: ${b.label}`} onClick={() => void act(() => deleteBookmark(b.id, source))}><Icon name="close" /></button></div>) : <Empty>Сохрани первый момент кнопкой закладки.</Empty> : <><label htmlFor="font-size">Размер текста · {settings.fontSize}</label><input id="font-size" type="range" min="15" max="32" value={settings.fontSize} onChange={e => void act(() => setSettings({ fontSize: Number(e.target.value) }))} /><label>Начертание</label><div className="choice-row">{(['serif', 'sans'] as const).map((font, i) => <button className={`pill ${settings.font === font ? 'active' : ''}`} key={font} aria-pressed={settings.font === font} onClick={() => void act(() => setSettings({ font }))}>{['Книжное', 'Современное'][i]}</button>)}</div><label htmlFor="line-height">Межстрочный интервал</label><select id="line-height" value={settings.lineHeight} onChange={e => void act(() => setSettings({ lineHeight: Number(e.target.value) }))}>{[1.5, 1.75, 1.95, 2.2].map(n => <option key={n} value={n}>{n}</option>)}</select></>}</Modal>}</>;
 }
