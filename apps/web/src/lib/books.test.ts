@@ -1,4 +1,6 @@
 import 'fake-indexeddb/auto';
+import completeStory from '../../public/books/what-men-live-by.json';
+import catalog from '../data/catalog.json';
 import { afterEach, expect, it, vi } from 'vitest';
 import { verifiedResponse, downloadBook, loadBook, reconcileDownloads, BOOK_CACHE, type Book } from './books';
 import { db } from './db';
@@ -112,4 +114,20 @@ it('removes stale download badges when the browser evicts or corrupts a cached b
   await reconcileDownloads([book]); expect(await db.downloads.get(book.id)).toBeUndefined();
   await db.downloads.put({ bookId: book.id, version: '1', bytes: book.bytes, hash: book.sha256 });
   await reconcileDownloads([book]); expect(await db.downloads.get(book.id)).toBeUndefined();
+});
+
+it('downloads and reopens the complete Tolstoy story with its final chapter offline', async () => {
+ const book = catalog.find(book => book.id === 'what-men-live-by') as Book;
+ const raw = JSON.stringify(completeStory, null, 2) + '\n';
+ mockCache();
+ vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(raw)));
+ await downloadBook(book);
+ db.close(); await db.open();
+ vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
+ const content = await loadBook(book);
+ expect(content.chapters.map(chapter => chapter.title)).toEqual(['Эпиграф', 'Глава I', 'Глава II', 'Глава III', 'Глава IV', 'Глава V', 'Глава VI', 'Глава VII', 'Глава VIII', 'Глава IX', 'Глава X', 'Глава XI', 'Глава XII']);
+ expect(content.chapters.flatMap(chapter => chapter.paragraphs)).toHaveLength(248);
+ expect(content.chapters.at(-1)?.paragraphs.at(-1)?.text).toBe('И когда очнулся Семен, изба стояла по-прежнему, и в избе уже никого, кроме семейных, не было.');
+ expect(await db.downloads.get(book.id)).toMatchObject({ hash: book.sha256, bytes: book.bytes });
+ expect(fetch).not.toHaveBeenCalled();
 });

@@ -486,7 +486,7 @@ export interface components {
             genre: string;
             year: string;
             /** @enum {string} */
-            kind: "fixture" | "excerpt";
+            kind: "fixture" | "excerpt" | "full";
             version: string;
             url: string;
             sha256: string;
@@ -494,6 +494,12 @@ export interface components {
             rights: string;
             description: string;
             cover: number;
+            /** Format: uri */
+            sourceUrl?: string;
+            /** Format: uri */
+            licenseUrl?: string;
+            /** Format: uri */
+            coverSourceUrl?: string;
         };
         Error: {
             error: {

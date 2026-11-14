@@ -8,7 +8,7 @@ if (!cached.length || new Set(cached).size !== cached.length) throw Error('Empty
 if (cached.some(url => url.startsWith('books/') || url.startsWith('api/'))) throw Error('Books and API must not enter the app precache');
 const required = ['index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 for (const file of await readdir(new URL('assets/', dist))) {
- if (/\.(js|css|svg|ttf)$/.test(file)) required.push(`assets/${file}`);
+ if (/\.(js|css|svg|ttf|png|jpg)$/.test(file)) required.push(`assets/${file}`);
 }
 for (const file of required) {
  if (!cached.includes(file)) throw Error(`Offline shell is missing ${file}`);

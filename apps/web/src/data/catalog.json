@@ -43,5 +43,23 @@
     "sha256": "afa67cd93ae5ad48e3f0df67e243e9d64fe0344bb8d534ac115f528eb59b0dae",
     "bytes": 1122,
     "rights": "Фрагмент из предоставленного прототипа. Публикация требует отдельной проверки прав."
+  },
+  {
+    "id": "what-men-live-by",
+    "title": "Чем люди живы",
+    "author": "Лев Толстой",
+    "genre": "Рассказы",
+    "year": "1881",
+    "cover": 6,
+    "description": "Сапожник Семён встречает на дороге незнакомца и приводит его домой. Рассказ о сострадании и о том, что связывает людей. Полный текст: эпиграф и двенадцать глав.",
+    "kind": "full",
+    "version": "1",
+    "url": "/books/what-men-live-by.json",
+    "sha256": "07cc9dc1ffbb6b7b30a6e3cc959cd546ecc454d881194cae84e80c282b7b92e3",
+    "bytes": 77993,
+    "rights": "Русский оригинал — общественное достояние. Текст: Викитека, версия 4722178 (CC BY-SA 4.0); пробелы и деление на главы подготовлены для читалки. Изображение: титульный лист ПСС, т. 25, 1937, Wikimedia Commons (Public Domain).",
+    "sourceUrl": "https://ru.wikisource.org/w/index.php?oldid=4722178",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "coverSourceUrl": "https://commons.wikimedia.org/wiki/File:L._N._Tolstoy._All_in_90_volumes._Volume_25.pdf"
   }
 ]

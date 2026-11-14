@@ -675,7 +675,7 @@ components:
         author: { type: string }
         genre: { type: string }
         year: { type: string }
-        kind: { type: string, enum: [fixture, excerpt] }
+        kind: { type: string, enum: [fixture, excerpt, full] }
         version: { type: string }
         url: { type: string }
         sha256: { type: string }
@@ -683,6 +683,9 @@ components:
         rights: { type: string }
         description: { type: string }
         cover: { type: integer }
+        sourceUrl: { type: string, format: uri }
+        licenseUrl: { type: string, format: uri }
+        coverSourceUrl: { type: string, format: uri }
     Error:
       type: object
       required: [error]

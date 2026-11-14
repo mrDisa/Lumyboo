@@ -17,19 +17,22 @@ import (
 var seed []byte
 
 type Book struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Author      string `json:"author"`
-	Genre       string `json:"genre"`
-	Year        string `json:"year"`
-	Cover       int    `json:"cover"`
-	Description string `json:"description"`
-	Kind        string `json:"kind"`
-	Version     string `json:"version"`
-	URL         string `json:"url"`
-	SHA256      string `json:"sha256"`
-	Bytes       int    `json:"bytes"`
-	Rights      string `json:"rights"`
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Author         string `json:"author"`
+	Genre          string `json:"genre"`
+	Year           string `json:"year"`
+	Cover          int    `json:"cover"`
+	Description    string `json:"description"`
+	Kind           string `json:"kind"`
+	Version        string `json:"version"`
+	URL            string `json:"url"`
+	SHA256         string `json:"sha256"`
+	Bytes          int    `json:"bytes"`
+	Rights         string `json:"rights"`
+	SourceURL      string `json:"sourceUrl,omitempty"`
+	LicenseURL     string `json:"licenseUrl,omitempty"`
+	CoverSourceURL string `json:"coverSourceUrl,omitempty"`
 }
 
 type Pinger interface{ Ping(context.Context) error }
