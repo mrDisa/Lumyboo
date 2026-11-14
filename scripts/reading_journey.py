@@ -37,7 +37,12 @@ class JourneyControls:
             event = self.servers[parts[1]].api_offline
             (event.set if parts[0] == 'offline' else event.clear)()
             return f'Frontend {parts[1].upper()} API: {parts[0]} (static app remains available).'
-        return 'Commands: offline a | online a | offline b | online b | expire'
+        if (len(parts) == 3 and parts[0] == 'lose-verify' and parts[1] in self.servers
+                and parts[2] in ('before-headers', 'after-headers')):
+            self.servers[parts[1]].lost_responses.arm_verify(parts[2])
+            return f'Frontend {parts[1].upper()}: next successful verify reply will be lost {parts[2]}.'
+        return ('Commands: offline a | online a | offline b | online b | expire | '
+                'lose-verify a/b before-headers/after-headers')
 
 
 def disconnect(handler):
@@ -64,6 +69,13 @@ class LostReadingResponses:
         if verify_mode:
             self.remaining.add('/api/v1/auth/verify')
         self.lock = threading.Lock()
+
+    def arm_verify(self, mode):
+        if mode not in ('before-headers', 'after-headers'):
+            raise ValueError('Unknown verify loss mode')
+        with self.lock:
+            self.verify_mode = mode
+            self.remaining.add('/api/v1/auth/verify')
 
     def consume(self, method, path, status):
         if method != 'POST' or not 200 <= status < 300:
@@ -177,7 +189,7 @@ def run():
     parser.add_argument('--drop-first-verify-response', choices=('before-headers', 'after-headers'),
                         help='Lose the first successful login reply per frontend, before Set-Cookie or after headers but before the body')
     parser.add_argument('--interactive-faults', action='store_true',
-                        help='Read terminal commands: offline/online a/b, expire (all sessions in the disposable database)')
+                        help='Read terminal commands: offline/online a/b, expire, lose-verify a/b before-headers/after-headers')
     args = parser.parse_args()
     container = args.postgres_container
     database = 'journey_' + secrets.token_hex(8)

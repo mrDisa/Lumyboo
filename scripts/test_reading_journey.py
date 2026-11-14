@@ -104,6 +104,25 @@ class ReadingResponseLossTests(unittest.TestCase):
         self.assertFalse(faults.consume('POST', path, 200))
         self.assertTrue(faults.consume('POST', '/api/v1/reading-coverage/apply', 200))
 
+    def test_verify_can_be_armed_after_normal_login_for_one_frontend_only(self):
+        a = Mock(lost_responses=LostReadingResponses())
+        b = Mock(lost_responses=LostReadingResponses())
+        controls = JourneyControls([a, b], Mock())
+        path = '/api/v1/auth/verify'
+        self.assertFalse(a.lost_responses.consume('POST', path, 200))
+        for command in ('lose-verify a', 'lose-verify c after-headers', 'lose-verify a invalid'):
+            self.assertTrue(controls.execute(command).startswith('Commands:'))
+        for mode in ('before-headers', 'after-headers'):
+            controls.execute(f'lose-verify a {mode}')
+            self.assertEqual(a.lost_responses.verify_mode, mode)
+            self.assertFalse(b.lost_responses.consume('POST', path, 200))
+            self.assertFalse(a.lost_responses.consume('POST', path, 401))
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                results = list(pool.map(lambda _: a.lost_responses.consume('POST', path, 200), range(50)))
+            self.assertEqual(sum(results), 1)
+        with self.assertRaises(ValueError):
+            a.lost_responses.arm_verify('invalid')
+
     def test_concurrent_requests_drop_once_and_frontends_are_independent(self):
         path = '/api/v1/reading-sessions/apply'
         faults = LostReadingResponses(True)
@@ -211,11 +230,13 @@ class ReadingResponseLossTests(unittest.TestCase):
                     self.assertEqual(received[-2:], [(path, payload)] * 2)
             self.assertEqual(len(received), 12)
             path = '/api/v1/auth/verify'
-            frontend.lost_responses = LostReadingResponses(verify_mode='before-headers')
+            self.assertEqual(post(path), (200, b'{"committed":true}'))
+            controls = JourneyControls([frontend], Mock())
+            controls.execute('lose-verify a before-headers')
             with self.assertRaises(http.client.RemoteDisconnected):
                 post(path)
             self.assertEqual(post(path), (200, b'{"committed":true}'))
-            frontend.lost_responses = LostReadingResponses(verify_mode='after-headers')
+            controls.execute('lose-verify a after-headers')
             connection = http.client.HTTPConnection('127.0.0.1', frontend.server_port, timeout=3)
             try:
                 connection.request('POST', path, payload)
