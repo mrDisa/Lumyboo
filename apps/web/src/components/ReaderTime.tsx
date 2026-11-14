@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
 import { liveQuery } from 'dexie';
 import type { LocalDatabase } from '../lib/db';
+import { useDailyGoal } from '../lib/use-daily-goal';
 import { localDay } from '../lib/reading';
 import { loadBookReadingTime } from '../lib/book-reading-time';
 import styles from '../pages/Reader.module.css';
 import { readingDuration } from '../lib/reading-session-history';
 
 export function ReaderTime({ store, bookId, version }: { store: LocalDatabase; bookId: string; version: string }) {
+ const { goal } = useDailyGoal(store);
  const [day, setDay] = useState(localDay);
  const [attempt, setAttempt] = useState(0);
  const [limit, setLimit] = useState(20);
  const [state, setState] = useState<{ value?: Awaited<ReturnType<typeof loadBookReadingTime>>; error?: boolean }>({});
  useEffect(() => {
-  const refresh = () => setDay(localDay());
+  const refresh = () => setDay(localDay(new Date(), goal?.timeZone));
+  refresh();
   const interval = setInterval(refresh, 1000);
   window.addEventListener('focus', refresh);
   document.addEventListener('visibilitychange', refresh);
   return () => { clearInterval(interval); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
- }, []);
+ }, [goal?.timeZone]);
  useEffect(() => { setLimit(20); }, [store, bookId, version]);
  useEffect(() => {
   setState({});
@@ -41,6 +44,6 @@ export function ReaderTime({ store, bookId, version }: { store: LocalDatabase; b
     {state.value.days.length > limit && <button className="text-button" onClick={() => setLimit(value => value + 20)}>Показать ещё · осталось {state.value.days.length - limit}</button>}
    </> : <p className="description">Пока нет сохранённого времени за этим изданием.</p>}
   </section>}
-  <p className="reader-note section">Сегодня — по дате устройства. Время из других изданий и с других устройств сюда не добавляется. Пока открыто это окно, чтение на паузе.</p>
+  <p className="reader-note section">Сегодня — по сохранённому часовому поясу чтения. Время из других изданий и с других устройств сюда не добавляется. Пока открыто это окно, чтение на паузе.</p>
  </>;
 }

@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { DailyGoal } from './daily-goal';
 import type { AccountPosition, PositionChoice } from './positions';
 import type { BookmarkChange } from './bookmarks';
 import type { ParagraphCoverage } from './reading-coverage';
@@ -23,6 +24,7 @@ export interface PendingOperation { id: string; formatVersion: 1; scope: Operati
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
 export const defaults: Settings = { id: 'local', theme: 'system', fontSize: 18, font: 'serif', lineHeight: 1.95, onboarded: false, name: '' };
 export class LocalDatabase extends Dexie {
+  dailyGoals!: Table<DailyGoal, string>;
   bookmarkChoices!: Table<SavedBookmarkChoice, string>;
   positionChoices!: Table<SavedPositionChoice, string>;
   outbox!: Table<PendingOperation, string>;
@@ -43,6 +45,7 @@ export class LocalDatabase extends Dexie {
     this.version(4).stores({ positionChoices: 'bookId' });
     this.version(5).stores({ bookmarkChoices: 'id' });
     this.version(6).stores({ coverage: '[bookId+version+paragraph], [bookId+version]' });
+    this.version(7).stores({ dailyGoals: 'id' });
   }
 }
 export const db = new LocalDatabase();
