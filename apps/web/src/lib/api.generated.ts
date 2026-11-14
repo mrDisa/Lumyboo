@@ -419,6 +419,8 @@ export interface components {
                 minutes: 5 | 10 | 20 | 30 | 60;
                 milliseconds: number;
                 complete: boolean;
+                /** @description Consecutive completed days through this day or yesterday if this day is unfinished. */
+                streak: number;
             };
         };
         /** @description Exactly [from, to], with from less than to, in integer millionths of a paragraph. */

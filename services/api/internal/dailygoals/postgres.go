@@ -32,6 +32,7 @@ type Day struct {
 	Day          string `json:"day"`
 	Minutes      int    `json:"minutes"`
 	Milliseconds int64  `json:"milliseconds"`
+	Streak       int    `json:"streak"`
 	Complete     bool   `json:"complete"`
 }
 type Snapshot struct {
@@ -121,7 +122,28 @@ func (s Postgres) Get(ctx context.Context, owner, day string) (Snapshot, error) 
 	p := Day{Day: day, Minutes: Minutes(g, day)}
 	err = tx.QueryRow(ctx, `SELECT COALESCE(sum(milliseconds),0)::bigint FROM reading_sessions WHERE user_id=$1 AND reported_day=$2::text::date`, owner, day).Scan(&p.Milliseconds)
 	p.Complete = p.Milliseconds >= int64(p.Minutes)*60000
-	return Snapshot{Goal: g, Progress: p}, err
+	if err != nil {
+		return Snapshot{}, err
+	}
+	rows, err := tx.Query(ctx, `SELECT to_char(reported_day,'YYYY-MM-DD'),sum(milliseconds)::bigint FROM reading_sessions WHERE user_id=$1 AND reported_day<=$2::text::date GROUP BY reported_day`, owner, day)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	defer rows.Close()
+	totals := map[string]int64{}
+	for rows.Next() {
+		var date string
+		var ms int64
+		if err := rows.Scan(&date, &ms); err != nil {
+			return Snapshot{}, err
+		}
+		totals[date] = ms
+	}
+	if err := rows.Err(); err != nil {
+		return Snapshot{}, err
+	}
+	p.Streak = Streak(g, day, totals)
+	return Snapshot{Goal: g, Progress: p}, nil
 }
 func (s Postgres) Apply(ctx context.Context, owner string, c Change) (Goal, error) {
 	if !Valid(c) {
@@ -224,4 +246,22 @@ func (s Postgres) Apply(ctx context.Context, owner string, c Change) (Goal, erro
 		return Goal{}, err
 	}
 	return g, nil
+}
+
+// An unfinished current day preserves yesterday's run until the day ends.
+func Streak(g Goal, day string, totals map[string]int64) int {
+	cursor, _ := time.Parse("2006-01-02", day)
+	complete := func() bool {
+		date := cursor.Format("2006-01-02")
+		return totals[date] >= int64(Minutes(g, date))*60000
+	}
+	if !complete() {
+		cursor = cursor.AddDate(0, 0, -1)
+	}
+	count := 0
+	for complete() {
+		count++
+		cursor = cursor.AddDate(0, 0, -1)
+	}
+	return count
 }

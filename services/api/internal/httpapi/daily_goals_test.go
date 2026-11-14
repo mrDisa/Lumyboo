@@ -57,8 +57,8 @@ func TestPostgresDailyGoalTwoDevices(t *testing.T) {
 	a.request("POST", "/reading-sessions/apply", report, 200)
 	session2 := map[string]any{"sessionId": journeyID(t), "deviceId": journeyID(t), "bookId": "room-for-stories", "version": "1", "day": today, "milliseconds": 300000}
 	b.request("POST", "/reading-sessions/apply", map[string]any{"accountId": a.session.User.ID, "operationId": journeyID(t), "session": session2}, 200)
-	journeyEqual(t, b.request("GET", "/daily-goal?day="+today, nil, 200)["progress"], map[string]any{"day": today, "minutes": 20, "milliseconds": 1200000, "complete": true})
-	journeyEqual(t, b.request("GET", "/daily-goal?day="+tomorrow, nil, 200)["progress"], map[string]any{"day": tomorrow, "minutes": 30, "milliseconds": 0, "complete": false})
+	journeyEqual(t, b.request("GET", "/daily-goal?day="+today, nil, 200)["progress"], map[string]any{"day": today, "minutes": 20, "milliseconds": 1200000, "complete": true, "streak": 1})
+	journeyEqual(t, b.request("GET", "/daily-goal?day="+tomorrow, nil, 200)["progress"], map[string]any{"day": tomorrow, "minutes": 30, "milliseconds": 0, "complete": false, "streak": 1})
 	req, _ := http.NewRequest("GET", a.origin+"/api/v1/daily-goal", nil)
 	req.Header.Set("Sec-Fetch-Site", "cross-site")
 	res, err := a.client.Do(req)
@@ -103,4 +103,44 @@ func TestPostgresDailyGoalCalendarHistory(t *testing.T) {
 	if err != nil || result.Progress.Minutes != 5 {
 		t.Fatalf("%+v %v", result, err)
 	}
+}
+
+func TestPostgresDailyGoalStreakLateReports(t *testing.T) {
+	pool := journeyDatabase(t)
+	mailbox, device := journeyServer(t, pool)
+	a, b := device(), device()
+	a.login("streak@example.test", mailbox)
+	b.login("streak-other@example.test", mailbox)
+	owner := a.session.User.ID
+	now := time.Date(2026, 3, 9, 3, 59, 59, 0, time.UTC)
+	store := dailygoals.Postgres{Pool: pool, Now: func() time.Time { return now }}
+	_, err := store.Apply(context.Background(), owner, dailygoals.Change{OperationID: journeyID(t), TimeZone: "America/New_York", From: "2026-03-09", Minutes: 5, InitialChanges: []dailygoals.Target{{From: "2026-03-06", Minutes: 10}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	read := func(day string, ms int) {
+		report := map[string]any{"accountId": owner, "operationId": journeyID(t), "session": map[string]any{"sessionId": journeyID(t), "deviceId": journeyID(t), "bookId": "room-for-stories", "version": "1", "day": day, "milliseconds": ms}}
+		a.request("POST", "/reading-sessions/apply", report, 200)
+		a.request("POST", "/reading-sessions/apply", report, 200)
+	}
+	check := func(day string, want int) {
+		t.Helper()
+		result, err := store.Get(context.Background(), owner, day)
+		if err != nil || result.Progress.Streak != want {
+			t.Fatalf("%s: %+v %v, want %d", day, result, err, want)
+		}
+	}
+	read("2026-03-06", 600000)
+	read("2026-03-07", 600000)
+	check("", 2)               // March 8 is still open in the saved zone.
+	now = now.Add(time.Second) // Midnight after the DST transition.
+	check("", 0)
+	read("2026-03-09", 300000)
+	check("", 1)
+	read("2026-03-08", 599999)
+	check("", 1)
+	read("2026-03-08", 1) // A late session repairs the missing historical day.
+	check("", 4)
+	check("2026-03-07", 2)
+	b.request("GET", "/daily-goal", nil, 404)
 }

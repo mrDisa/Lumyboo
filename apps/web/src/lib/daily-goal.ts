@@ -39,7 +39,21 @@ export async function chooseDailyGoal(store: LocalDatabase, minutes: number, dat
  });
 }
 export async function loadDailyProgress(store: LocalDatabase, goal: DailyGoal, day: string) {
- const seconds = sumReadingSeconds(await store.sessions.where('day').equals(day).toArray());
+ const sessions = await store.sessions.where('day').belowOrEqual(day).toArray();
+ const seconds = sumReadingSeconds(sessions.filter(row => row.day === day));
+ const totals = new Map<string, number>();
+ for (const row of sessions) totals.set(row.day, (totals.get(row.day) ?? 0) + Math.round(row.seconds * 1000));
+ const completed = new Set([...totals].filter(([date, ms]) => ms >= goalMinutes(goal, date) * 60000).map(([date]) => date));
+ let cursor = day;
+ if (!completed.has(cursor)) cursor = previousGoalDay(cursor);
+ let streak = 0;
+ while (completed.has(cursor)) { streak++; cursor = previousGoalDay(cursor); }
  const minutes = goalMinutes(goal, day);
- return { seconds, minutes, remaining: Math.max(0, Math.ceil(minutes * 60 - seconds)), complete: seconds >= minutes * 60 };
+ return { seconds, minutes, streak, remaining: Math.max(0, Math.ceil(minutes * 60 - seconds)), complete: seconds >= minutes * 60 };
+}
+
+function previousGoalDay(day: string) {
+ const date = new Date(`${day}T12:00:00Z`);
+ date.setUTCDate(date.getUTCDate() - 1);
+ return date.toISOString().slice(0, 10);
 }

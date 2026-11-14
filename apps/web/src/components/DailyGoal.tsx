@@ -59,6 +59,8 @@ export function DailyGoalCard({ store }: { store: LocalDatabase }) {
    <h3 className="section">{(accepted?.complete ?? progress.complete) ? 'Цель на сегодня выполнена.' : `${progress.minutes} минут для себя.`}</h3>
    <p className="description section">{Math.floor((accepted ? accepted.milliseconds / 1000 : progress.seconds) / 60)} из {progress.minutes} мин{!(accepted?.complete ?? progress.complete) && <> · осталось {readingDuration(accepted ? Math.max(0, progress.minutes * 60000 - accepted.milliseconds) : progress.remaining * 1000)}</>}</p>
    <progress className="goal-progress" aria-label="Прогресс дневной цели" max={progress.minutes * 60} value={Math.min(accepted ? accepted.milliseconds / 1000 : progress.seconds, progress.minutes * 60)} />
+   <p className="description section">Дней подряд: {accepted?.streak ?? progress.streak}</p>
+   <p className="reader-note">Выполняй цель каждый день, чтобы продолжать серию. Пропущенный день сбрасывает её; сегодня ещё можно успеть.</p>
    <p className="reader-note">{day.split('-').reverse().join('.')} · {goal.timeZone}</p>
    {tomorrow !== progress.minutes && <p className="description section">С завтрашнего дня — {tomorrow} мин.</p>}
    <button className="text-button section" aria-expanded={editing} onClick={() => setEditing(!editing)}>Изменить цель</button>

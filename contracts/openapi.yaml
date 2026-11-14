@@ -612,12 +612,13 @@ components:
         goal: { $ref: '#/components/schemas/DailyGoalSettings' }
         progress:
           type: object
-          required: [day, minutes, milliseconds, complete]
+          required: [day, minutes, milliseconds, complete, streak]
           properties:
             day: { type: string, format: date }
             minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
             milliseconds: { type: integer, minimum: 0 }
             complete: { type: boolean }
+            streak: { type: integer, minimum: 0, description: Consecutive completed days through this day or yesterday if this day is unfinished. }
 
     CoverageRange:
       type: array

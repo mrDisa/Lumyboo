@@ -86,3 +86,28 @@ it('adds goals to a v6 database without rewriting historical reading or settings
  expect(await store.settings.get('local')).toMatchObject({ name: 'Reader' });
  expect(await store.sessions.get('old')).toMatchObject({ day: '2026-11-13', seconds: 65 });
 });
+
+it('continues yesterday’s streak, uses historical goals and repairs a gap after a late report', async () => {
+ const store = database();
+ const goal = { id: 'local' as const, timeZone: 'UTC', changes: [{ from: '2026-12-28', minutes: 20 }, { from: '2026-12-31', minutes: 5 }] };
+ async function read(day: string, seconds: number) {
+  await saveReadingSession({ id: day, bookId: 'a', day, seconds }, store);
+ }
+ await read('2026-12-29', 1200);
+ await read('2026-12-30', 1200);
+ await read('2026-12-31', 300);
+ expect((await loadDailyProgress(store, goal, '2027-01-01')).streak).toBe(3);
+ await read('2027-01-01', 299.999);
+ expect((await loadDailyProgress(store, goal, '2027-01-01')).streak).toBe(3);
+ await read('2027-01-01', 300);
+ await read('2027-01-01', 300); // Same snapshot is never counted twice.
+ expect((await loadDailyProgress(store, goal, '2027-01-01')).streak).toBe(4);
+ expect((await loadDailyProgress(store, goal, '2026-12-30')).streak).toBe(2); // Future reports excluded.
+ expect((await loadDailyProgress(store, goal, '2027-01-03')).streak).toBe(0);
+ await read('2027-01-03', 300);
+ expect((await loadDailyProgress(store, goal, '2027-01-03')).streak).toBe(1);
+ await read('2027-01-02', 300);
+ expect((await loadDailyProgress(store, goal, '2027-01-03')).streak).toBe(6);
+ const other = database('account:other');
+ expect((await loadDailyProgress(other, goal, '2027-01-03')).streak).toBe(0);
+});
