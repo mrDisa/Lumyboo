@@ -24,7 +24,7 @@ it('rejects an account switch and surfaces auth/network errors without automatic
   expect(fetch).toHaveBeenCalledOnce();
  }
  vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Offline'); }));
- await expect(loadReadingSessionHistory(accountId)).rejects.toThrow('Offline');
+ await expect(loadReadingSessionHistory(accountId)).rejects.toThrow('Не удалось связаться с сервисом');
 });
 it('displays partial minutes without rounding them up or truncating hours', () => {
  expect([1, 999, 1000, 59999, 60000, 119999, 3600000, 86400000].map(readingDuration)).toEqual(['меньше секунды', 'меньше секунды', '1 с', '59 с', '1 мин 0 с', '1 мин 59 с', '60 мин 0 с', '1440 мин 0 с']);

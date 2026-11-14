@@ -108,7 +108,7 @@ it('sends with a live owner/CSRF and acknowledges only the sent snapshot', async
 it('retries the exact UUID and wire payload after loss of response and reopen', async () => {
  await observe(); let original = '';
  vi.mocked(fetch).mockImplementationOnce(async () => new Response(JSON.stringify(session))).mockImplementationOnce(async (_url, init) => { original = String(init?.body); throw new TypeError('Lost response'); });
- await expect(sendReadingCoverage(store, session)).rejects.toThrow('Lost response');
+ await expect(sendReadingCoverage(store, session)).rejects.toThrow('Не удалось связаться с сервисом');
  await observe(.8, 1); store.close(); await store.open();
  let retry = '';
  vi.mocked(fetch).mockImplementation(async (url, init) => {

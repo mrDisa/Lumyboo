@@ -7,7 +7,7 @@ it('retries an uncertain choice with the same operation and displayed revision',
  const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('Network error')).mockResolvedValue(new Response(JSON.stringify({ accountId: 'account-a', position: { ...local, revision: 4 } })));
  vi.stubGlobal('fetch', fetcher);
  const choice = positionChoice(local, { ...local, chapter: 0, revision: 3 });
- await expect(chooseAccountPosition(session, choice)).rejects.toThrow('Network error');
+ await expect(chooseAccountPosition(session, choice)).rejects.toThrow('Не удалось связаться с сервисом');
  await chooseAccountPosition(session, choice);
  expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body);
  const body = JSON.parse(fetcher.mock.calls[0][1].body);

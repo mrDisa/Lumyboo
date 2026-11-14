@@ -26,7 +26,7 @@ it('persists the exact mutation before sending and replays after a lost response
  const saved = await store.bookmarkChoices.get(id);
  const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('Lost response')).mockImplementation(async () => receipt());
  vi.stubGlobal('fetch', fetcher);
- await expect(send()).rejects.toThrow('Lost response');
+ await expect(send()).rejects.toThrow('Не удалось связаться с сервисом');
  store.close(); await store.open();
  expect(await store.bookmarkChoices.get(id)).toEqual(saved);
  await send();
@@ -210,7 +210,7 @@ it('leaves mismatching snapshots queued and permits cancellation after an uncert
  await rememberBookmarkChoice(store, { ...change, bookmark: { ...bookmark, label: 'Reviewed server label' } });
  expect((await store.bookmarkChoices.get(id))?.coveredOperationIds).toEqual([]);
  vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Lost response'); }));
- await expect(send()).rejects.toThrow('Lost response');
+ await expect(send()).rejects.toThrow('Не удалось связаться с сервисом');
  await forgetBookmarkChoice(store, id, change.operationId);
  expect(await store.outbox.count()).toBe(1);
  expect((await store.bookmarks.get(id))?.label).toBe(bookmark.label);

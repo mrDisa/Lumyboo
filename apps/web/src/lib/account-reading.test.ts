@@ -93,7 +93,7 @@ it('keeps an interrupted save intact across reopen until the exact choice is con
  const choice = positionChoice(position, remote);
  await rememberPositionChoice(a, { bookId: 'book', choice, remote, conflict: false });
  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Lost response')));
- await expect(sendPositionChoice(a, session, 'book', choice.operationId)).rejects.toThrow('Lost response');
+ await expect(sendPositionChoice(a, session, 'book', choice.operationId)).rejects.toThrow('Не удалось связаться с сервисом');
  a.close(); await a.open();
  const before = { choice: await a.positionChoices.get('book'), outbox: await a.outbox.toArray(), bookmarks: await a.bookmarks.toArray() };
  await expect(prepareAccountBook(a, content, remote, [serverBookmark], true, position)).rejects.toThrow('незавершённое сохранение');
@@ -176,7 +176,7 @@ it.each(['expired', 'changed', 'unavailable'] as const)('refuses local account r
  else if (failure === 'expired') fetcher.mockResolvedValue(new Response('{}', { status: 401 }));
  else fetcher.mockResolvedValue(new Response(JSON.stringify({ user: { id: b.scope.slice(8) }, csrfToken: 'csrf' })));
  vi.stubGlobal('fetch', fetcher);
- await expect(resumeLocalAccountBook(a, content)).rejects.toThrow(failure === 'expired' ? 'Вход истёк' : failure === 'changed' ? 'Аккаунт изменился' : 'Network unavailable');
+ await expect(resumeLocalAccountBook(a, content)).rejects.toThrow(failure === 'expired' ? 'Вход истёк' : failure === 'changed' ? 'Аккаунт изменился' : 'Не удалось связаться с сервисом');
  expect(await a.positions.get('book')).toEqual(position);
  expect(await a.outbox.toArray()).toEqual(before);
 });
@@ -228,7 +228,7 @@ it('does not resurrect a missing bookmark while its deletion awaits a receipt in
   await rememberBookmarkChoice(otherTab, change);
   const saved = await a.bookmarkChoices.get(id);
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Lost response')));
-  await expect(sendBookmarkChoice(otherTab, session, id, change.operationId)).rejects.toThrow('Lost response');
+  await expect(sendBookmarkChoice(otherTab, session, id, change.operationId)).rejects.toThrow('Не удалось связаться с сервисом');
   await prepareAccountBook(a, content, remote, [serverBookmark, { ...serverBookmark, paragraph: 'p1' }], false, undefined);
   expect(await a.bookmarks.get(id)).toBeUndefined();
   expect(await a.bookmarks.count()).toBe(1); // Unrelated bookmarks still load.

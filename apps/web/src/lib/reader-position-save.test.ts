@@ -35,7 +35,7 @@ it('retries the identical persisted operation after a lost response and reopen',
   return json({ accountId, position: { ...local, revision: 5 } });
  }));
  const save = createReaderPositionSave(store, content, remote);
- await expect(save()).rejects.toThrow('Lost response');
+ await expect(save()).rejects.toThrow('Не удалось связаться с сервисом');
  expect(await store.positionChoices.count()).toBe(1);
  store.close(); await store.open();
  await save();

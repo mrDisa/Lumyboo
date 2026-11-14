@@ -18,7 +18,7 @@ it('reopens an uncertain choice and resends the identical payload without cleari
  const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('Lost response')).mockResolvedValue(new Response(JSON.stringify({ accountId, position: { ...position, revision: 3 } })));
  vi.stubGlobal('fetch', fetcher);
  await rememberPositionChoice(store, choice);
- await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Lost response');
+ await expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Не удалось связаться с сервисом');
  store.close(); await store.open();
  expect(await store.positionChoices.get('book')).toEqual(choice);
  await savePosition({ ...position, offset: .9, updatedAt: 'later' }, store);
@@ -182,10 +182,10 @@ it('releases ownership after a lost response so an explicit cancellation remains
  const fetcher = vi.fn(() => new Promise<Response>((_, reject) => { fail = reject; }));
  vi.stubGlobal('fetch', fetcher);
  await rememberPositionChoice(store, choice);
- const result = expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Lost response');
+ const result = expect(sendPositionChoice(store, session, 'book', 'operation-a')).rejects.toThrow('Не удалось связаться с сервисом');
  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
  await expect(forgetPositionChoice(store, 'book', 'operation-a')).rejects.toThrow('другой вкладке');
- fail(new Error('Lost response'));
+ fail(new TypeError('Lost response'));
  await result;
  expect(await store.positionChoices.get('book')).toEqual(choice);
  await forgetPositionChoice(store, 'book', 'operation-a');

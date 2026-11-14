@@ -60,7 +60,7 @@ it('keeps the exact request for retry after lost response and reopen, preserving
  await saveReadingSession(row, store);
  const calls: string[] = [];
  vi.stubGlobal('fetch', vi.fn(async (_url, init) => { calls.push(String(init?.body)); throw new TypeError('Network lost'); }));
- await expect(sendReadingSessions(store, session)).rejects.toThrow('Network lost');
+ await expect(sendReadingSessions(store, session)).rejects.toThrow('Не удалось связаться с сервисом');
  const sending = (await store.outbox.toArray())[0]; expect(sending.state).toBe('sending');
  await saveReadingSession({ ...row, seconds: 5 }, store);
  store.close(); await store.open();

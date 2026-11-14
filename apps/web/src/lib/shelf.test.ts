@@ -19,5 +19,5 @@ it('rejects a response for an account changed in another tab', async () => {
 });
 it('reports an uncertain import as retryable without changing local guest data', async () => {
  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Network error')));
- await expect(importGuestShelf(session, ['new'])).rejects.toThrow('Network error');
+ await expect(importGuestShelf(session, ['new'])).rejects.toThrow('Не удалось связаться с сервисом');
 });

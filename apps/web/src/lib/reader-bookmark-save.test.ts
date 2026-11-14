@@ -61,7 +61,7 @@ it('retries exact persisted changes after lost response without resending comple
   if (!url.endsWith('/auth/session') && JSON.parse(options!.body as string).bookmark.paragraph === 'p2' && !lost) { lost = true; throw new TypeError('Lost response'); }
   return response;
  }));
- await expect(save()).rejects.toThrow('Lost response');
+ await expect(save()).rejects.toThrow('Не удалось связаться с сервисом');
  expect(await store.bookmarkChoices.count()).toBe(1);
  store.close(); await store.open(); await save();
  expect(bodies).toHaveLength(3); expect(bodies[2]).toEqual(bodies[1]);

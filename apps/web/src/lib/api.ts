@@ -24,14 +24,17 @@ export async function requestJSON<T>(path: string, init: RequestInit = {}): Prom
  headers.set('Accept', 'application/json');
  if (init.body !== undefined) headers.set('Content-Type', 'application/json');
  const controller = new AbortController();
- const timeout = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), 12_000);
+ const timeout = setTimeout(() => controller.abort(new DOMException('Сервис не ответил вовремя. Попробуй ещё раз.', 'TimeoutError')), 12_000);
  const cancel = () => controller.abort(init.signal?.reason);
  if (init.signal?.aborted) cancel();
  else init.signal?.addEventListener('abort', cancel, { once: true });
  try {
   const response = await fetch(`/api/v1${path}`, { ...init, signal: controller.signal, credentials: 'same-origin', cache: 'no-store', headers });
   if (!response.ok) {
-   const body: unknown = await response.json().catch(() => null);
+   const body: unknown = await response.json().catch((error: unknown) => {
+    if (error instanceof SyntaxError) return null;
+    throw error;
+   });
    // A timed-out/cancelled body is still a transport failure. In particular,
    // do not turn it into a definitive sign-out or a terminal sync failure.
    controller.signal.throwIfAborted();
@@ -42,6 +45,12 @@ export async function requestJSON<T>(path: string, init: RequestInit = {}): Prom
   }
   if (response.status === 204) return undefined as T;
   return await response.json();
+ } catch (error) {
+  // Preserve cancellation and retry classification: a transport failure is
+  // neither an HTTP rejection nor proof that an account session has expired.
+  controller.signal.throwIfAborted();
+  if (error instanceof TypeError) throw new TypeError('Не удалось связаться с сервисом. Проверь подключение и попробуй ещё раз.', { cause: error });
+  throw error;
  } finally {
   clearTimeout(timeout);
   init.signal?.removeEventListener('abort', cancel);
