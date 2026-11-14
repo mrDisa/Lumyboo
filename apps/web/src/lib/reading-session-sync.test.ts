@@ -3,6 +3,7 @@ import Dexie from 'dexie';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { LocalDatabase, saveReadingSession, savePosition, toggleBookmark } from './db';
 import { readingSessionReport, sendReadingSessions } from './reading-session-sync';
+import { startReadingTimeAuto } from './reading-time-auto';
 const accountId = '00000000-0000-4000-8000-000000000001';
 const store = new LocalDatabase('reading-session-sync-tests', `account:${accountId}`);
 const session = { user: { id: accountId, email: 'a@example.test' }, csrfToken: 'csrf' };
@@ -129,6 +130,32 @@ it('coordinates two connections until local acknowledgement finishes and fails c
  vi.stubGlobal('navigator', {});
  await expect(sendReadingSessions(store, session)).rejects.toThrow('HTTPS');
 });
+it('waits without a failure notice while another connection confirms the last time report', async () => {
+ await saveReadingSession(row, store);
+ const other = new LocalDatabase(store.name, store.scope);
+ let finish!: () => void;
+ const gate = new Promise<void>(resolve => { finish = resolve; });
+ vi.stubGlobal('fetch', vi.fn(async (_url, init) => { await gate; return receipt(init); }));
+ const sending = sendReadingSessions(store, session);
+ const publish = vi.fn();
+ const verify = vi.fn(async () => session);
+ let sender: ReturnType<typeof startReadingTimeAuto> | undefined;
+ try {
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+  sender = startReadingTimeAuto({
+   accountId, online: () => true,
+   hasWork: async () => (await other.outbox.toArray()).some(op => !!readingSessionReport(op)),
+   verify, send: (live, signal) => sendReadingSessions(other, live, signal), publish,
+  });
+  await vi.waitFor(() => expect(publish).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'waiting', message: expect.stringContaining('другой вкладке') })));
+  expect((await other.outbox.toArray())[0].state).toBe('sending');
+  finish(); expect(await sending).toBe(1);
+  expect(await other.outbox.count()).toBe(0);
+  await vi.waitFor(() => expect(publish).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'waiting', message: expect.stringContaining('автоматически') })), { timeout: 6500 });
+  expect(verify).toHaveBeenCalledOnce(); expect(fetch).toHaveBeenCalledOnce();
+  expect((await other.sessions.get(row.id))?.seconds).toBe(row.seconds);
+ } finally { sender?.stop(); finish(); await sending; other.close(); }
+}, 10_000);
 it('refuses guest/changed ownership and ignores foreign operations', async () => {
  const guest = new LocalDatabase('reading-session-guest');
  await expect(sendReadingSessions(guest, session)).rejects.toThrow('Аккаунт');

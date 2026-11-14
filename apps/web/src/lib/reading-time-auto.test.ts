@@ -65,6 +65,29 @@ it('retries another-tab contention without overlapping batches', async () => {
  const send = vi.fn().mockRejectedValueOnce(new ReadingTimeBusyError('Busy')).mockResolvedValue(1); const deps = setup({ send });
  await vi.advanceTimersByTimeAsync(0); deps.sender.wake(); await vi.advanceTimersByTimeAsync(5000); expect(send).toHaveBeenCalledTimes(2);
 });
+it('reports another tab as busy rather than a failed save and rechecks a drained queue', async () => {
+ let work = true;
+ const send = vi.fn(async () => { throw new ReadingTimeBusyError('Busy'); });
+ const deps = setup({ send, hasWork: vi.fn(async () => work) });
+ await vi.advanceTimersByTimeAsync(0);
+ expect(deps.publish).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'waiting', message: expect.stringContaining('другой вкладке') }));
+ work = false;
+ await vi.advanceTimersByTimeAsync(5000);
+ expect(send).toHaveBeenCalledOnce();
+ expect(deps.verify).toHaveBeenCalledOnce();
+ expect(deps.publish).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'waiting', message: expect.stringContaining('автоматически') }));
+});
+it('does not count lock contention as transport failures when calculating backoff', async () => {
+ const send = vi.fn().mockRejectedValueOnce(new ReadingTimeBusyError('Busy')).mockRejectedValueOnce(new TypeError('Lost reply')).mockResolvedValue(1);
+ setup({ send });
+ await vi.advanceTimersByTimeAsync(0);
+ await vi.advanceTimersByTimeAsync(5000);
+ expect(send).toHaveBeenCalledTimes(2);
+ await vi.advanceTimersByTimeAsync(4999);
+ expect(send).toHaveBeenCalledTimes(2);
+ await vi.advanceTimersByTimeAsync(1);
+ expect(send).toHaveBeenCalledTimes(3);
+});
 it('stops after unmount during session verification and ignores late completion', async () => {
  let finish!: (value: typeof session) => void;
  const deps = setup({ verify: vi.fn(() => new Promise<typeof session>(resolve => { finish = resolve; })) });

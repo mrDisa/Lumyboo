@@ -10,10 +10,9 @@ export type ReadingAutoDependencies = {
  send: (session: AccountSession, signal: AbortSignal) => Promise<number>;
  publish: (state: ReadingAutoState) => void;
 };
-export type ReadingAutoMessages = Record<'offline' | 'saving' | 'signIn' | 'waiting' | 'paused' | 'manual' | 'retry', string>;
+export type ReadingAutoMessages = Record<'offline' | 'saving' | 'signIn' | 'waiting' | 'busy' | 'paused' | 'manual' | 'retry', string>;
 export class ReadingAutoBusyError extends Error {}
 function retryDelay(error: unknown, failures: number) {
- if (error instanceof ReadingAutoBusyError) return 5000;
  if (error instanceof TypeError || error instanceof DOMException && ['AbortError', 'TimeoutError'].includes(error.name) || error instanceof ApiError && (error.status === 429 || error.status >= 500)) {
   return Math.max(Math.min(5000 * 2 ** Math.min(failures - 1, 6), 300_000), error instanceof ApiError ? Math.min(error.retryAfter * 1000, 2_147_483_647) : 0);
  }
@@ -49,6 +48,13 @@ export function startReadingAuto(deps: ReadingAutoDependencies, messages: Readin
    publish('waiting', messages.waiting);
   } catch (error) {
    if (controller.signal.aborted) return;
+   if (error instanceof ReadingAutoBusyError) {
+    // Another tab owns the batch. Recheck its queue after yielding without
+    // reporting a failed save or increasing the transport-failure backoff.
+    delay = 5000;
+    publish('waiting', messages.busy);
+    return;
+   }
    delay = retryDelay(error, ++failures);
    paused = delay === null;
    publish(paused ? 'paused' : 'waiting', paused ? `${messages.paused} ${error instanceof Error ? error.message : messages.manual}` : messages.retry);

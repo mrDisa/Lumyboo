@@ -73,7 +73,8 @@ it('waits for connectivity and backs off a failed request without online events 
 it('retries lock contention instead of permanently pausing', async () => {
  const original = navigator.locks.request.bind(navigator.locks); let busy = true;
  vi.spyOn(navigator.locks, 'request').mockImplementation(((name: string, options: LockOptions, cb: LockGrantedCallback<unknown>) => busy ? Promise.resolve(cb(null)) : original(name, options, cb)) as typeof navigator.locks.request);
- const { publish } = start(); await settle(() => publish.mock.calls.some(([state]) => state.message.includes('позже')));
+ const { publish } = start(); await settle(() => publish.mock.calls.some(([state]) => state.message.includes('другой вкладке')));
+ expect(publish.mock.calls.some(([state]) => state.message.includes('получены'))).toBe(false);
  busy = false; await vi.advanceTimersByTimeAsync(5000);
  await settle(() => publish.mock.calls.some(([state]) => state.message.includes('получены')));
  expect(requests()).toHaveLength(1);
