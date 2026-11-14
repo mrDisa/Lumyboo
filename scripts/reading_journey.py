@@ -57,8 +57,11 @@ class LostReadingResponses:
 
     logout_paths = frozenset(('/api/v1/auth/logout', '/api/v1/auth/logout-all'))
 
-    def __init__(self, enabled=False, save_enabled=False, logout_enabled=False):
+    def __init__(self, enabled=False, save_enabled=False, logout_enabled=False, verify_mode=None):
+        self.verify_mode = verify_mode
         self.remaining = (set(self.paths) if enabled else set()) | (set(self.save_paths) if save_enabled else set()) | (set(self.logout_paths) if logout_enabled else set())
+        if verify_mode:
+            self.remaining.add('/api/v1/auth/verify')
         self.lock = threading.Lock()
 
     def consume(self, method, path, status):
@@ -104,9 +107,12 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
             connection.request(self.command, self.path, self.rfile.read(size), headers)
             response = connection.getresponse()
             body = response.read()
-            # The real API has finished and committed. Withhold the entire
-            # response so the real browser must retry its uncertain operation.
-            if self.server.lost_responses.consume(self.command, self.path, response.status):
+            # The real API has finished and committed. For verify, distinguish
+            # losing Set-Cookie from receiving it before the body is lost.
+            lost = self.server.lost_responses.consume(self.command, self.path, response.status)
+            after_headers = (self.path == '/api/v1/auth/verify'
+                             and self.server.lost_responses.verify_mode == 'after-headers')
+            if lost and not after_headers:
                 print(f'Lost successful response: frontend={self.server.server_port} path={self.path}', flush=True)
                 disconnect(self)
                 return
@@ -116,6 +122,11 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
                     self.send_header(key, value)
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
+            if lost:
+                self.wfile.flush()
+                print(f'Lost successful response body: frontend={self.server.server_port} path={self.path}', flush=True)
+                disconnect(self)
+                return
             self.wfile.write(body)
         except (OSError, http.client.HTTPException, ValueError):
             self.send_error(502)
@@ -132,6 +143,8 @@ def run():
                         help='Drop the first successful position and bookmark POST response on each frontend, after API commit')
     parser.add_argument('--drop-first-logout-response', action='store_true',
                         help='Drop the first successful logout and logout-all response on each frontend after session revocation')
+    parser.add_argument('--drop-first-verify-response', choices=('before-headers', 'after-headers'),
+                        help='Lose the first successful login reply per frontend, before Set-Cookie or after headers but before the body')
     parser.add_argument('--interactive-faults', action='store_true',
                         help='Read terminal commands: offline/online a/b, expire (all sessions in the disposable database)')
     args = parser.parse_args()
@@ -154,7 +167,7 @@ def run():
         handler = functools.partial(Frontend, directory=str(ROOT / 'apps/web/dist'))
         for port in (4311, 4312):
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
-            server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response)
+            server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response, args.drop_first_verify_response)
             server.api_offline = threading.Event()
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
@@ -198,6 +211,8 @@ def run():
                 print('Response loss enabled: first successful position/bookmark POST reply on EACH frontend will be disconnected after API commit.', flush=True)
             if args.drop_first_logout_response:
                 print('Response loss enabled: first successful logout/logout-all reply on EACH frontend will be disconnected after session revocation.', flush=True)
+            if args.drop_first_verify_response:
+                print(f'Response loss enabled: first successful verify reply on EACH frontend, {args.drop_first_verify_response}.', flush=True)
             print('Separate cookies/IndexedDB; shared disposable database. Ctrl+C cleans up.', flush=True)
             controls = JourneyControls(servers, lambda: sql("UPDATE auth_sessions SET expires_at = now() - interval '1 second';"))
             interactive = args.interactive_faults

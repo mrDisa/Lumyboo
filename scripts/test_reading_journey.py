@@ -72,6 +72,18 @@ class ReadingResponseLossTests(unittest.TestCase):
             self.assertFalse(faults.consume('POST', path, 204))
         self.assertFalse(faults.consume('POST', '/api/v1/auth/verify', 200))
 
+    def test_verify_modes_require_success_and_are_opt_in(self):
+        path = '/api/v1/auth/verify'
+        self.assertFalse(LostReadingResponses(True, True, True).consume('POST', path, 200))
+        for mode in ('before-headers', 'after-headers'):
+            faults = LostReadingResponses(verify_mode=mode)
+            for method, status in [('GET', 200), ('POST', 400), ('POST', 401), ('POST', 429), ('POST', 503)]:
+                self.assertFalse(faults.consume(method, path, status))
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                results = list(pool.map(lambda _: faults.consume('POST', path, 200), range(50)))
+            self.assertEqual(sum(results), 1)
+            self.assertTrue(LostReadingResponses(verify_mode=mode).consume('POST', path, 200))
+
     def test_both_modes_can_be_combined(self):
         faults = LostReadingResponses(True, True)
         for path in LostReadingResponses.paths | LostReadingResponses.save_paths:
@@ -90,6 +102,7 @@ class ReadingResponseLossTests(unittest.TestCase):
                 received.append((self.path, self.rfile.read(int(self.headers['Content-Length']))))
                 body = b'{"committed":true}'
                 self.send_response(200)
+                self.send_header('Set-Cookie', 'session=test-only; HttpOnly; SameSite=Lax')
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -135,6 +148,24 @@ class ReadingResponseLossTests(unittest.TestCase):
                     self.assertEqual(post(path), (200, b'{"committed":true}'))
                     self.assertEqual(received[-2:], [(path, payload)] * 2)
             self.assertEqual(len(received), 12)
+            path = '/api/v1/auth/verify'
+            frontend.lost_responses = LostReadingResponses(verify_mode='before-headers')
+            with self.assertRaises(http.client.RemoteDisconnected):
+                post(path)
+            self.assertEqual(post(path), (200, b'{"committed":true}'))
+            frontend.lost_responses = LostReadingResponses(verify_mode='after-headers')
+            connection = http.client.HTTPConnection('127.0.0.1', frontend.server_port, timeout=3)
+            try:
+                connection.request('POST', path, payload)
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.getheader('Set-Cookie'), 'session=test-only; HttpOnly; SameSite=Lax')
+                with self.assertRaises(http.client.IncompleteRead):
+                    response.read()
+            finally:
+                connection.close()
+            self.assertEqual(received[-1], (path, payload))
+            self.assertEqual(post(path), (200, b'{"committed":true}'))
         finally:
             for server in servers:
                 server.shutdown()
