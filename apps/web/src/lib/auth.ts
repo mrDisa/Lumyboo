@@ -35,16 +35,20 @@ export function useAccount() {
   return () => { channel?.close(); window.removeEventListener('storage', storage); };
  }, [client]);
  async function verified(challengeId: string, code: string) {
-  try { await verifyCode(challengeId, code); announceChange(); }
-  finally { await refresh(); }
+  try { await verifyCode(challengeId, code); }
+  finally { announceChange(); await refresh(); }
  }
  async function logout(all = false, expectedAccountId?: string) {
   try {
    const session = await getSession();
    if (session && expectedAccountId && session.user.id !== expectedAccountId) throw new ApiError('Аккаунт изменился. Открой профиль заново.', 409, 'account_changed');
    if (session) await requestJSON<void>(all ? '/auth/logout-all' : '/auth/logout', { method: 'POST', headers: { 'X-CSRF-Token': session.csrfToken } });
+  } finally {
+   // The server may have changed the shared cookie before its response was
+   // lost. Other tabs must recheck even when this tab cannot confirm success.
    announceChange();
-  } finally { await refresh(); }
+   await refresh();
+  }
  }
  // Hide stale personal details as soon as a refresh starts or fails.
  return { session: query.isSuccess && !query.isFetching ? query.data : null, checking: query.isPending || query.isFetching, error: query.error, verified, logout };
