@@ -62,6 +62,16 @@ class ReadingResponseLossTests(unittest.TestCase):
         for path in LostReadingResponses.paths:
             self.assertFalse(faults.consume('POST', path, 200))
 
+    def test_logout_faults_require_success_and_are_opt_in(self):
+        faults = LostReadingResponses(logout_enabled=True)
+        for path in LostReadingResponses.logout_paths:
+            self.assertFalse(LostReadingResponses(True, True).consume('POST', path, 204))
+            for method, status in [('GET', 204), ('POST', 401), ('POST', 403), ('POST', 503)]:
+                self.assertFalse(faults.consume(method, path, status))
+            self.assertTrue(faults.consume('POST', path, 204))
+            self.assertFalse(faults.consume('POST', path, 204))
+        self.assertFalse(faults.consume('POST', '/api/v1/auth/verify', 200))
+
     def test_both_modes_can_be_combined(self):
         faults = LostReadingResponses(True, True)
         for path in LostReadingResponses.paths | LostReadingResponses.save_paths:
@@ -92,7 +102,7 @@ class ReadingResponseLossTests(unittest.TestCase):
         frontend = http.server.ThreadingHTTPServer(('127.0.0.1', 0), QuietFrontend)
         frontend.api_port = upstream.server_port
         frontend.api_offline = threading.Event()
-        frontend.lost_responses = LostReadingResponses(True, True)
+        frontend.lost_responses = LostReadingResponses(True, True, True)
         servers = [upstream, frontend]
         threads = [threading.Thread(target=server.serve_forever, daemon=True) for server in servers]
         for thread in threads:
@@ -117,14 +127,14 @@ class ReadingResponseLossTests(unittest.TestCase):
             self.assertEqual(received, [])  # A transport outage never reaches the real API.
             self.assertIn(path, frontend.lost_responses.remaining)
             frontend.api_offline.clear()
-            for path in sorted(LostReadingResponses.paths | LostReadingResponses.save_paths):
+            for path in sorted(LostReadingResponses.paths | LostReadingResponses.save_paths | LostReadingResponses.logout_paths):
                 with self.subTest(path=path):
                     with self.assertRaises(http.client.RemoteDisconnected):
                         post(path)
                     self.assertEqual(received[-1], (path, payload))
                     self.assertEqual(post(path), (200, b'{"committed":true}'))
                     self.assertEqual(received[-2:], [(path, payload)] * 2)
-            self.assertEqual(len(received), 8)
+            self.assertEqual(len(received), 12)
         finally:
             for server in servers:
                 server.shutdown()

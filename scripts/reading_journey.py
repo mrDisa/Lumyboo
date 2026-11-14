@@ -48,15 +48,17 @@ def disconnect(handler):
 
 
 class LostReadingResponses:
-    """Drop one successful response per reading endpoint, per frontend."""
+    """Drop one successful response per opted-in endpoint, per frontend."""
     paths = frozenset(('/api/v1/reading-sessions/apply',
                        '/api/v1/reading-coverage/apply'))
 
     save_paths = frozenset(('/api/v1/positions/choose',
                             '/api/v1/bookmarks/apply'))
 
-    def __init__(self, enabled=False, save_enabled=False):
-        self.remaining = (set(self.paths) if enabled else set()) | (set(self.save_paths) if save_enabled else set())
+    logout_paths = frozenset(('/api/v1/auth/logout', '/api/v1/auth/logout-all'))
+
+    def __init__(self, enabled=False, save_enabled=False, logout_enabled=False):
+        self.remaining = (set(self.paths) if enabled else set()) | (set(self.save_paths) if save_enabled else set()) | (set(self.logout_paths) if logout_enabled else set())
         self.lock = threading.Lock()
 
     def consume(self, method, path, status):
@@ -105,7 +107,7 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
             # The real API has finished and committed. Withhold the entire
             # response so the real browser must retry its uncertain operation.
             if self.server.lost_responses.consume(self.command, self.path, response.status):
-                print(f'Lost successful reading response: frontend={self.server.server_port} path={self.path}', flush=True)
+                print(f'Lost successful response: frontend={self.server.server_port} path={self.path}', flush=True)
                 disconnect(self)
                 return
             self.send_response(response.status)
@@ -128,6 +130,8 @@ def run():
                         help='Drop the first successful time and coverage POST response on each frontend, after API commit')
     parser.add_argument('--drop-first-save-response', action='store_true',
                         help='Drop the first successful position and bookmark POST response on each frontend, after API commit')
+    parser.add_argument('--drop-first-logout-response', action='store_true',
+                        help='Drop the first successful logout and logout-all response on each frontend after session revocation')
     parser.add_argument('--interactive-faults', action='store_true',
                         help='Read terminal commands: offline/online a/b, expire (all sessions in the disposable database)')
     args = parser.parse_args()
@@ -150,7 +154,7 @@ def run():
         handler = functools.partial(Frontend, directory=str(ROOT / 'apps/web/dist'))
         for port in (4311, 4312):
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
-            server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response)
+            server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response)
             server.api_offline = threading.Event()
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
@@ -192,6 +196,8 @@ def run():
                 print('Response loss enabled: first successful time/coverage POST reply on EACH frontend will be disconnected after API commit.', flush=True)
             if args.drop_first_save_response:
                 print('Response loss enabled: first successful position/bookmark POST reply on EACH frontend will be disconnected after API commit.', flush=True)
+            if args.drop_first_logout_response:
+                print('Response loss enabled: first successful logout/logout-all reply on EACH frontend will be disconnected after session revocation.', flush=True)
             print('Separate cookies/IndexedDB; shared disposable database. Ctrl+C cleans up.', flush=True)
             controls = JourneyControls(servers, lambda: sql("UPDATE auth_sessions SET expires_at = now() - interval '1 second';"))
             interactive = args.interactive_faults
