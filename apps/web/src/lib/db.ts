@@ -24,6 +24,7 @@ export interface PendingOperation { id: string; formatVersion: 1; scope: Operati
 export interface Download { bookId: string; version: string; bytes: number; hash: string }
 export const defaults: Settings = { id: 'local', theme: 'system', fontSize: 18, font: 'serif', lineHeight: 1.95, onboarded: false, name: '' };
 export class LocalDatabase extends Dexie {
+  guestTimeImports!: Table<import('./guest-time-import').TimeImportBatch, string>;
   dailyGoals!: Table<DailyGoal, string>;
   bookmarkChoices!: Table<SavedBookmarkChoice, string>;
   positionChoices!: Table<SavedPositionChoice, string>;
@@ -46,6 +47,7 @@ export class LocalDatabase extends Dexie {
     this.version(5).stores({ bookmarkChoices: 'id' });
     this.version(6).stores({ coverage: '[bookId+version+paragraph], [bookId+version]' });
     this.version(7).stores({ dailyGoals: 'id' });
+    this.version(8).stores({ guestTimeImports: 'id' });
   }
 }
 export const db = new LocalDatabase();

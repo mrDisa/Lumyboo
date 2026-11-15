@@ -21,7 +21,7 @@ export function readingSessionReport(op: PendingOperation): ReadingSessionReport
 function assertOwner(store: LocalDatabase, accountId: string) {
  if (store.scope !== `account:${accountId}`) throw new Error('Аккаунт изменился. Открой профиль заново.');
 }
-function validReceipt(receipt: Receipt, accountId: string, report: ReadingSessionReport) {
+export function validReceipt(receipt: Receipt, accountId: string, report: ReadingSessionReport) {
  const p = receipt?.session;
  return receipt?.accountId === accountId && p && p.sessionId === report.sessionId && p.deviceId === report.deviceId && p.bookId === report.bookId && p.version === report.version && p.day === report.day && Number.isSafeInteger(p.milliseconds) && p.milliseconds >= report.milliseconds && p.milliseconds <= maxSessionMilliseconds && Number.isSafeInteger(p.revision) && p.revision >= 1 && p.revision <= maxSessionMilliseconds;
 }

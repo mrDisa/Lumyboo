@@ -17,7 +17,7 @@ export function DailyGoalCard({ store }: { store: LocalDatabase }) {
  const [confirmed, setConfirmed] = useState<GoalSnapshot>();
  const [remoteError, setRemoteError] = useState('');
  const [refresh, setRefresh] = useState(0);
- const pendingCount = useLiveQuery(() => store.outbox.count(), [store]);
+ const pendingCount = useLiveQuery(async () => `${await store.outbox.count()}:${(await store.guestTimeImports.get('local'))?.entries.length ?? 0}`, [store]);
  useEffect(() => {
   const refresh = () => setNow(new Date());
   const timer = setInterval(refresh, 1000);
