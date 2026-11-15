@@ -22,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"lumyboo/services/api/internal/auth"
 	"lumyboo/services/api/internal/bookmarks"
+	"lumyboo/services/api/internal/challenges"
 	"lumyboo/services/api/internal/dailygoals"
 	"lumyboo/services/api/internal/positions"
 	"lumyboo/services/api/internal/readingcoverage"
@@ -199,7 +200,7 @@ func journeyServer(t *testing.T, pool *pgxpool.Pool, wrappers ...func(http.Handl
 		Service: service, Origin: origin, SecureCookies: true,
 		Shelf: shelf.Postgres{Pool: pool}, Positions: positions.Postgres{Pool: pool},
 		Bookmarks: bookmarks.Postgres{Pool: pool}, ReadingSessions: readingsessions.Postgres{Pool: pool},
-		ReadingCoverage: readingcoverage.Postgres{Pool: pool}, DailyGoals: dailygoals.Postgres{Pool: pool},
+		Challenges: challenges.Postgres{Pool: pool}, ReadingCoverage: readingcoverage.Postgres{Pool: pool}, DailyGoals: dailygoals.Postgres{Pool: pool},
 	})
 	for _, wrap := range wrappers {
 		server.Config.Handler = wrap(server.Config.Handler)
