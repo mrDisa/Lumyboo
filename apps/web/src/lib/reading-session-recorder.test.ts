@@ -114,3 +114,19 @@ it('keeps reader ownership until both the in-flight time and later session have 
   expect(onError).not.toHaveBeenCalled();
  } finally { first.resolve(); last.resolve(); close(); vi.unstubAllGlobals(); }
 });
+it('summarizes only committed maximum snapshots for this reader across chapters, pauses and days', async () => {
+ const save = vi.fn().mockRejectedValueOnce(new Error('Disk full')).mockResolvedValue(undefined);
+ const recorder = createReadingSessionRecorder(save);
+ recorder.record(session('first', 1));
+ await expect(recorder.flush()).rejects.toThrow('Disk full');
+ expect(recorder.savedSessions()).toEqual([]);
+ recorder.record(session('first', 2)); await recorder.flush();
+ recorder.record(session('chapter', 3)); await recorder.flush();
+ recorder.record(session('tomorrow', 4, '2026-11-14')); await recorder.flush();
+ recorder.record(session('first', 1)); await recorder.flush();
+ const saved = recorder.savedSessions();
+ expect(saved.map(row => row.seconds)).toEqual([2, 3, 4]);
+ saved[0].seconds = 999;
+ expect(recorder.savedSessions()[0].seconds).toBe(2);
+ expect(createReadingSessionRecorder(save).savedSessions()).toEqual([]);
+});

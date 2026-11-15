@@ -4,6 +4,7 @@ import type { ReadingSession } from './db';
 // Snapshots are cumulative: retry the latest total, never add it a second time.
 export function createReadingSessionRecorder(save: (session: ReadingSession) => Promise<void>) {
  const pending = new Map<string, ReadingSession>();
+ const saved = new Map<string, ReadingSession>();
  let inFlight: Promise<void> | undefined;
  function record(session: ReadingSession) {
   if (!Number.isFinite(session.seconds) || session.seconds < 0 || session.seconds > 86400) throw new Error('Некорректное время чтения.');
@@ -18,6 +19,7 @@ export function createReadingSessionRecorder(save: (session: ReadingSession) => 
   inFlight = Promise.resolve().then(async () => {
    for (const [id, session] of snapshot) {
     await save({ ...session });
+    if (session.seconds > (saved.get(id)?.seconds ?? 0)) saved.set(id, { ...session });
     // A later tick can replace this snapshot while its write is pending.
     if (pending.get(id) === session) pending.delete(id);
    }
@@ -25,5 +27,5 @@ export function createReadingSessionRecorder(save: (session: ReadingSession) => 
   await inFlight;
   return flush();
  }
- return { record, flush };
+ return { record, flush, savedSessions: () => [...saved.values()].map(row => ({ ...row })) };
 }
