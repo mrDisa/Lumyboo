@@ -46,3 +46,15 @@ export async function createChallenge(owner: string, conditions?: Conditions): P
  sessionStorage.removeItem(key(owner));
  return result.challenge;
 }
+
+export type ChallengeAction = Omit<components['schemas']['ChallengeAction'], 'accountId'>;
+export async function challengeAction(owner: string, action: ChallengeAction): Promise<{ challenge: Challenge; code: string }> {
+ const generation = authGeneration();
+ const session = await getSession();
+ assertOwner(owner, session?.user.id, generation);
+ const result = await requestJSON<{ accountId: string; challenge: Challenge; code: string }>('/challenges/action', {
+  method: 'POST', headers: { 'X-CSRF-Token': session!.csrfToken }, body: JSON.stringify({ ...action, accountId: owner }),
+ });
+ assertOwner(owner, result.accountId, generation);
+ return result;
+}

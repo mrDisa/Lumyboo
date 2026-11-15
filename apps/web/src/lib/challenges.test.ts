@@ -46,3 +46,23 @@ it('guards lists against account changes and requests only the expected owner', 
  fetch.mockImplementation(async () => { vi.mocked(authGeneration).mockReturnValue('changed'); return response({ accountId: 'a', items: [item] }); });
  await expect(listChallenges('a')).rejects.toThrow('Аккаунт изменился');
 });
+it('guards challenge actions against account switches before and after sending', async () => {
+ const { challengeAction } = await import('./challenges');
+ const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
+ await expect(challengeAction('b', { kind: 'invite', challengeId: 'id' })).rejects.toThrow('Аккаунт изменился'); expect(fetch).not.toHaveBeenCalled();
+ fetch.mockResolvedValue(response({ accountId: 'b', challenge: item, code: 'secret' }));
+ await expect(challengeAction('a', { kind: 'invite', challengeId: 'id' })).rejects.toThrow('Аккаунт изменился');
+ fetch.mockImplementation(async () => { vi.mocked(authGeneration).mockReturnValue('changed'); return response({ accountId: 'a', challenge: item, code: 'secret' }); });
+ await expect(challengeAction('a', { kind: 'invite', challengeId: 'id' })).rejects.toThrow('Аккаунт изменился');
+});
+it('sends explicit join conditions with CSRF and can retry after a lost reply', async () => {
+ const { challengeAction } = await import('./challenges');
+ const result = { accountId: 'a', challenge: item, code: '' };
+ const fetch = vi.fn().mockRejectedValueOnce(new TypeError('lost')).mockResolvedValueOnce(response(result)); vi.stubGlobal('fetch', fetch);
+ const action = { kind: 'join' as const, code: 'a'.repeat(48), nickname: 'Friend', minutes: 5 as const };
+ await expect(challengeAction('a', action)).rejects.toThrow();
+ expect(await challengeAction('a', action)).toEqual(result);
+ const request = fetch.mock.calls[1]; expect(request[0]).toBe('/api/v1/challenges/action');
+ expect(JSON.parse(request[1].body)).toEqual({ ...action, accountId: 'a' }); expect(new Headers(request[1].headers).get('X-CSRF-Token')).toBe('csrf');
+ expect(fetch.mock.calls[0][1].body).toBe(request[1].body);
+});

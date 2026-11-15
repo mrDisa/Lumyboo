@@ -9,7 +9,7 @@ paths:
   /challenges:
     get:
       operationId: listOwnChallenges
-      description: Private owner list. Expected account prevents cookie-switch disclosure. Invitations, joining and progress are separate operations.
+      description: Private membership list including left memberships. Expected account prevents cookie-switch disclosure.
       parameters:
         - name: accountId
           in: query
@@ -17,7 +17,7 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '200':
-          description: Challenges created by the signed-in account.
+          description: Challenges joined or created by the signed-in account.
           content:
             application/json:
               schema:
@@ -51,6 +51,34 @@ paths:
                 properties:
                   accountId: { type: string, format: uuid }
                   challenge: { $ref: '#/components/schemas/Challenge' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /challenges/action:
+    post:
+      operationId: challengeAction
+      description: Authenticated code preview, joining before start (maximum 10 active members), owner invitation creation/revocation and terminal leave. Join retries preserve the original target and nickname, including after leave. Leaving preserves membership history; owner leave revokes invitations. Nonmembers see conditions only, never the roster. No age restriction. Codes are bearer secrets and should be shared privately.
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChallengeAction' }
+      responses:
+        '200':
+          description: Current conditions or membership and invitation code for the owner when requested.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, challenge, code]
+                properties:
+                  accountId: { type: string, format: uuid }
+                  challenge: { $ref: '#/components/schemas/Challenge' }
+                  code: { type: string }
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
@@ -624,10 +652,30 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    ChallengeAction:
+      type: object
+      required: [accountId, kind]
+      properties:
+        accountId: { type: string, format: uuid }
+        kind: { type: string, enum: [preview, join, invite, revoke, leave] }
+        challengeId: { type: string, format: uuid, description: Required for invite, revoke and leave. }
+        code: { type: string, pattern: '^[a-f0-9]{48}$', description: Required for preview and join. }
+        nickname: { type: string, minLength: 1, maxLength: 40, description: Required for join. }
+        minutes: { type: integer, enum: [5, 10, 20, 30, 60], description: Required for join. Competitive mode always uses the common target. }
+    ChallengeMember:
+      type: object
+      required: [nickname, minutes, left]
+      properties:
+        nickname: { type: string }
+        minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
+        left: { type: boolean }
     Challenge:
       type: object
-      required: [id, name, mode, startDay, duration, timeZone, minutes, nickname]
+      required: [id, name, mode, startDay, duration, timeZone, minutes, nickname, isOwner, left, members]
       properties:
+        isOwner: { type: boolean }
+        left: { type: boolean }
+        members: { type: array, items: { $ref: '#/components/schemas/ChallengeMember' } }
         id: { type: string, format: uuid }
         name: { type: string, minLength: 1, maxLength: 60 }
         mode: { type: string, enum: [competitive, personal] }
@@ -635,7 +683,7 @@ components:
         duration: { type: integer, enum: [7, 14, 30] }
         timeZone: { type: string, minLength: 1, maxLength: 100 }
         minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
-        nickname: { type: string, minLength: 1, maxLength: 40 }
+        nickname: { type: string, maxLength: 40, description: Empty for nonmember previews. }
     CreateChallenge:
       type: object
       required: [accountId, operationId, name, mode, startDay, duration, timeZone, minutes, nickname]

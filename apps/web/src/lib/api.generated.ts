@@ -11,11 +11,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Private owner list. Expected account prevents cookie-switch disclosure. Invitations, joining and progress are separate operations. */
+        /** @description Private membership list including left memberships. Expected account prevents cookie-switch disclosure. */
         get: operations["listOwnChallenges"];
         put?: never;
         /** @description Create private conditions and owner membership atomically. Targets are immutable. Identical operation retries return the original challenge even after start; changed payloads conflict. New challenges start after today in their selected zone. */
         post: operations["createChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/challenges/action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Authenticated code preview, joining before start (maximum 10 active members), owner invitation creation/revocation and terminal leave. Join retries preserve the original target and nickname, including after leave. Leaving preserves membership history; owner leave revokes invitations. Nonmembers see conditions only, never the roster. No age restriction. Codes are bearer secrets and should be shared privately. */
+        post: operations["challengeAction"];
         delete?: never;
         options?: never;
         head?: never;
@@ -402,7 +419,36 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ChallengeAction: {
+            /** Format: uuid */
+            accountId: string;
+            /** @enum {string} */
+            kind: "preview" | "join" | "invite" | "revoke" | "leave";
+            /**
+             * Format: uuid
+             * @description Required for invite
+             */
+            challengeId?: string;
+            /** @description Required for preview and join. */
+            code?: string;
+            /** @description Required for join. */
+            nickname?: string;
+            /**
+             * @description Required for join. Competitive mode always uses the common target.
+             * @enum {integer}
+             */
+            minutes?: 5 | 10 | 20 | 30 | 60;
+        };
+        ChallengeMember: {
+            nickname: string;
+            /** @enum {integer} */
+            minutes: 5 | 10 | 20 | 30 | 60;
+            left: boolean;
+        };
         Challenge: {
+            isOwner: boolean;
+            left: boolean;
+            members: components["schemas"]["ChallengeMember"][];
             /** Format: uuid */
             id: string;
             name: string;
@@ -415,6 +461,7 @@ export interface components {
             timeZone: string;
             /** @enum {integer} */
             minutes: 5 | 10 | 20 | 30 | 60;
+            /** @description Empty for nonmember previews. */
             nickname: string;
         };
         CreateChallenge: {
@@ -658,7 +705,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Challenges created by the signed-in account. */
+            /** @description Challenges joined or created by the signed-in account. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -702,6 +749,42 @@ export interface operations {
                         /** Format: uuid */
                         accountId: string;
                         challenge: components["schemas"]["Challenge"];
+                    };
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    challengeAction: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": components["parameters"]["CSRFToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeAction"];
+            };
+        };
+        responses: {
+            /** @description Current conditions or membership and invitation code for the owner when requested. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        accountId: string;
+                        challenge: components["schemas"]["Challenge"];
+                        code: string;
                     };
                 };
             };

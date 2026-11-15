@@ -337,6 +337,19 @@ func TestPostgresReadinessRequiresAccountSchema(t *testing.T) {
 		}
 	}
 	check("/readyz", 200)
+	for _, change := range []struct{ hide, restore string }{
+		{"ALTER TABLE challenge_members RENAME COLUMN left_at TO hidden_left_at", "ALTER TABLE challenge_members RENAME COLUMN hidden_left_at TO left_at"},
+		{"ALTER TABLE challenge_invitations RENAME TO hidden_challenge_invitations", "ALTER TABLE hidden_challenge_invitations RENAME TO challenge_invitations"},
+	} {
+		if _, err := pool.Exec(context.Background(), change.hide); err != nil {
+			t.Fatal(err)
+		}
+		check("/readyz", 503)
+		if _, err := pool.Exec(context.Background(), change.restore); err != nil {
+			t.Fatal(err)
+		}
+		check("/readyz", 200)
+	}
 	if _, err := pool.Exec(context.Background(), "ALTER TABLE bookmarks DROP COLUMN server_revision"); err != nil {
 		t.Fatal(err)
 	}
