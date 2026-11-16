@@ -33,11 +33,15 @@ type Create struct {
 	Nickname    string `json:"nickname"`
 }
 type Member struct {
-	Nickname string `json:"nickname"`
-	Minutes  int    `json:"minutes"`
-	Left     bool   `json:"left"`
+	Self          bool   `json:"self"`
+	TodayComplete bool   `json:"todayComplete"`
+	CompletedDays int    `json:"completedDays"`
+	Nickname      string `json:"nickname"`
+	Minutes       int    `json:"minutes"`
+	Left          bool   `json:"left"`
 }
 type Challenge struct {
+	Progress Progress `json:"progress"`
 	IsOwner  bool     `json:"isOwner"`
 	Left     bool     `json:"left"`
 	Members  []Member `json:"members"`
@@ -72,20 +76,20 @@ func Valid(c Create) bool {
 		c.TimeZone != "" && c.TimeZone != "Local" && len(c.TimeZone) <= 100 && err == nil
 }
 
-const columns = `c.id::text,c.name,c.mode,to_char(c.start_day,'YYYY-MM-DD'),c.duration,c.time_zone,m.minutes,m.nickname,c.owner_id=m.user_id,m.left_at IS NOT NULL,
- COALESCE((SELECT json_agg(json_build_object('nickname',p.nickname,'minutes',p.minutes,'left',p.left_at IS NOT NULL) ORDER BY p.joined_at,p.user_id) FROM challenge_members p WHERE p.challenge_id=c.id),'[]'::json)`
+const columns = `c.id::text,c.name,c.mode,to_char(c.start_day,'YYYY-MM-DD'),c.duration,c.time_zone,m.minutes,m.nickname,c.owner_id=m.user_id,m.left_at IS NOT NULL`
 
 func scan(row pgx.Row) (Challenge, error) {
-	var c Challenge
-	var members []byte
-	err := row.Scan(&c.ID, &c.Name, &c.Mode, &c.StartDay, &c.Duration, &c.TimeZone, &c.Minutes, &c.Nickname, &c.IsOwner, &c.Left, &members)
-	if err == nil {
-		err = json.Unmarshal(members, &c.Members)
-	}
+	c := Challenge{Members: []Member{}}
+	err := row.Scan(&c.ID, &c.Name, &c.Mode, &c.StartDay, &c.Duration, &c.TimeZone, &c.Minutes, &c.Nickname, &c.IsOwner, &c.Left)
 	return c, err
 }
 func (s Postgres) List(ctx context.Context, owner string) ([]Challenge, error) {
-	rows, err := s.Pool.Query(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 ORDER BY c.created_at DESC,c.id`, owner)
+	tx, err := s.Pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+	rows, err := tx.Query(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 ORDER BY c.created_at DESC,c.id`, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +102,16 @@ func (s Postgres) List(ctx context.Context, owner string) ([]Challenge, error) {
 		}
 		result = append(result, c)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	for i := range result {
+		if err := s.progress(ctx, tx, owner, &result[i]); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 func (s Postgres) Create(ctx context.Context, owner string, input Create) (Challenge, error) {
 	if !Valid(input) {
@@ -123,7 +136,11 @@ func (s Postgres) Create(ctx context.Context, owner string, input Create) (Chall
 		if savedHash != hash {
 			return Challenge{}, ErrConflict
 		}
-		return scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 WHERE c.owner_id=$1 AND c.operation_id=$2`, owner, input.OperationID))
+		result, err := scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 WHERE c.owner_id=$1 AND c.operation_id=$2`, owner, input.OperationID))
+		if err == nil {
+			err = s.progress(ctx, tx, owner, &result)
+		}
+		return result, err
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return Challenge{}, err
@@ -144,6 +161,9 @@ func (s Postgres) Create(ctx context.Context, owner string, input Create) (Chall
 	}
 	result, err := scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 WHERE c.id=$2`, owner, id))
 	if err != nil {
+		return Challenge{}, err
+	}
+	if err = s.progress(ctx, tx, owner, &result); err != nil {
 		return Challenge{}, err
 	}
 	if err = tx.Commit(ctx); err != nil {

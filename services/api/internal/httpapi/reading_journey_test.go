@@ -338,6 +338,7 @@ func TestPostgresReadinessRequiresAccountSchema(t *testing.T) {
 	}
 	check("/readyz", 200)
 	for _, change := range []struct{ hide, restore string }{
+		{"ALTER TABLE challenge_members RENAME COLUMN days_at_exit TO hidden_days_at_exit", "ALTER TABLE challenge_members RENAME COLUMN hidden_days_at_exit TO days_at_exit"},
 		{"ALTER TABLE challenge_members RENAME COLUMN left_at TO hidden_left_at", "ALTER TABLE challenge_members RENAME COLUMN hidden_left_at TO left_at"},
 		{"ALTER TABLE challenge_invitations RENAME TO hidden_challenge_invitations", "ALTER TABLE hidden_challenge_invitations RENAME TO challenge_invitations"},
 	} {

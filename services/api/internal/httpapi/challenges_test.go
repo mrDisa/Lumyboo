@@ -150,7 +150,7 @@ func TestPostgresChallengeInvitationJourney(t *testing.T) {
 	journeyEqual(t, len(members), 2)
 	for _, m := range members {
 		for key := range m.(map[string]any) {
-			if key != "nickname" && key != "minutes" && key != "left" {
+			if key != "nickname" && key != "minutes" && key != "left" && key != "self" && key != "completedDays" && key != "todayComplete" {
 				t.Fatal("private member field", key)
 			}
 		}

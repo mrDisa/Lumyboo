@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -50,7 +51,7 @@ func (s Postgres) Action(ctx context.Context, user string, a Action) (ActionResu
 	var owner string
 	var commonMinutes int
 	var revoked bool
-	c := Challenge{Members: []Member{}}
+	c := Challenge{Members: []Member{}, Progress: Progress{Days: []ProgressDay{}}}
 	selector := `c.id=$1`
 	value := a.ChallengeID
 	if a.Kind == "preview" || a.Kind == "join" {
@@ -128,7 +129,16 @@ func (s Postgres) Action(ctx context.Context, user string, a Action) (ActionResu
 				}
 			}
 		case "leave":
-			_, err = tx.Exec(ctx, `UPDATE challenge_members SET left_at=COALESCE(left_at,now()) WHERE challenge_id=$1 AND user_id=$2`, c.ID, user)
+			if !left {
+				if err = s.progress(ctx, tx, user, &c); err != nil {
+					return out, err
+				}
+				days, marshalErr := json.Marshal(c.Progress.Days)
+				if marshalErr != nil {
+					return out, marshalErr
+				}
+				_, err = tx.Exec(ctx, `UPDATE challenge_members SET left_at=$3,days_at_exit=$4 WHERE challenge_id=$1 AND user_id=$2`, c.ID, user, now, days)
+			}
 			if err == nil && owner == user {
 				_, err = tx.Exec(ctx, `UPDATE challenge_invitations SET revoked=true WHERE challenge_id=$1 AND NOT revoked`, c.ID)
 			}
@@ -140,6 +150,9 @@ func (s Postgres) Action(ctx context.Context, user string, a Action) (ActionResu
 	if member {
 		c, err = scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM challenges c JOIN challenge_members m ON m.challenge_id=c.id AND m.user_id=$1 WHERE c.id=$2`, user, c.ID))
 		if err != nil {
+			return out, err
+		}
+		if err = s.progress(ctx, tx, user, &c); err != nil {
 			return out, err
 		}
 	} else {

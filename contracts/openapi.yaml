@@ -664,15 +664,19 @@ components:
         minutes: { type: integer, enum: [5, 10, 20, 30, 60], description: Required for join. Competitive mode always uses the common target. }
     ChallengeMember:
       type: object
-      required: [nickname, minutes, left]
+      required: [nickname, minutes, left, self, completedDays, todayComplete]
       properties:
+        self: { type: boolean }
+        todayComplete: { type: boolean }
+        completedDays: { type: integer, minimum: 0, maximum: 30 }
         nickname: { type: string }
         minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
         left: { type: boolean }
     Challenge:
       type: object
-      required: [id, name, mode, startDay, duration, timeZone, minutes, nickname, isOwner, left, members]
+      required: [id, name, mode, startDay, duration, timeZone, minutes, nickname, isOwner, left, members, progress]
       properties:
+        progress: { $ref: '#/components/schemas/ChallengeProgress' }
         isOwner: { type: boolean }
         left: { type: boolean }
         members: { type: array, items: { $ref: '#/components/schemas/ChallengeMember' } }
@@ -684,6 +688,24 @@ components:
         timeZone: { type: string, minLength: 1, maxLength: 100 }
         minutes: { type: integer, enum: [5, 10, 20, 30, 60] }
         nickname: { type: string, maxLength: 40, description: Empty for nonmember previews. }
+    ChallengeProgress:
+      type: object
+      required: [today, endDay, status, days]
+      properties:
+        today: { type: string, description: Current calendar day in the challenge time zone; empty in nonmember previews. }
+        endDay: { type: string }
+        status: { type: string, enum: ['', upcoming, active, ended] }
+        days:
+          type: array
+          maxItems: 30
+          description: Only the requesting member's accepted totals. Source session dates are retained without time zone conversion. Frozen on departure; active members can receive late reports.
+          items:
+            type: object
+            required: [day, milliseconds, complete]
+            properties:
+              day: { type: string, format: date }
+              milliseconds: { type: integer, minimum: 0 }
+              complete: { type: boolean }
     CreateChallenge:
       type: object
       required: [accountId, operationId, name, mode, startDay, duration, timeZone, minutes, nickname]

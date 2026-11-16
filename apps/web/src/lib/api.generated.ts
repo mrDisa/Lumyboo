@@ -440,12 +440,16 @@ export interface components {
             minutes?: 5 | 10 | 20 | 30 | 60;
         };
         ChallengeMember: {
+            self: boolean;
+            todayComplete: boolean;
+            completedDays: number;
             nickname: string;
             /** @enum {integer} */
             minutes: 5 | 10 | 20 | 30 | 60;
             left: boolean;
         };
         Challenge: {
+            progress: components["schemas"]["ChallengeProgress"];
             isOwner: boolean;
             left: boolean;
             members: components["schemas"]["ChallengeMember"][];
@@ -463,6 +467,20 @@ export interface components {
             minutes: 5 | 10 | 20 | 30 | 60;
             /** @description Empty for nonmember previews. */
             nickname: string;
+        };
+        ChallengeProgress: {
+            /** @description Current calendar day in the challenge time zone; empty in nonmember previews. */
+            today: string;
+            endDay: string;
+            /** @enum {string} */
+            status: "" | "upcoming" | "active" | "ended";
+            /** @description Only the requesting member's accepted totals. Source session dates are retained without time zone conversion. Frozen on departure; active members can receive late reports. */
+            days: {
+                /** Format: date */
+                day: string;
+                milliseconds: number;
+                complete: boolean;
+            }[];
         };
         CreateChallenge: {
             /** Format: uuid */
