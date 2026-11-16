@@ -35,3 +35,37 @@
 .timeSummary { display:grid; grid-template-columns:1fr auto; gap:16px; }
 .timeSummary dd { margin:0; font-weight:600; }
 .timeDay { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:16px; }
+
+.readerSettings, .bookmarks { display:grid; gap:20px; margin-top:20px; }
+.typePreview { background:var(--soft); padding:20px; border-radius:16px; overflow-wrap:anywhere; }
+.previewLabel { display:block; font:10px/1.5 var(--font); color:var(--muted); margin-bottom:12px; }
+.sizeHeading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.sizeHeading label { margin:0; }
+.sizeHeading output { font-size:28px; font-variant-numeric:tabular-nums; }
+.sizeHeading output small { font-size:11px; color:var(--muted); }
+.sizeControl { display:flex; gap:12px; align-items:center; margin-top:-12px; }
+.sizeControl > span:first-child { font-size:15px; }
+.sizeControl > span:last-child { font-size:28px; }
+.sizeControl input { min-width:0; padding:0; accent-color:var(--ink); border:0; }
+.readerChoices { border:0; margin:0; padding:0; min-width:0; }
+.readerChoices legend { padding:0; margin-bottom:12px; font-size:12px; font-weight:700; }
+.fontChoices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.fontChoice { display:flex; flex-direction:column; align-items:flex-start; padding:16px 12px; border:1px solid var(--line); border-radius:14px; gap:6px; min-width:0; text-align:left; }
+.fontChoice > span { font-size:32px; line-height:1.4; }
+.fontChoice b { font-size:11px; overflow-wrap:anywhere; }
+.fontChoice small { font-size:10px; color:var(--muted); }
+.fontChoice[aria-pressed=true], .leadingChoices button[aria-pressed=true] { border-color:var(--ink); background:var(--soft); }
+.leadingChoices { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.leadingChoices button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:12px 4px; border:1px solid var(--line); border-radius:12px; font-size:11px; }
+.leadingSample { display:flex; flex-direction:column; justify-content:center; height:30px; width:24px; }
+.leadingSample i { height:2px; background:var(--ink); border-radius:2px; }
+.bookmarkList { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
+.bookmarkCard { display:flex; align-items:flex-start; gap:6px; padding:16px 12px; border:1px solid var(--line); border-radius:16px; }
+.bookmarkOpen { display:flex; flex:1; min-width:0; flex-direction:column; gap:12px; padding:0; text-align:left; overflow-wrap:anywhere; }
+.bookmarkOpen > b { font-size:14px; line-height:1.5; }
+.bookmarkOpen small { color:var(--muted); font-size:10px; }
+.bookmarkHeading { display:flex; gap:8px; align-items:center; width:100%; }
+.bookmarkHeading svg { width:16px; height:16px; }
+.bookmarkHeading > span { margin-left:auto; }
+.bookmarkExcerpt { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; font:14px/1.7 var(--serif); }
+.emptyBookmark { display:grid; place-items:center; width:56px; height:56px; border-radius:18px; background:var(--soft); color:var(--ink); margin:0 auto 16px; }
