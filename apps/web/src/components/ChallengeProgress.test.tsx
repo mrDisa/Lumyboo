@@ -57,6 +57,21 @@ it('keeps personal results free of places and hides competition before start', (
  expect(html).toContain('Общего рейтинга в этом формате нет');
  expect(html).not.toContain('место');
  const upcoming = renderToStaticMarkup(<ChallengeProgress item={{ ...item, mode: 'competitive', progress: { ...item.progress, status: 'upcoming' } }} />);
- expect(upcoming).not.toContain('место');
+ expect(upcoming).not.toContain('member-place');
+ expect(upcoming).not.toContain('challenge-place');
  expect(upcoming).not.toContain('Дней без выполненной цели');
+});
+
+it('distinguishes completed, today and future calendar days with accessible labels', () => {
+ const html = renderToStaticMarkup(<ChallengeProgress item={{ ...item, progress: { ...item.progress, days: [
+  { day: '2026-11-15', milliseconds: 300000, complete: true },
+  { day: '2026-11-16', milliseconds: 60000, complete: false },
+  { day: '2026-11-17', milliseconds: 0, complete: false },
+ ] } }} />);
+ expect(html).toContain('class="done" aria-label="15 нояб.: выполнено"');
+ expect(html).toContain('class="today" aria-label="16 нояб.: сегодня"');
+ expect(html).toContain('class="future" aria-label="17 нояб.: впереди"');
+ expect(html).toContain('Сегодня: 1 / 5 мин');
+ expect(html).toContain('По сохранённому чтению');
+ expect(html).toContain('<details class="challenge-details"><summary>Как считается результат</summary>');
 });

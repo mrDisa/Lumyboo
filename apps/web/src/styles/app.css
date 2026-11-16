@@ -30,3 +30,47 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .challenge-card .reading-days { font-size:12px; }
 .challenge-card .reading-days dt { flex-shrink:0; }
 .challenge-card > .text-button { display:block; }
+
+/* Challenge results: one reading hierarchy in both Blanc and Noir. */
+.challenge-card { margin-top:20px; padding:20px; }
+.challenge-card h2 { margin:12px 0; font-size:25px; line-height:1.25; }
+.challenge-meta { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--muted); }
+.challenge-result { margin-top:22px; padding:20px; border-radius:16px; background:var(--ink); color:var(--bg); }
+.challenge-result .eyebrow { font-size:10px; opacity:.75; }
+.challenge-score { display:flex; align-items:center; gap:10px; margin:12px 0 0; font-variant-numeric:tabular-nums; }
+.challenge-score > strong { font-size:68px; line-height:1; letter-spacing:-.07em; font-weight:500; }
+.challenge-score > span { font-size:22px; }
+.challenge-score small { display:block; font-size:10px; font-weight:400; letter-spacing:0; }
+.challenge-place { margin-left:auto; padding-left:12px; border-left:1px solid currentColor; text-align:center; }
+.challenge-place b { font-size:30px; font-weight:500; }
+.challenge-result .goal-progress { height:4px; background:var(--muted); accent-color:var(--bg); margin:18px 0 10px; }
+.challenge-result .goal-progress::-webkit-progress-bar { background:var(--muted); }
+.challenge-result .goal-progress::-webkit-progress-value { background:var(--bg); }
+.challenge-result .goal-progress::-moz-progress-bar { background:var(--bg); }
+.challenge-caption { font-size:11px; line-height:1.6; }
+.challenge-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; padding:0; margin:18px 0; list-style:none; }
+.challenge-calendar li { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:44px; border:1px solid var(--line); border-radius:9px; font-size:10px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.challenge-calendar b { font-size:13px; line-height:1; }
+.challenge-calendar .done { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.challenge-calendar .today { border-color:var(--ink); color:var(--ink); border-width:2px; }
+.challenge-calendar .missed { background:var(--soft); }
+.challenge-today { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:11px; padding-bottom:16px; }
+.challenge-today b { font-size:16px; font-variant-numeric:tabular-nums; }
+.challenge-today small { display:block; color:var(--muted); font-size:9px; font-weight:400; text-align:right; }
+.challenge-members { list-style:none; padding:0; margin:14px 0; }
+.challenge-members li { display:flex; align-items:center; gap:10px; padding:12px 8px; border-bottom:1px solid var(--line); }
+.challenge-members .is-self { background:var(--soft); border-radius:10px; }
+.member-place { width:24px; flex:none; font-size:22px; font-weight:500; text-align:center; }
+.member-info { flex:1; min-width:0; }
+.member-info strong { display:block; font-size:12px; overflow-wrap:anywhere; }
+.member-info small { display:block; font-size:10px; color:var(--muted); margin:4px 0; }
+.member-info progress { display:block; width:100%; height:3px; accent-color:var(--ink); }
+.member-days { font-size:24px; font-weight:500; font-variant-numeric:tabular-nums; }
+.member-days small { display:block; font-size:10px; color:var(--muted); text-align:right; }
+.challenge-details { border-top:1px solid var(--line); font-size:12px; }
+.challenge-details > summary { padding:15px 0; min-height:48px; cursor:pointer; font-weight:600; }
+.challenge-details .reader-note { font-size:11px; text-align:left; line-height:1.7; }
+.challenge-details .description { margin:12px 0; }
+.challenge-details .text-button { display:block; }
+.challenge-source { display:block; font-size:9px; opacity:.7; margin-top:8px; }
+.challenge-legend { display:flex; flex-wrap:wrap; gap:10px; margin:-6px 0 18px; color:var(--muted); font-size:9px; }

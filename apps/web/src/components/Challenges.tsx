@@ -7,8 +7,14 @@ import { challengeAction, createChallenge, listChallenges, pendingChallenge, typ
 import { goalDay, nextGoalDay } from '../lib/daily-goal';
 const modes = { competitive: 'Соревновательный', personal: 'Личностный' } as const;
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'Не удалось сохранить. Попробуй ещё раз.';
+function shortDate(day: string) {
+ return new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${day}T12:00:00Z`));
+}
 function ConditionsCard({ item, children }: { item: Challenge; children?: React.ReactNode }) {
- return <article className="expedition challenge-card"><span className="tag">{modes[item.mode]}</span><h2 className="section">{item.name}</h2><dl className="reading-days"><div><dt>Старт</dt><dd>{new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${item.startDay}T12:00:00Z`))}</dd></div><div><dt>Длительность</dt><dd>{item.duration} дней</dd></div><div><dt>{item.mode === 'competitive' ? 'Цель для всех' : 'Твоя цель'}</dt><dd>{item.minutes} мин в день</dd></div><div><dt>Часовой пояс</dt><dd>{item.timeZone}</dd></div><div><dt>Твой псевдоним</dt><dd>{item.nickname}</dd></div></dl><p className="reader-note section">Цель сохраняется на весь челлендж.</p>{children}</article>;
+ return <article className="expedition challenge-card"><span className="tag">{modes[item.mode]}</span><h2>{item.name}</h2>
+ <div className="challenge-meta"><span>{shortDate(item.startDay)} — {shortDate(item.progress.endDay)}</span><span>{item.minutes} мин / день</span></div>
+ {children}
+ <details className="challenge-details"><summary>Условия челленджа</summary><dl className="reading-days"><div><dt>Старт</dt><dd>{item.startDay}</dd></div><div><dt>Последний день</dt><dd>{item.progress.endDay}</dd></div><div><dt>Часовой пояс</dt><dd>{item.timeZone}</dd></div><div><dt>Твой псевдоним</dt><dd>{item.nickname}</dd></div></dl><p className="description">Цель сохраняется на весь челлендж.</p><DatePolicy /></details></article>;
 }
 function DatePolicy() {
  return <p className="reader-note section">Чтение учитывается по сохранённым датам сессий. При разных часовых поясах дата чтения может отличаться от даты команды; минуты между днями не переносятся.</p>;
@@ -16,21 +22,34 @@ function DatePolicy() {
 export function ChallengeProgress({ item }: { item: Challenge }) {
  const p = item.progress; const self = item.members.find(m => m.self);
  const active = item.members.filter(m => !m.left);
- return <section className="section" aria-label="Прогресс челленджа">
- <h3>{p.status === 'upcoming' ? 'Старт впереди' : p.status === 'ended' ? 'Период завершён' : 'Читаем вместе'}</h3>
- <p className="description">Твои выполненные дни: {self?.completedDays ?? 0} из {item.duration}. Последний день — {p.endDay}.</p>
- {p.status === 'active' && <p className="reader-note">Сегодня, {p.today}: цель выполнили {active.filter(m => m.todayComplete).length} из {active.length} участников.</p>}
- <p className="reader-note">{item.left ? 'После выхода результат сохранён на момент выхода.' : 'Показано время, сохранённое в аккаунте. Чтение без сети появится после отправки. Поздние записи могут дополнить прошедшие дни.'}</p>
- {p.status === 'ended' && <p className="description">{self?.completedDays === item.duration ? 'Твоя цель выполнена во все дни.' : `Дней без выполненной цели: ${item.duration - (self?.completedDays ?? 0)}.`} Завершение периода само по себе не означает выполнение цели.</p>}
- {item.mode === 'personal' && <p className="reader-note">Твой результат — выполненные дни по своей цели. Общего рейтинга в этом формате нет.</p>}
- {item.mode === 'competitive' && p.status !== 'upcoming' && <>
- <h3 className="section">{p.status === 'ended' ? 'Места по итогам периода' : 'Текущие места'}</h3>
- <p className="reader-note">Больше выполненных дней — выше место. При равенстве место общее; минуты сверх цели преимущества не дают. Сохранённые результаты вышедших участников тоже учитываются.</p>
- <ul className="description">{[...item.members].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)).map((m, index) => <li key={index}>{m.rank ?? '—'} место · {m.nickname}{m.self ? ' · ты' : ''} · {m.completedDays}/{item.duration} дней{m.left ? ' · вышел, результат сохранён' : ''}</li>)}</ul>
- {p.status === 'ended' && <p className="reader-note">Места рассчитаны по сохранённому чтению. Поздние отправки участников, которые не вышли, могут изменить результат и места.</p>}
- </>}
- <DatePolicy />
- <details className="section"><summary>Твои дни и время</summary><dl className="reading-days">{p.days.map(day => <div key={day.day}><dt>{day.day}{day.day === p.today ? ' · сегодня' : ''}</dt><dd>{day.day > p.today ? 'Впереди' : `${Math.floor(day.milliseconds / 60000)} / ${item.minutes} мин · ${day.complete ? 'выполнено' : 'не выполнено'}`}</dd></div>)}</dl></details>
+ const completed = self?.completedDays ?? 0;
+ const ranked = item.mode === 'competitive' && p.status !== 'upcoming';
+ const today = p.days.find(d => d.day === p.today);
+ return <section className="challenge-progress" aria-label="Прогресс челленджа">
+ <div className="challenge-result">
+ <p className="eyebrow">{p.status === 'ended' ? 'Период завершён' : item.left ? 'Участие завершено' : p.status === 'upcoming' ? 'Старт впереди' : 'Твой ритм'}</p>
+ <div className="challenge-score" aria-label={`Твои выполненные дни: ${completed} из ${item.duration}`}><strong>{completed}</strong><span>/ {item.duration}<small>дней выполнено</small></span>{ranked && self?.rank && <div className="challenge-place"><b>{self.rank}</b><small>место</small></div>}</div>
+ <progress className="goal-progress" max={item.duration} value={completed} aria-label="Выполненные дни" />
+ {p.status === 'ended' ? <p className="challenge-caption">{completed === item.duration ? 'Твоя цель выполнена во все дни.' : `Дней без выполненной цели: ${item.duration - completed}.`}</p> : <p className="challenge-caption">{item.left ? 'Результат сохранён на момент выхода.' : p.status === 'upcoming' ? `Начинаем ${shortDate(item.startDay)}` : today?.complete ? 'Сегодня цель выполнена ✓' : `Сегодня: ${Math.floor((today?.milliseconds ?? 0) / 60000)} / ${item.minutes} мин`}</p>}
+ <small className="challenge-source">{item.left ? 'Сохранено при выходе' : 'По сохранённому чтению'}</small>
+ </div>
+ <ol className="challenge-calendar" aria-label="Календарь выполнения">{p.days.map((day, index) => {
+ const state = day.complete ? 'done' : day.day > p.today || p.status === 'upcoming' ? 'future' : day.day === p.today && p.status === 'active' ? 'today' : 'missed';
+ const label = `${shortDate(day.day)}: ${state === 'done' ? 'выполнено' : state === 'future' ? 'впереди' : state === 'today' ? 'сегодня' : 'не выполнено'}`;
+ return <li key={day.day} className={state} aria-label={label} title={label}><span>{index + 1}</span><b aria-hidden="true">{state === 'done' ? '✓' : state === 'missed' ? '−' : '·'}</b></li>;
+ })}</ol><p className="challenge-legend">✓ выполнено <span>− без цели</span><span>· впереди</span></p>
+ {p.status === 'active' && !item.left && <div className="challenge-today"><span>Сегодня в команде</span><b aria-label={`цель выполнили ${active.filter(m => m.todayComplete).length} из ${active.length} участников`}>{active.filter(m => m.todayComplete).length} / {active.length} <small>выполнили</small></b></div>}
+ {ranked && <><h3 className="section">{p.status === 'ended' ? 'Места по итогам периода' : 'Текущие места'}</h3>
+ <ol className="challenge-members">{[...item.members].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)).map((m, index) => <li key={index} className={m.self ? 'is-self' : ''}>
+ <b className="member-place" aria-label={`${m.rank ?? '—'} место`}>{m.rank ?? '—'}</b><div className="member-info"><strong>{m.nickname}{m.self ? ' · ты' : ''}</strong><small>{m.left ? 'вышел, результат сохранён' : m.todayComplete && p.status === 'active' ? 'Сегодня ✓' : `${m.minutes} мин / день`}</small><progress max={item.duration} value={m.completedDays} aria-label={`Выполненные дни: ${m.nickname}`} /></div><b className="member-days">{m.completedDays}<small>/ {item.duration}</small></b>
+ </li>)}</ol></>}
+ <details className="challenge-details"><summary>Твои дни и время</summary><dl className="reading-days">{p.days.map(day => <div key={day.day}><dt>{shortDate(day.day)}{day.day === p.today ? ' · сегодня' : ''}</dt><dd>{day.day > p.today ? 'Впереди' : `${Math.floor(day.milliseconds / 60000)} / ${item.minutes} мин · ${day.complete ? 'выполнено' : 'не выполнено'}`}</dd></div>)}</dl></details>
+ <details className="challenge-details"><summary>Как считается результат</summary>
+ <p className="description">{item.left ? 'После выхода результат сохранён на момент выхода.' : 'Показано время, сохранённое в аккаунте. Чтение без сети появится после отправки. Поздние записи могут дополнить прошедшие дни.'}</p>
+ {p.status === 'ended' && <p className="description">Завершение периода само по себе не означает выполнение цели.</p>}
+ <p className="description">{item.mode === 'personal' ? 'Твой результат — выполненные дни по своей цели. Общего рейтинга в этом формате нет.' : 'Больше выполненных дней — выше место. При равенстве место общее; минуты сверх цели преимущества не дают. Сохранённые результаты вышедших участников тоже учитываются.'}</p>
+ {ranked && p.status === 'ended' && <p className="description">Поздние отправки участников, которые не вышли, могут изменить результат и места.</p>}<DatePolicy />
+ </details>
  </section>;
 }
 function MembershipCard({ item, owner, refresh }: { item: Challenge; owner: string; refresh: () => Promise<unknown> }) {
@@ -47,14 +66,14 @@ function MembershipCard({ item, owner, refresh }: { item: Challenge; owner: stri
  }
  return <ConditionsCard item={item}>
  <ChallengeProgress item={item} />
- <h3 className="section">Команда · {item.members.filter(m => !m.left).length}/10</h3>
- <ul className="description">{item.members.map((m, index) => <li key={index}>{m.nickname}{m.self ? ' · ты' : ''} · {m.minutes} мин · {m.completedDays}/{item.duration} дней{m.left ? ' · вышел' : item.progress.status === 'active' && m.todayComplete ? ' · сегодня выполнено' : ''}</li>)}</ul>
+ {item.mode === 'personal' || beforeStart ? <details className="challenge-details"><summary>Команда · {item.members.filter(m => !m.left).length}/10</summary><ul className="challenge-members">{item.members.map((m, index) => <li key={index}><div className="member-info"><strong>{m.nickname}{m.self ? ' · ты' : ''}</strong><small>{m.minutes} мин / день{m.left ? ' · вышел' : ''}</small></div><b className="member-days">{m.completedDays}<small>/ {item.duration}</small></b></li>)}</ul></details> : null}
+ <details className="challenge-details"><summary>{beforeStart && item.isOwner && !item.left ? 'Пригласить и управлять' : 'Управление участием'}</summary>
  {item.left ? <p className="reader-note">Ты вышел из этого челленджа. Запись участия сохранена.</p> : <>
  {item.isOwner && <><p className="reader-note">Код открывает вступление до старта. Делись им только с теми, кого хочешь пригласить.</p>{beforeStart && <button className="secondary section" disabled={busy} onClick={() => void act('invite')}>Показать код приглашения</button>}<button className="text-button section" disabled={busy} onClick={() => void act('revoke')}>Отозвать приглашение</button></>}
  {code && <div className="section"><label className="field-label" htmlFor={`invite-${item.id}`}>Код для друга</label><input id={`invite-${item.id}`} aria-label="Код для друга" readOnly value={code} onFocus={e => e.target.select()} /><button className="secondary section" disabled={busy} onClick={() => { void navigator.clipboard.writeText(code).then(() => setMessage('Код скопирован.'), () => setMessage('Выдели и скопируй код из поля.')); }}>Скопировать код</button></div>}
  {!leaving ? <button className="text-button section" disabled={busy} onClick={() => setLeaving(true)}>Выйти из челленджа</button> : <div className="section"><p className="description">Выйти? Сначала дождись сохранения времени в аккаунте. Результат зафиксируется на момент выхода: поздние отправки его не дополнят. Запись участия сохранится. Вернуться в этот челлендж нельзя.{item.isOwner ? ' Приглашение перестанет работать; другие участники останутся.' : ''}</p><button className="secondary section" disabled={busy} onClick={() => void act('leave')}>Да, выйти</button><button className="text-button section" disabled={busy} onClick={() => setLeaving(false)}>Остаться</button></div>}
  </>}{message && <p className="status-banner section" role="status">{message}</p>}
- </ConditionsCard>;
+ </details></ConditionsCard>;
 }
 function JoinChallenge({ owner, joined }: { owner: string; joined: () => Promise<unknown> }) {
  const [open, setOpen] = useState(false); const [code, setCode] = useState(''); const [item, setItem] = useState<Challenge | null>(null);
@@ -106,7 +125,7 @@ function AccountChallenges({ owner }: { owner: string }) {
   } finally { setBusy(false); }
  }
  const showForm = open || !!pending;
- return <><p className="description">Выбери общий план для соревнования или свою цель для личного роста. Читай любые книги.</p><p className="reader-note">Закрытые команды до 10 человек. Участникам видны псевдонимы и выполненные дни. Почта и книги скрыты.</p>{notice && <p className="status-banner section" role="status">{notice}</p>}
+ return <><p className="description">Свои книги. Общий ритм. Команды до 10 человек.</p>{notice && <p className="status-banner section" role="status">{notice}</p>}
  <JoinChallenge owner={owner} joined={() => query.refetch()} />
  {!showForm ? <button className="primary section" onClick={() => { setOpen(true); setNotice(''); }}>Создать челлендж</button> : <form className="challenge-form section" onSubmit={event => { event.preventDefault(); void save(); }}>
  <h2>Твой новый путь.</h2>{pending && <p className="status-banner section">Подтверждение создания ещё не получено. Повтори запрос с теми же условиями — второй челлендж не появится.</p>}
