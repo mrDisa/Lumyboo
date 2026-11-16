@@ -13,11 +13,11 @@ export function GuestReadingTime() {
  return <LocalReadingTime store={db} guest />;
 }
 
-export function AccountLocalReadingTime({ accountId }: { accountId: string }) {
- return <LocalReadingTime key={accountId} store={accountDatabase(accountId)} guest={false} />;
+export function AccountLocalReadingTime({ accountId, showGoal = true }: { accountId: string; showGoal?: boolean }) {
+ return <LocalReadingTime key={accountId} store={accountDatabase(accountId)} guest={false} showGoal={showGoal} />;
 }
 
-function LocalReadingTime({ store, guest }: { store: LocalDatabase; guest: boolean }) {
+function LocalReadingTime({ store, guest, showGoal = true }: { store: LocalDatabase; guest: boolean; showGoal?: boolean }) {
  const { goal } = useDailyGoal(store);
  const [day, setDay] = useState(localDay);
  const [attempt, setAttempt] = useState(0);
@@ -42,7 +42,7 @@ function LocalReadingTime({ store, guest }: { store: LocalDatabase; guest: boole
  }, [store, day, attempt]);
  const historyId = guest ? 'guest-reading-days' : 'account-local-reading-days';
  return <section className="section" aria-label={guest ? 'Гостевое время чтения' : 'Время аккаунта на этом устройстве'}>
-  <DailyGoalCard store={store} />
+  {showGoal && <DailyGoalCard store={store} />}
   {!guest && <h3>На этом устройстве</h3>}
   {state.error ? <p className="description" role="alert">Не удалось загрузить статистику. <button className="text-button" onClick={() => setAttempt(value => value + 1)}>Повторить</button></p> : !state.value ? <p className="description" role="status">Загружаем статистику…</p> : <>
    <div className={guest ? 'stats' : 'stats stats-time'}><div><b>{Math.floor(state.value.total / 60)}</b><small>минут за текстом</small></div><div><b>{Math.floor(state.value.today / 60)}</b><small>минут сегодня</small></div>{guest && <div><b>{state.value.bookmarks}</b><small>закладок</small></div>}</div>

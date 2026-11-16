@@ -8,6 +8,8 @@ import { Icon, Sculpture, Empty } from '../components/ui';
 import { BookCard } from '../components/BookCard';
 import { books } from './Library';
 import { AccountPanel } from '../components/AccountPanel';
+import { useAccount } from '../lib/auth';
+import { ProfileSection } from '../components/ProfileSection';
 import { OfflineStatus } from '../components/OfflineStatus';
 export function SettingsPage() {
   const { settings, act } = useApp(); const [name, setName] = useState(settings.name);
@@ -16,8 +18,14 @@ export function SettingsPage() {
 }
 export function Profile() {
   const { settings } = useApp();
+  const account = useAccount();
+  const hasAccount = !!(account.session || account.localAccount);
   const data = useLiveQuery(async () => ({ shelf: await db.shelf.toArray() }));
-  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>Гостевой профиль этого устройства</p></div><AccountPanel /><div className="level section"><span className="eyebrow">Твой читательский путь</span><h2 className="section">Страница за страницей.</h2><p className="section">Каждая минута остаётся с тобой.</p></div><GuestReadingTime /><div className="section-head section"><h3>На твоей полке</h3><Link to="/catalog" className="text-button">В каталог ↗</Link></div><div className="book-grid">{books.filter(b => data?.shelf.some(s => s.bookId === b.id)).map(b => <BookCard key={b.id} book={b} />)}</div>{!data?.shelf.length && <Empty>Сохрани первую книгу из каталога.</Empty>}<Link to="/settings" className="secondary section">Настроить своё пространство</Link></>;
+  const guestShelf = <><div className="section-head section"><h3>Гостевая полка</h3><Link to="/catalog" className="text-button">В каталог ↗</Link></div><div className="book-grid">{books.filter(b => data?.shelf.some(s => s.bookId === b.id)).map(b => <BookCard key={b.id} book={b} />)}</div>{!data?.shelf.length && <Empty>Сохрани первую книгу из каталога.</Empty>}</>;
+  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>{hasAccount ? 'Твоё пространство для чтения' : 'Гостевой профиль этого устройства'}</p></div><AccountPanel />
+   {hasAccount ? <div className="profile-sections section"><ProfileSection title="Гостевое чтение" description="Отдельные минуты, цель и полка устройства" icon="profile"><GuestReadingTime />{guestShelf}</ProfileSection></div> : !account.checking && <><GuestReadingTime />{guestShelf}</>}
+   <Link to="/settings" className="secondary section">Настроить своё пространство</Link></>;
+
 }
 export { Challenges as Together } from '../components/Challenges';
 export function Onboarding() {
