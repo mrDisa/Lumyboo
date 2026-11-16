@@ -33,11 +33,19 @@ export function GuestGoalImport({ store, saved }: { store: LocalDatabase; saved:
  const accountMinutes = preview && goalMinutes(preview.account.goal, nextGoalDay(goalDay(preview.account.goal.timeZone)));
  const history = preview ? guestGoalHistory(preview.guest, preview.account.goal) : [];
  return <><button className="text-button section" disabled={busy} onClick={() => void open()}>Перенести гостевую цель</button>{preview && <Modal title="Перенести гостевую цель?" close={() => { if (!busy) setPreview(undefined); }}>
-  <p className="description">Гость: {guestMinutes} мин · {preview.guest.timeZone}. Аккаунт: {accountMinutes} мин · {preview.account.goal.timeZone}.</p>
-  <p className="description section">С завтрашнего дня аккаунта установим {guestMinutes} мин. Сегодняшняя цель и уже сохранённые дни аккаунта останутся прежними.</p>
-  <p className="description section">{history.length ? `Можно добавить раннюю историю гостевой цели: ${history.length} изменений до ${preview.account.goal.changes[0].from.split('-').reverse().join('.')}.` : 'История гостевой цели останется отдельно.'}{preview.guest.timeZone !== preview.account.goal.timeZone && ' Часовые пояса различаются; историю дней не объединяем.'}</p>
-  {!!history.length && <label className="description section"><input type="checkbox" checked={includeHistory} disabled={busy} onChange={event => setIncludeHistory(event.target.checked)} /> Добавить раннюю историю цели</label>}
-  <p className="reader-note section">Гостевые настройки и чтение сохранятся на устройстве. Этот выбор переносит цель, без гостевых минут, серии, места и закладок. Часовой пояс аккаунта сохраняется.</p>
+  <div className="transfer-result">
+   <p className="eyebrow">Цель аккаунта · с завтра</p>
+   <div className="transfer-goal"><span><small>Сейчас на завтра</small>{accountMinutes}<small>минут</small></span><span aria-hidden="true">→</span><strong><small>После переноса</small>{guestMinutes}<small>минут</small></strong></div>
+   <p className="transfer-caption">Сегодняшняя цель сохранится</p>
+  </div>
+  {!!history.length && <label className="bookmark-choice transfer-choice"><input type="checkbox" checked={includeHistory} disabled={busy} onChange={event => setIncludeHistory(event.target.checked)} /><span>Добавить раннюю историю<strong>Изменений цели: {history.length}</strong><small>До {preview.account.goal.changes[0].from.split('-').reverse().join('.')}</small></span></label>}
+  {preview.guest.timeZone !== preview.account.goal.timeZone && <p className="transfer-notice">Разные часовые пояса · историю дней не объединяем</p>}
+  <details className="day-details section"><summary>Что изменится при переносе</summary>
+   <p className="description">С завтрашнего дня аккаунта установим {guestMinutes} мин. Сегодняшняя цель и уже сохранённые дни аккаунта останутся прежними.</p>
+   {!history.length && <p className="description">История гостевой цели останется отдельно.</p>}
+   <dl className="transfer-zones"><div><dt>Гость</dt><dd>{preview.guest.timeZone}</dd></div><div><dt>Аккаунт</dt><dd>{preview.account.goal.timeZone}</dd></div></dl>
+   <p className="description">Гостевые настройки и чтение сохранятся на устройстве. Этот выбор переносит цель, без гостевых минут, серии, места и закладок. Часовой пояс аккаунта сохраняется.</p>
+  </details>
   <button className="primary section" disabled={busy} onClick={() => void copy()}>{busy ? 'Переносим…' : 'Использовать гостевую цель'}</button>
   <button className="secondary section" disabled={busy} onClick={() => setPreview(undefined)}>Оставить цель аккаунта</button>
  </Modal>}</>;
