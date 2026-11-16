@@ -257,3 +257,15 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .transfer-bookmark > input { flex:none; }
 .transfer-bookmark .transfer-book { flex:1; }
 .transfer-bookmark .transfer-book strong { font-size:12px; margin:0; font-weight:600; }
+
+.history-location { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin:18px 0 8px; }
+.history-location strong { font-size:22px; font-weight:500; }
+.history-location span { font-size:11px; color:var(--muted); }
+.bookmark-comparison { display:grid; gap:10px; margin:18px 0; }
+.bookmark-variant { min-width:0; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--soft); overflow-wrap:anywhere; }
+.bookmark-variant .eyebrow { font-size:10px; line-height:1.6; }
+.bookmark-location { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; margin-top:14px; font-size:11px; }
+.bookmark-location b { font-weight:500; }
+.bookmark-location span { color:var(--muted); }
+.bookmark-state { margin-top:14px; font-size:16px; font-weight:500; }
+.bookmark-excerpt { margin:14px 0 0; padding-left:12px; border-left:2px solid var(--line); font-family:var(--serif); font-size:13px; line-height:1.7; color:var(--muted); }
