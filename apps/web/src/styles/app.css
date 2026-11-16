@@ -148,3 +148,37 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .profile-help > summary { min-height:44px; padding:14px 0; cursor:pointer; font-size:11px; }
 .profile-help .reader-note { text-align:left; line-height:1.7; }
 @media (max-width:360px) { .account-heading { align-items:flex-start; flex-direction:column; gap:8px; } }
+
+.settings-appearance { padding:20px 16px; border:1px solid var(--line); border-radius:18px; background:var(--surface); }
+.settings-appearance h2 { margin:8px 0 18px; }
+.theme-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.theme-option { min-width:0; padding:8px 5px 12px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--ink); cursor:pointer; }
+.theme-option.active { border-color:var(--ink); outline:1px solid var(--ink); }
+.theme-option strong,.theme-option small { display:block; }
+.theme-option strong { font-size:13px; margin:10px 0 5px; }
+.theme-option small { font-size:9px; line-height:1.5; color:var(--muted); overflow-wrap:anywhere; }
+.theme-swatch { display:grid; place-items:center; height:64px; border-radius:7px; font:28px Georgia,serif; }
+.theme-swatch-light { background:#f5f3ed; color:#222; }
+.theme-swatch-dark { background:#242424; color:#f5f3ed; }
+.theme-swatch-system { background:linear-gradient(90deg,#f5f3ed 50%,#242424 50%); color:#777; }
+.storage-result { margin:20px 0; }
+.storage-result>strong { display:block; font-size:30px; font-weight:500; }
+.storage-result small { font-size:12px; color:var(--muted); }
+.storage-result progress { display:block; width:100%; height:8px; margin:14px 0; accent-color:var(--ink); }
+.install-steps { padding:0; list-style:none; }
+.install-steps li { padding:16px 0; border-bottom:1px solid var(--line); }
+.install-steps strong,.install-steps span { display:block; font-size:12px; line-height:1.7; }
+.install-steps span { color:var(--muted); margin-top:5px; }
+.download-overview { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:20px 16px; border-radius:18px; background:var(--soft); }
+.download-overview>div { min-width:0; }
+.download-overview strong { display:block; font-size:32px; font-weight:500; overflow-wrap:anywhere; }
+.download-overview small { font-size:12px; }
+.download-overview span { display:block; margin-top:8px; font-size:10px; color:var(--muted); }
+.download-read.secondary { display:flex; justify-content:space-between; width:100%; padding:0 14px; min-height:44px; }
+.download-card>.circle { flex:none; }
+.offline-status { padding:18px 16px; border:1px solid var(--line); border-radius:18px; }
+.offline-status-heading { display:flex; gap:12px; align-items:center; }
+.offline-status-heading>.icon { flex:none; }
+.offline-status-heading .reader-note { text-align:left; margin-top:6px; }
+.offline-status .goal-details { margin-top:16px; }
+.offline-status .secondary { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; }

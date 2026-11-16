@@ -13,8 +13,30 @@ import { ProfileSection } from '../components/ProfileSection';
 import { OfflineStatus } from '../components/OfflineStatus';
 export function SettingsPage() {
   const { settings, act } = useApp(); const [name, setName] = useState(settings.name);
-  const [storage, setStorage] = useState('');
-  return <><h1>В своём ритме.</h1><label className="field-label" htmlFor="name">Как к тебе обращаться?</label><input id="name" maxLength={60} value={name} onChange={e => setName(e.target.value)} autoComplete="nickname" /><button className="secondary section" onClick={() => void act(() => setSettings({ name: name.trim() }), 'Имя сохранено')}>Сохранить имя</button><label className="field-label">Оформление</label><div className="choice-row">{(['light', 'dark', 'system'] as const).map((theme, i) => <button className={`pill ${settings.theme === theme ? 'active' : ''}`} key={theme} aria-pressed={settings.theme === theme} onClick={() => void act(() => setSettings({ theme }))}>{['Blanc', 'Noir', 'Авто'][i]}</button>)}</div><OfflineStatus /><div className="rule" /><h3>Данные на устройстве</h3><p className="description">Полка, позиции и закладки хранятся в этом браузере. Вход доступен в профиле. После входа в профиле можно скопировать книги в аккаунт. Закладки можно скопировать отдельно. Место чтения можно сравнить с аккаунтом и сохранить отдельно.</p><button className="secondary" onClick={() => void act(async () => { const estimate = await navigator.storage?.estimate?.(); setStorage(estimate ? `Используется ${((estimate.usage ?? 0) / 1024 / 1024).toFixed(1)} МБ из ${Math.round((estimate.quota ?? 0) / 1024 / 1024)} МБ доступного хранилища сайта.` : 'Браузер не сообщает объём хранилища.'); })}>Проверить хранилище</button><p className="description" role="status">{storage}</p><Link className="secondary" to="/onboarding">Посмотреть знакомство</Link><p className="description">Установка: в Chrome используй меню «Установить приложение». На iPhone — Safari → «Поделиться» → «На экран Домой». Для офлайна сначала открой приложение по сети и скачай нужный текст.</p><p className="reader-note">Локальный пилот · бесплатно · без внешней аналитики</p></>;
+  const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
+  const [storageChecked, setStorageChecked] = useState(false);
+  return <><h1>В своём ритме.</h1>
+    <section className="settings-appearance section" aria-labelledby="appearance-title">
+      <span className="eyebrow muted">Твоё пространство</span><h2 id="appearance-title">Оформление</h2>
+      <div className="theme-options">{(['light', 'dark', 'system'] as const).map((theme, i) => <button className={`theme-option ${settings.theme === theme ? 'active' : ''}`} key={theme} aria-pressed={settings.theme === theme} onClick={() => void act(() => setSettings({ theme }))}><span className={`theme-swatch theme-swatch-${theme}`} aria-hidden="true">Aa</span><strong>{['Blanc', 'Noir', 'Авто'][i]}</strong><small>{['Светлое', 'Тёмное', 'Как на устройстве'][i]}</small></button>)}</div>
+    </section>
+    <OfflineStatus />
+    <div className="profile-sections">
+      <ProfileSection title="Имя" description={settings.name || 'Как к тебе обращаться'} icon="profile">
+        <label className="field-label" htmlFor="name">Как к тебе обращаться?</label><input id="name" maxLength={60} value={name} onChange={e => setName(e.target.value)} autoComplete="nickname" /><button className="secondary section" onClick={() => void act(() => setSettings({ name: name.trim() }), 'Имя сохранено')}>Сохранить имя</button>
+      </ProfileSection>
+      <ProfileSection title="Хранилище и данные" description="Место в браузере и сохранение в аккаунте" icon="books">
+        <button className="secondary section" onClick={() => void act(async () => { const estimate = await navigator.storage?.estimate?.(); setStorage(estimate ? { usage: estimate.usage ?? 0, quota: estimate.quota ?? 0 } : null); setStorageChecked(true); })}>Проверить хранилище</button>
+        <div role="status">{storage ? <div className="storage-result"><strong>{(storage.usage / 1024 / 1024).toFixed(1)} <small>МБ занято</small></strong><progress max={Math.max(storage.quota, storage.usage, 1)} value={storage.usage} aria-label="Использование хранилища сайта" /><p className="reader-note">Доступный объём сайта: {Math.round(storage.quota / 1024 / 1024)} МБ</p></div> : storageChecked && <p className="description section">Браузер не сообщает объём хранилища.</p>}</div>
+        <p className="description section">Полка, места и закладки хранятся в этом браузере. В профиле можно войти, скопировать полку и закладки в аккаунт, сравнить и сохранить место чтения.</p><Link className="text-button" to="/profile">Открыть профиль ↗</Link>
+      </ProfileSection>
+      <ProfileSection title="Установить приложение" description="Читать в отдельном окне на телефоне" icon="monitor">
+        <ol className="install-steps"><li><strong>Android · Chrome</strong><span>Меню → «Установить приложение».</span></li><li><strong>iPhone · Safari</strong><span>«Поделиться» → «На экран Домой».</span></li></ol>
+        <p className="description">Для офлайна сначала открой приложение по сети и скачай нужные книги. Установка и офлайн требуют HTTPS или localhost.</p>
+      </ProfileSection>
+      <ProfileSection title="Знакомство с Lumyboo" description="Вернуться к первому экрану" icon="spark"><Link className="secondary section" to="/onboarding">Посмотреть знакомство</Link></ProfileSection>
+    </div><p className="reader-note section">Бесплатно · без внешней аналитики</p></>;
+
 }
 export function Profile() {
   const { settings } = useApp();
