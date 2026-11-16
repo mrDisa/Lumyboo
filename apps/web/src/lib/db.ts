@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import Dexie, { type Table } from 'dexie';
 import type { DailyGoal } from './daily-goal';
 import type { AccountPosition, PositionChoice } from './positions';
@@ -98,14 +99,14 @@ export async function loadPosition(bookId: string, version: string, store: Local
 // Called inside the local write transaction; ownership is fixed by the
 // database instance, never by whichever cookie happens to be current.
 export async function enqueue(change: LocalChange, store: LocalDatabase = db) {
-  const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
+  const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: randomId(), sequence: 0 };
   meta.sequence += 1;
   await store.metadata.put(meta);
   const entity = `${change.type.split('.')[0]}:${change.key}`;
   // Only unsent snapshots can be superseded. Sending operations stay immutable
   // so a lost response can later be retried with the same operation ID.
   await store.outbox.where('[entity+state]').equals([entity, 'pending']).delete();
-  await store.outbox.add({ id: crypto.randomUUID(), formatVersion: 1, scope: store.scope, deviceId: meta.deviceId, sequence: meta.sequence, entity, state: 'pending', change });
+  await store.outbox.add({ id: randomId(), formatVersion: 1, scope: store.scope, deviceId: meta.deviceId, sequence: meta.sequence, entity, state: 'pending', change });
 }
 export async function deleteBookmark(id: string, store: LocalDatabase = db) {
   await store.transaction('rw', [store.bookmarks, store.outbox, store.metadata], async () => {
@@ -131,7 +132,7 @@ export async function saveReadingSession(value: ReadingSession, store: LocalData
     // remain unchanged; an edition must never be inferred during migration.
     let deviceId = previous?.deviceId;
     if (!previous && value.version) {
-      const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: crypto.randomUUID(), sequence: 0 };
+      const meta = await store.metadata.get('device') ?? { id: 'device', deviceId: randomId(), sequence: 0 };
       await store.metadata.put(meta);
       deviceId = meta.deviceId;
     }

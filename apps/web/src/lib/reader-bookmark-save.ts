@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { getSession } from './auth';
 import { validReadingLocator } from './account-reading';
 import type { BookContent } from './books';
@@ -39,7 +40,7 @@ export async function createReaderBookmarkSave(store: LocalDatabase, content: Bo
       continue;
      }
      if (!entry || !validReadingLocator(entry, content)) throw new Error('Не удалось определить закладку текущего издания. Сравни варианты в профиле.');
-     result.push({ operationId: crypto.randomUUID(), expectedRevision: previous?.revision ?? 0, bookmark: bookmarkEntry(entry), deleted });
+     result.push({ operationId: randomId(), expectedRevision: previous?.revision ?? 0, bookmark: bookmarkEntry(entry), deleted });
     }
     return result;
    });

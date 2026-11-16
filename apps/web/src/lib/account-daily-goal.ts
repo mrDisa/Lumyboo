@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import type { LocalDatabase } from './db';
 import { ApiError, requestJSON } from './api';
 import { getSession, type AccountSession } from './auth';
@@ -57,7 +58,7 @@ export async function syncAccountGoal(store: LocalDatabase, minutes?: number, im
    const goal = remote?.goal ?? imported?.guest ?? local;
    const from = nextGoalDay(goalDay(goal.timeZone));
    const history = imported?.includeHistory === false ? [] : imported ? guestGoalHistory(imported.guest, remote?.goal) : undefined;
-   const pending: Mutation = { accountId: verified.user.id, operationId: crypto.randomUUID(), expectedRevision: remote?.goal.revision ?? 0, timeZone: goal.timeZone, from, minutes: (imported ? goalMinutes(imported.guest, nextGoalDay(goalDay(imported.guest.timeZone))) : minutes ?? goalMinutes(local, from)) as Mutation['minutes'], ...(imported ? { initialChanges: history as Mutation['initialChanges'] } : !remote ? { initialChanges: local.changes as Mutation['initialChanges'] } : {}) };
+   const pending: Mutation = { accountId: verified.user.id, operationId: randomId(), expectedRevision: remote?.goal.revision ?? 0, timeZone: goal.timeZone, from, minutes: (imported ? goalMinutes(imported.guest, nextGoalDay(goalDay(imported.guest.timeZone))) : minutes ?? goalMinutes(local, from)) as Mutation['minutes'], ...(imported ? { initialChanges: history as Mutation['initialChanges'] } : !remote ? { initialChanges: local.changes as Mutation['initialChanges'] } : {}) };
    await store.dailyGoals.update('local', { pending });
    await sendPending(store, verified, generation);
   }

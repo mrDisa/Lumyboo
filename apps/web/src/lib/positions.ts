@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import type { components, paths } from './api.generated';
 import type { AccountSession } from './auth';
 import type { Position } from './db';
@@ -18,7 +19,7 @@ export function samePosition(a: ReadingLocator | undefined, b: ReadingLocator | 
  return !!a && !!b && a.bookId === b.bookId && a.version === b.version && a.chapter === b.chapter && a.paragraph === b.paragraph && a.offset === b.offset;
 }
 export function positionChoice(local: Position, remote?: AccountPosition): PositionChoice {
- return { operationId: crypto.randomUUID(), expectedRevision: remote?.revision ?? 0, position: readingLocator(local) };
+ return { operationId: randomId(), expectedRevision: remote?.revision ?? 0, position: readingLocator(local) };
 }
 export async function loadAccountPositions(accountId: string, signal?: AbortSignal) {
  return owned(await requestJSON<AccountPositions>('/positions/', { signal }), accountId);

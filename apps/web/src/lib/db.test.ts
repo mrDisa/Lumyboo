@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
-import { afterEach, describe, expect, it } from 'vitest';
-import { db, setSettings, toggleBookmark, type Position } from './db';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { db, setSettings, toggleShelf, toggleBookmark, type Position } from './db';
 afterEach(async () => { await db.delete(); await db.open(); });
 describe('durable local data', () => {
  it('keeps paragraph locators and bookmarks across reopen', async () => { const p:Position={ bookId:'test',version:'1',chapter:2,paragraph:'ch-3-p-4',offset:.43,updatedAt:'2026-11-13T00:00:00Z' };await db.positions.put(p);await toggleBookmark(p,'Chapter 3');db.close();await db.open();expect(await db.positions.get('test')).toEqual(p);expect(await db.bookmarks.count()).toBe(1);await toggleBookmark(p,'Chapter 3');expect(await db.bookmarks.count()).toBe(0); });
@@ -27,4 +27,20 @@ it('upgrades a v1 local database without losing positions or bookmarks', async (
   try { await upgraded.open();expect(await upgraded.positions.get(p.bookId)).toEqual(p);expect(await upgraded.bookmarks.count()).toBe(1);expect(await upgraded.positionHistory.count()).toBe(0); }
   finally { await upgraded.delete(); }
  } finally { oldDb.close(); await Dexie.delete(name); }
+});
+
+it('saves settings and shelf on LAN HTTP without randomUUID', async () => {
+ const getRandomValues = crypto.getRandomValues.bind(crypto);
+ vi.stubGlobal('crypto', { getRandomValues });
+ try {
+  await setSettings({ theme: 'dark' });
+  await toggleShelf('test');
+  db.close(); await db.open();
+  expect(await db.settings.get('local')).toMatchObject({ theme: 'dark' });
+  expect(await db.shelf.get('test')).toBeDefined();
+  const operations = await db.outbox.toArray();
+  expect(operations).toHaveLength(2);
+  expect(new Set(operations.map(row => row.id)).size).toBe(2);
+  expect(operations.every(row => /^[0-9a-f-]{36}$/.test(row.id))).toBe(true);
+ } finally { vi.unstubAllGlobals(); }
 });

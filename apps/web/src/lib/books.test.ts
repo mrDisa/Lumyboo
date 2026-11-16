@@ -131,3 +131,16 @@ it('downloads and reopens the complete Tolstoy story with its final chapter offl
  expect(await db.downloads.get(book.id)).toMatchObject({ hash: book.sha256, bytes: book.bytes });
  expect(fetch).not.toHaveBeenCalled();
 });
+
+it('keeps download metadata and explains HTTPS when CacheStorage is absent on HTTP', async () => {
+ const { book } = await fixture();
+ await db.downloads.put({ bookId: book.id, version: book.version, bytes: book.bytes, hash: book.sha256 });
+ vi.stubGlobal('caches', undefined);
+ vi.stubGlobal('fetch', vi.fn());
+ await expect(reconcileDownloads([book])).resolves.toBeUndefined();
+ expect(await db.downloads.get(book.id)).toBeDefined();
+ await expect(loadBook(book)).rejects.toThrow('HTTPS');
+ await expect(downloadBook(book)).rejects.toThrow('HTTPS');
+ expect(fetch).not.toHaveBeenCalled();
+ expect(await db.downloads.get(book.id)).toBeDefined();
+});

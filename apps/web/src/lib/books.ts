@@ -4,6 +4,11 @@ export type Book = components['schemas']['Book'];
 export interface Chapter { id: string; title: string; paragraphs: { id: string; text: string }[] }
 export interface BookContent { id: string; version: string; chapters: Chapter[] }
 export const BOOK_CACHE = 'lumyboo-books-v1';
+const secureBookMessage = 'Для чтения и загрузки книг открой Lumyboo по HTTPS. Адрес HTTP в локальной сети подходит только для просмотра интерфейса.';
+function requireBookStorage() {
+ if (typeof caches === 'undefined' || !crypto.subtle) throw new Error(secureBookMessage);
+}
+
 
 function isBookContent(value: unknown, book: Book): value is BookContent {
   if (!value || typeof value !== 'object') return false;
@@ -21,6 +26,7 @@ function isBookContent(value: unknown, book: Book): value is BookContent {
   return true;
 }
 export async function verifiedResponse(book: Book, response: Response, onProgress?: (percent: number) => void): Promise<Response> {
+  if (!crypto.subtle) throw new Error(secureBookMessage);
   if (!response.ok) throw new Error('Не удалось получить книгу. Проверь соединение и попробуй ещё раз.');
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -53,6 +59,7 @@ export async function verifiedResponse(book: Book, response: Response, onProgres
   return new Response(bytes, { headers: { 'Content-Type': 'application/json; charset=utf-8' } });
 }
 export async function loadBook(book: Book): Promise<BookContent> {
+  requireBookStorage();
   const cache = await caches.open(BOOK_CACHE);
   const cached = await cache.match(book.url);
   if (cached) {
@@ -62,6 +69,7 @@ export async function loadBook(book: Book): Promise<BookContent> {
   return (await verifiedResponse(book, await fetch(book.url))).json();
 }
 export async function downloadBook(book: Book, onProgress?: (percent: number) => void) {
+  requireBookStorage();
   const cache = await caches.open(BOOK_CACHE);
   try {
     const response = await verifiedResponse(book, await fetch(book.url), onProgress);
@@ -75,10 +83,13 @@ export async function downloadBook(book: Book, onProgress?: (percent: number) =>
   await navigator.storage?.persist?.().catch(() => false);
 }
 export async function removeDownload(book: Book) {
+  requireBookStorage();
   await (await caches.open(BOOK_CACHE)).delete(book.url);
   await db.downloads.delete(book.id);
 }
 export async function reconcileDownloads(books: Book[]) {
+  // Unavailable browser APIs do not mean saved books have been evicted.
+  if (typeof caches === 'undefined' || !crypto.subtle) return;
   const cache = await caches.open(BOOK_CACHE);
   for (const item of await db.downloads.toArray()) {
     const book = books.find(b => b.id === item.bookId);

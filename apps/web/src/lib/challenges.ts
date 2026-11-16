@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import type { components } from './api.generated';
 import { ApiError, requestJSON } from './api';
 import { getSession } from './auth';
@@ -31,7 +32,7 @@ export async function createChallenge(owner: string, conditions?: Conditions): P
  let pending = pendingChallenge(owner);
  if (!pending) {
   if (!conditions) throw new Error('Заполни условия челленджа.');
-  pending = { ...conditions, accountId: owner, operationId: crypto.randomUUID() };
+  pending = { ...conditions, accountId: owner, operationId: randomId() };
   sessionStorage.setItem(key(owner), JSON.stringify(pending));
  }
  let result: { accountId: string; challenge: Challenge };

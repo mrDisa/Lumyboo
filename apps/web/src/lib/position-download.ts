@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import type { LocalDatabase, Position } from './db';
 import { readingLocator, type AccountPosition } from './positions';
 import { withPositionChoiceLock } from './position-choices';
@@ -37,7 +38,7 @@ export async function acceptPositionDownload(store: LocalDatabase, review: Posit
    const current = await store.positions.get(review.remote.bookId);
    const operations = await store.outbox.where('entity').equals(`position:${review.remote.bookId}`).toArray();
    if (JSON.stringify(current) !== JSON.stringify(review.local) || JSON.stringify(operations.map(op => op.id).sort()) !== JSON.stringify(review.operationIds) || operations.some(op => op.scope !== store.scope || op.state !== 'pending')) throw new Error('Место на устройстве изменилось. Закрой сравнение и открой его заново.');
-   if (current) await store.positionHistory.put({ ...current, id: `choice:${crypto.randomUUID()}` });
+   if (current) await store.positionHistory.put({ ...current, id: `choice:${randomId()}` });
    await store.positions.put({ ...readingLocator(review.remote), updatedAt: new Date().toISOString() });
    // Receiving a chosen snapshot does not generate a new outgoing position.
    await store.outbox.bulkDelete(review.operationIds);

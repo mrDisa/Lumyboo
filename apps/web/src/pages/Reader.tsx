@@ -1,3 +1,4 @@
+import { randomId } from '../lib/random-id';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useAccount, getSession, type AccountSession } from '../lib/auth';
 import { loadAccountPositions, samePosition, type ReadingLocator } from '../lib/positions';
@@ -202,7 +203,7 @@ function ReaderContent({ content, bookId, title, author, excerpt, fixture, sourc
   useEffect(() => {
     if (chapter === null || !protectedReading || !goal) return;
     const clock = new ReadingClock(); let day = localDay(new Date(), goal.timeZone); let seconds = 0;
-    let id = crypto.randomUUID(); let failed = false;
+    let id = randomId(); let failed = false;
     const persist = () => {
       const row = { id, day, bookId, seconds, version: content.version };
       timeRecorder.record(row);
@@ -210,13 +211,13 @@ function ReaderContent({ content, bookId, title, author, excerpt, fixture, sourc
     const report = () => { if (!failed) notify('Не удалось сохранить данные чтения. Проверь хранилище.'); failed = true; };
     const tick = (observe = true) => {
       const today = localDay(new Date(), goal.timeZone);
-      if (today !== day) { persist(); id = crypto.randomUUID(); seconds = 0; day = today; clock.pause(); }
+      if (today !== day) { persist(); id = randomId(); seconds = 0; day = today; clock.pause(); }
       const active = !document.hidden && document.hasFocus() && !panel && !exiting.current && ready.current;
       const elapsed = clock.tick(performance.now(), active);
       if (observe && active && elapsed > 0) coverageRecorder.observe(sampleVisibleText(document.getElementById('screen')!));
       const coverage = coverageRecorder.flush();
       const total = Math.round((seconds + elapsed) * 1000) / 1000;
-      if (total > 86400) { seconds = 86400; persist(); id = crypto.randomUUID(); seconds = total - 86400; }
+      if (total > 86400) { seconds = 86400; persist(); id = randomId(); seconds = total - 86400; }
       else seconds = total;
       persist();
       return Promise.all([timeRecorder.flush(), coverage]).then(() => {});

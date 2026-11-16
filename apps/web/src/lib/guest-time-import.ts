@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { db, type LocalDatabase, type ReadingSession } from './db';
 import { getSession } from './auth';
 import { authGeneration } from './local-account';
@@ -48,7 +49,7 @@ export async function importGuestTime(store: LocalDatabase, choice?: { preview: 
    if (current.accountId !== session!.user.id || JSON.stringify(current.goal) !== JSON.stringify(choice.preview.account.goal)) throw new Error('Цель аккаунта изменилась. Открой перенос заново.');
    const reports = choice.preview.reports.filter(row => choice.days.includes(row.day));
    if (!reports.length) throw new Error('Выбери дни для переноса.');
-   pending = { id: 'local', accountId: session!.user.id, entries: reports.map(report => ({ operationId: crypto.randomUUID(), session: report })) };
+   pending = { id: 'local', accountId: session!.user.id, entries: reports.map(report => ({ operationId: randomId(), session: report })) };
    await store.guestTimeImports.put(pending);
   }
   if (pending.accountId !== session!.user.id) throw new Error('Аккаунт изменился.');

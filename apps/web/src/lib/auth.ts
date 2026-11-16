@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { components } from './api.generated';
@@ -22,7 +23,7 @@ export async function getSession(signal?: AbortSignal): Promise<AccountSession |
  }
 }
 function announceChange() {
- const id = crypto.randomUUID();
+ const id = randomId();
  try { const channel = new BroadcastChannel(eventKey); channel.postMessage(id); channel.close(); } catch { /* Storage events remain available in browsers without BroadcastChannel. */ }
  try { localStorage.setItem(eventKey, id); } catch { /* No account information is stored here. */ }
 }

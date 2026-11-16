@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { bookmarkEntry, bookmarkKey, type BookmarkEntry, type BookmarkState } from './bookmarks';
 
 // A missing local bookmark is not evidence of deletion: the user must review
@@ -14,5 +15,5 @@ export function reviewedBookmarkChange(local: BookmarkEntry | undefined, remote:
  const entry = deleted ? remote : local;
  if (!entry || deleted && remote?.deleted) throw new Error('Загрузи закладки и сравни варианты заново.');
  if (local && remote && bookmarkKey(local) !== bookmarkKey(remote)) throw new Error('Выбраны разные закладки.');
- return { operationId: crypto.randomUUID(), expectedRevision: remote?.revision ?? 0, bookmark: bookmarkEntry(entry), deleted };
+ return { operationId: randomId(), expectedRevision: remote?.revision ?? 0, bookmark: bookmarkEntry(entry), deleted };
 }

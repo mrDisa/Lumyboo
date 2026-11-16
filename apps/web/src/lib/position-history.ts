@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { savePosition, type LocalDatabase, type Position } from './db';
 import { withPositionChoiceLock } from './position-choices';
 import { readingLockName } from './reading-ownership';
@@ -43,7 +44,7 @@ export async function restoreHistoricalPosition(store: LocalDatabase, review: Po
    if (JSON.stringify(current.local) !== JSON.stringify(review.local) || JSON.stringify(current.operationIds) !== JSON.stringify(review.operationIds)) throw new Error('Место на устройстве изменилось. Открой сравнение заново.');
    // Keep the displaced variant; restoration is a new local edit, not a
    // server receipt. savePosition atomically queues it with a fresh UUID.
-   if (current.local) await store.positionHistory.put({ ...current.local, id: `restore:${crypto.randomUUID()}` });
+   if (current.local) await store.positionHistory.put({ ...current.local, id: `restore:${randomId()}` });
    const { id: _id, ...position } = historical;
    await savePosition({ ...position, updatedAt: new Date().toISOString() }, store);
   });

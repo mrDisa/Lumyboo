@@ -1,3 +1,4 @@
+import { randomId } from './random-id';
 import { LocalDatabase, bookmarkId, type Position } from './db';
 import type { BookContent } from './books';
 import type { AccountPosition, ReadingLocator } from './positions';
@@ -39,7 +40,7 @@ export async function prepareAccountBook(store: LocalDatabase, content: BookCont
    // this transaction too: another tab may have saved a choice after loading.
    if (await store.positionChoices.get(content.id)) throw new Error('Для этой книги есть незавершённое сохранение. Проверь его в профиле, прежде чем выбирать место аккаунта.');
    if (!validReadingLocator(remote, content)) throw new Error('Место аккаунта относится к другому изданию или недоступному фрагменту.');
-   if (current) await store.positionHistory.put({ ...current, id: `choice:${crypto.randomUUID()}` });
+   if (current) await store.positionHistory.put({ ...current, id: `choice:${randomId()}` });
    await store.positions.put({ bookId: remote.bookId, version: remote.version, chapter: remote.chapter, paragraph: remote.paragraph, offset: remote.offset, updatedAt: new Date().toISOString() });
    // The confirmed server snapshot supersedes only the pending local position
    // explicitly reviewed by the user. Other books/operations remain intact.
