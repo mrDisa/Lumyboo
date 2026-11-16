@@ -48,14 +48,10 @@ jobs:
         run: go -C services/api test -race ./internal/auth ./internal/httpapi ./internal/bookmarks ./internal/positions ./internal/readingsessions ./internal/readingcoverage
       - name: Roll back and reapply migrations
         run: |
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/008_reading_coverage.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/007_reading_session_history.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/006_reading_sessions.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/005_bookmark_revisions.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/004_position_history.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/003_pilot_book_versions.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/002_auth.down.sql
-          psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f services/api/db/migrations/001_local_pilot.down.sql
+          migrations=(services/api/db/migrations/*.down.sql)
+          for ((i=${#migrations[@]}-1; i>=0; i--)); do
+            psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f "${migrations[i]}"
+          done
           for migration in services/api/db/migrations/*.up.sql; do
             psql -h localhost -U lumyboo -d lumyboo -v ON_ERROR_STOP=1 -f "$migration"
           done
