@@ -10,6 +10,12 @@ const errorText = (error: unknown) => error instanceof Error ? error.message : '
 function shortDate(day: string) {
  return new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${day}T12:00:00Z`));
 }
+function AmountChoice<T extends number>({ label, values, value, unit, onChange }: { label: string; values: readonly T[]; value: T; unit: string; onChange: (value: T) => void }) {
+ return <fieldset className="challenge-choice"><legend className="field-label">{label}</legend><div className="challenge-amounts">{values.map(n => <button key={n} type="button" aria-pressed={value === n} onClick={() => onChange(n)}><b>{n}</b><span>{unit}</span></button>)}</div></fieldset>;
+}
+function FormRules({ mode }: { mode: Conditions['mode'] }) {
+ return <details className="challenge-details section"><summary>Правила и учёт чтения</summary><p className="description">{mode === 'competitive' ? 'Больше выполненных дней — выше место. При равенстве место общее. Минуты сверх цели преимущества не дают.' : 'У каждого своя цель. Общего рейтинга нет.'}</p><p className="description">Цель фиксируется на весь срок. Изменение обычной дневной цели не меняет условия челленджа. Вступить можно до старта, пока в команде меньше 10 человек. После выхода повторное вступление недоступно.</p><DatePolicy /></details>;
+}
 function ConditionsCard({ item, children }: { item: Challenge; children?: React.ReactNode }) {
  return <article className="expedition challenge-card"><span className="tag">{modes[item.mode]}</span><h2>{item.name}</h2>
  <div className="challenge-meta"><span>{shortDate(item.startDay)} — {shortDate(item.progress.endDay)}</span><span>{item.minutes} мин / день</span></div>
@@ -90,11 +96,11 @@ function JoinChallenge({ owner, joined }: { owner: string; joined: () => Promise
  return <div className="section">{!open ? <button className="secondary" onClick={() => { setOpen(true); setMessage(''); }}>Вступить по коду</button> : <form className="challenge-form" onSubmit={e => { e.preventDefault(); void act(!!item); }}>
  <h2>Друг уже ждёт.</h2><fieldset disabled={busy}>
  <label className="field-label" htmlFor="invite-code">Код приглашения</label><input id="invite-code" required pattern="[a-f0-9]{48}" maxLength={48} autoCapitalize="none" autoComplete="off" value={code} onChange={e => { setCode(e.target.value.trim()); setItem(null); }} />
- {item && <><p className="description section">{item.name} · {modes[item.mode]}<br />Старт {item.startDay} · {item.duration} дней · {item.timeZone}</p>
- <p className="reader-note">{item.mode === 'competitive' ? `Общая цель: ${item.minutes} мин в день. Места определяются выполненными днями; при равенстве место общее.` : 'Выбери свою цель. В этом формате нет общего рейтинга.'} Цель фиксируется на весь срок. Участникам будут видны твой псевдоним и выполненные дни. Почта и книги скрыты.</p><DatePolicy />
- <label className="field-label" htmlFor="join-nickname">Твой псевдоним в команде</label><input id="join-nickname" required maxLength={40} value={nickname} onChange={e => setNickname(e.target.value)} />
- {item.mode === 'personal' && <><label className="field-label" htmlFor="join-minutes">Твоя цель, минут в день</label><select id="join-minutes" value={minutes} onChange={e => setMinutes(Number(e.target.value) as Conditions['minutes'])}>{[5,10,20,30,60].map(n => <option key={n} value={n}>{n} минут</option>)}</select></>}
- <p className="reader-note">Вступить можно до старта, пока в команде меньше 10 человек. После выхода повторное вступление недоступно.</p></>}
+ {item && <><div className="challenge-invite section"><span className="tag">{modes[item.mode]}</span><h3>{item.name}</h3><div className="challenge-invite-stats"><div><b>{item.duration}</b><span>дней вместе</span></div><div><b>{item.mode === 'competitive' ? item.minutes : 'Своя'}</b><span>{item.mode === 'competitive' ? 'мин / день' : 'цель у каждого'}</span></div></div><p>Старт {shortDate(item.startDay)} · {item.timeZone}</p></div>
+ <label className="field-label" htmlFor="join-nickname">Твой псевдоним в команде</label><input id="join-nickname" required maxLength={40} autoComplete="nickname" value={nickname} onChange={e => setNickname(e.target.value)} />
+ {item.mode === 'personal' && <AmountChoice label="Твоя цель в день" values={[5,10,20,30,60] as const} value={minutes} unit="мин" onChange={setMinutes} />}
+ <p className="challenge-hint">Видны псевдоним и выполненные дни. Почта и книги скрыты.</p><FormRules mode={item.mode} /></>}
+
  </fieldset><button className="primary section" disabled={busy}>{busy ? 'Проверяем…' : item ? 'Принять условия и вступить' : 'Посмотреть условия'}</button><button type="button" className="text-button section" disabled={busy} onClick={() => { setOpen(false); setItem(null); }}>Отмена</button></form>}
  {message && <p className="status-banner section" role="status">{message}</p>}</div>;
 }
@@ -129,15 +135,16 @@ function AccountChallenges({ owner }: { owner: string }) {
  <JoinChallenge owner={owner} joined={() => query.refetch()} />
  {!showForm ? <button className="primary section" onClick={() => { setOpen(true); setNotice(''); }}>Создать челлендж</button> : <form className="challenge-form section" onSubmit={event => { event.preventDefault(); void save(); }}>
  <h2>Твой новый путь.</h2>{pending && <p className="status-banner section">Подтверждение создания ещё не получено. Повтори запрос с теми же условиями — второй челлендж не появится.</p>}
- <fieldset disabled={busy || !!pending}><legend className="field-label">Формат</legend><div className="choice-row">{(Object.keys(modes) as Conditions['mode'][]).map(value => <button key={value} type="button" className={`pill ${mode === value ? 'active' : ''}`} aria-pressed={mode === value} onClick={() => setMode(value)}>{modes[value]}</button>)}</div>
- <p className="description">{mode === 'competitive' ? 'Одинаковая цель для всех. Побеждает тот, кто выполнил её в большем числе дней. При равенстве — общее место. Минуты сверх цели преимущества не дают.' : 'У каждого своя цель. Здесь нет рейтинга между участниками — каждый идёт в своём ритме.'}</p>
- <label className="field-label" htmlFor="challenge-name">Название</label><input id="challenge-name" required maxLength={60} value={name} onChange={e => setName(e.target.value)} />
+ <fieldset disabled={busy || !!pending}>
+ <fieldset className="challenge-choice"><legend className="field-label">Формат</legend><div className="challenge-modes">{(Object.keys(modes) as Conditions['mode'][]).map(value => <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)}><span className="challenge-mode-mark" aria-hidden="true">{value === 'competitive' ? '1 · 2 · 3' : '↗'}</span><b>{modes[value]}</b><small>{value === 'competitive' ? 'Общая цель и места' : 'Своя цель, без рейтинга'}</small></button>)}</div></fieldset>
+ <label className="field-label" htmlFor="challenge-name">Название</label><input id="challenge-name" required maxLength={60} placeholder="Например, книжный ноябрь" value={name} onChange={e => setName(e.target.value)} />
  <label className="field-label" htmlFor="challenge-nickname">Твой псевдоним в команде</label><input id="challenge-nickname" required maxLength={40} autoComplete="nickname" value={nickname} onChange={e => setNickname(e.target.value)} />
- <label className="field-label" htmlFor="challenge-minutes">{mode === 'competitive' ? 'Общая цель, минут в день' : 'Твоя цель, минут в день'}</label><select id="challenge-minutes" value={minutes} onChange={e => setMinutes(Number(e.target.value) as Conditions['minutes'])}>{[5,10,20,30,60].map(n => <option key={n} value={n}>{n} минут</option>)}</select>
- <label className="field-label" htmlFor="challenge-duration">Длительность</label><select id="challenge-duration" value={duration} onChange={e => setDuration(Number(e.target.value) as Conditions['duration'])}>{[7,14,30].map(n => <option key={n} value={n}>{n} дней</option>)}</select>
- <label className="field-label" htmlFor="challenge-zone">Общий часовой пояс</label><input id="challenge-zone" required maxLength={100} list="challenge-zones" value={zone} onChange={e => setZone(e.target.value)} /><datalist id="challenge-zones">{['Europe/Moscow','Europe/Kaliningrad','Asia/Yekaterinburg','Asia/Novosibirsk','Asia/Vladivostok','UTC'].map(z => <option key={z} value={z} />)}</datalist>
+ <AmountChoice label={mode === 'competitive' ? 'Общая цель в день' : 'Твоя цель в день'} values={[5,10,20,30,60] as const} value={minutes} unit="мин" onChange={setMinutes} />
+ <AmountChoice label="Длительность" values={[7,14,30] as const} value={duration} unit="дней" onChange={setDuration} />
  <label className="field-label" htmlFor="challenge-day">Дата старта</label><input id="challenge-day" required type="date" min={tomorrow()} value={day} onChange={e => setDay(e.target.value)} />
- <p className="description">Цель фиксируется на весь срок. Изменение обычной дневной цели не меняет условия челленджа.</p><DatePolicy /></fieldset>
+ <label className="field-label" htmlFor="challenge-zone">Часовой пояс команды</label><input id="challenge-zone" required maxLength={100} list="challenge-zones" value={zone} onChange={e => setZone(e.target.value)} /><datalist id="challenge-zones">{['Europe/Moscow','Europe/Kaliningrad','Asia/Yekaterinburg','Asia/Novosibirsk','Asia/Vladivostok','UTC'].map(z => <option key={z} value={z} />)}</datalist>
+ <p className="challenge-hint">{minutes} мин в день · {duration} дней · цель на весь срок</p>
+ <FormRules mode={mode} /></fieldset>
  {error && <p className="status-banner section" role="alert">{error}</p>}<button className="primary section" disabled={busy} aria-busy={busy}>{busy ? 'Сохраняем…' : pending ? 'Повторить создание' : 'Сохранить челлендж'}</button>{!pending && <button type="button" className="secondary section" disabled={busy} onClick={() => { setOpen(false); setError(''); }}>Отмена</button>}</form>}
  <div className="section-head section"><h3>Твои челленджи</h3><button className="text-button" disabled={query.isFetching || busy} onClick={() => void query.refetch()}>Обновить</button></div>
  {query.isPending ? <p className="description" role="status">Загружаем челленджи…</p> : query.isError ? <p className="status-banner" role="alert">{errorText(query.error)}</p> : !query.data.length && <p className="description">Здесь появится твой первый челлендж.</p>}

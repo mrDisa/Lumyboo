@@ -74,3 +74,27 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .challenge-details .text-button { display:block; }
 .challenge-source { display:block; font-size:9px; opacity:.7; margin-top:8px; }
 .challenge-legend { display:flex; flex-wrap:wrap; gap:10px; margin:-6px 0 18px; color:var(--muted); font-size:9px; }
+
+/* Challenge setup: choices first, detailed rules on request. */
+.challenge-form h2 { font-size:26px; }
+.challenge-form .challenge-choice { margin:0; }
+.challenge-modes { display:grid; gap:8px; }
+.challenge-modes button { display:grid; grid-template-columns:64px minmax(0,1fr); column-gap:12px; text-align:left; align-items:center; border:1px solid var(--line); border-radius:14px; padding:14px; background:var(--surface); }
+.challenge-modes b { font-size:12px; overflow-wrap:anywhere; }
+.challenge-modes small { grid-column:2; font-size:10px; margin-top:5px; }
+.challenge-mode-mark { grid-row:span 2; font-size:19px; letter-spacing:-.05em; text-align:center; }
+.challenge-modes [aria-pressed="true"],.challenge-amounts [aria-pressed="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.challenge-amounts { display:flex; gap:6px; }
+.challenge-amounts button { flex:1; min-width:0; min-height:66px; border:1px solid var(--line); border-radius:12px; background:var(--surface); padding:9px 2px; }
+.challenge-amounts b { display:block; font-size:23px; font-weight:500; line-height:1.2; }
+.challenge-amounts span { display:block; font-size:10px; margin-top:4px; }
+.challenge-hint { font-size:11px; color:var(--muted); line-height:1.7; margin:16px 0; }
+.challenge-invite { background:var(--soft); padding:18px; border-radius:16px; }
+.challenge-invite h3 { font-size:23px; margin:12px 0 18px; overflow-wrap:anywhere; }
+.challenge-invite-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.challenge-invite-stats b { display:block; font-size:34px; font-weight:500; letter-spacing:-.04em; }
+.challenge-invite-stats span,.challenge-invite p { font-size:10px; color:var(--muted); }
+.challenge-invite p { margin-top:16px; line-height:1.6; overflow-wrap:anywhere; }
+.challenge-form button:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+.challenge-form button:disabled { opacity:.55; }
+.challenge-choice > legend { padding-top:24px; margin-top:0; }
