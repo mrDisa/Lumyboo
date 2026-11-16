@@ -5,7 +5,7 @@ import catalog from '../data/catalog.json';
 import { db, toggleShelf } from '../lib/db';
 import { type Book, downloadBook, removeDownload } from '../lib/books';
 import { useApp } from '../lib/context';
-import { Cover, Empty, Icon, Sculpture } from '../components/ui';
+import { Cover, Empty, Icon, Modal, Sculpture } from '../components/ui';
 import { DailyGoalCard } from '../components/DailyGoal';
 import { BookCard } from '../components/BookCard';
 export const books = catalog as Book[];
@@ -25,8 +25,39 @@ export function BookDetail() {
   const { bookId } = useParams({ strict: false }); const book = books.find(b => b.id === bookId);
   const saved = useLiveQuery(() => db.shelf.get(bookId ?? ''), [bookId]);
   const downloaded = useLiveQuery(() => db.downloads.get(bookId ?? ''), [bookId]);
-  const [busy, setBusy] = useState(false); const [progress, setProgress] = useState(0); const { act } = useApp();
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [removing, setRemoving] = useState(false);
+  const { act } = useApp();
   if (!book) return <Empty>Книга не найдена. <Link to="/catalog">Вернуться в каталог</Link></Empty>;
-  async function download() { setBusy(true); setProgress(0); await act(() => downloaded ? removeDownload(book!) : downloadBook(book!, setProgress), downloaded ? 'Загрузка удалена. Позиция и закладки сохранены.' : 'Книга скачана. Можно читать без сети.'); setBusy(false); }
-  return <><Link className="text-button" to="/catalog">← Каталог</Link><div className="book-detail"><Cover id={book.cover} title={book.title} /><div><span className="eyebrow muted">{book.genre} · {book.year}</span><h2>{book.title}</h2><p>{book.author}</p></div></div><span className="tag">{book.kind === 'fixture' ? 'Полная тестовая книга' : book.kind === 'full' ? 'Полный текст' : 'Только фрагмент'}</span><p className="description">{book.description}</p><Link className="primary" to="/read/$bookId" params={{ bookId: book.id }}>Читать<Icon name="arrow" /></Link><button className="secondary section" onClick={() => void act(() => toggleShelf(book.id))}>{saved ? 'Убрать с полки' : '+ Добавить на полку'}</button><button className="secondary section" disabled={busy} onClick={() => void download()}>{busy ? `Загрузка и проверка · ${progress}%` : downloaded ? 'Удалить офлайн-загрузку' : `Скачать · ${Math.ceil(book.bytes / 1024)} КБ`}</button><p className="reader-note section" aria-live="polite">{downloaded ? 'Сохранено на устройстве. Браузер может освободить место — наличие загрузки проверяется при запуске.' : 'Скачай текст перед чтением без сети.'}</p><p className="reader-note section">{book.rights}</p>{book.sourceUrl && <p className="reader-note section"><a href={book.sourceUrl} target="_blank" rel="noreferrer">Источник текста ↗</a>{book.licenseUrl && <> · <a href={book.licenseUrl} target="_blank" rel="noreferrer">Условия использования ↗</a></>}{book.coverSourceUrl && <> · <a href={book.coverSourceUrl} target="_blank" rel="noreferrer">Печатное издание ↗</a></>}</p>}</>;
+  async function download() {
+    setBusy(true); setProgress(0);
+    await act(() => downloadBook(book!, setProgress), 'Книга скачана. Можно читать без сети.');
+    setBusy(false);
+  }
+  async function remove() {
+    setBusy(true);
+    if (await act(() => removeDownload(book!), 'Загрузка удалена. Позиция и закладки сохранены.')) setRemoving(false);
+    setBusy(false);
+  }
+  const format = book.kind === 'fixture' ? 'Полная тестовая книга' : book.kind === 'full' ? 'Полный текст' : 'Только фрагмент';
+  return <>
+    <Link className="text-button" to="/catalog">← Каталог</Link>
+    <article className="book-presentation section">
+      <div className="book-presentation-art"><Cover id={book.cover} title={book.title} /><span className="tag">{format}</span></div>
+      <div className="book-presentation-title"><span className="eyebrow muted">{book.genre} · {book.year}</span><h1>{book.title}</h1><p>{book.author}</p></div>
+      <Link className="primary" to="/read/$bookId" params={{ bookId: book.id }}>Читать<Icon name="arrow" /></Link>
+      <button className="secondary book-shelf" aria-pressed={!!saved} onClick={() => void act(() => toggleShelf(book.id))}><Icon name="books" />{saved ? 'На полке · убрать' : 'Добавить на полку'}</button>
+    </article>
+    <section className="book-about section"><h2>Об истории</h2><p className="description">{book.description}</p></section>
+    <section className="book-offline section" aria-label="Загрузка книги">
+      <div className="book-offline-heading"><span className="profile-section-icon"><Icon name="books" /></span><div><strong>{downloaded ? 'Текст на устройстве' : 'Возьми с собой'}</strong><small>{Math.ceil((downloaded?.bytes ?? book.bytes) / 1024)} КБ · {downloaded ? 'скачано' : 'для чтения без сети'}</small></div></div>
+      {busy && !removing && <div className="book-download-progress" role="progressbar" aria-label="Загрузка и проверка текста" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div>}
+      <button className="secondary section" disabled={busy} onClick={() => downloaded ? setRemoving(true) : void download()}>{busy && !removing ? `Загрузка и проверка · ${progress}%` : downloaded ? 'Удалить загрузку' : 'Скачать текст'}{!downloaded && !busy && <Icon name="arrow" />}</button>
+      <p className="reader-note book-download-status" role="status">{downloaded ? 'Сохранено на устройстве' : busy ? 'Сохраняем текст…' : 'Скачай, пока есть сеть'}</p>
+      <details className="goal-details"><summary>Как хранится книга</summary><p className="description">Браузер может освободить место — наличие текста проверяется при запуске. Удаление загрузки оставляет позиции и закладки на устройстве.</p></details>
+    </section>
+    <details className="goal-details book-edition section"><summary>Об издании и источниках</summary><p className="description">{book.rights}</p><div className="book-source-links">{book.sourceUrl && <a href={book.sourceUrl} target="_blank" rel="noreferrer">Источник текста ↗</a>}{book.licenseUrl && <a href={book.licenseUrl} target="_blank" rel="noreferrer">Условия использования ↗</a>}{book.coverSourceUrl && <a href={book.coverSourceUrl} target="_blank" rel="noreferrer">Печатное издание ↗</a>}</div></details>
+    {removing && <Modal title="Удалить загрузку?" close={() => { if (!busy) setRemoving(false); }}><h3>{book.title}</h3><p className="description section">Текст придётся скачать заново. Позиция и закладки останутся на устройстве.</p><button className="primary section" disabled={busy} onClick={() => void remove()}>{busy ? 'Удаляем…' : 'Удалить загрузку'}</button><button className="secondary section" disabled={busy} onClick={() => setRemoving(false)}>Оставить книгу</button></Modal>}
+  </>;
 }

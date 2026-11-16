@@ -182,3 +182,28 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .offline-status-heading .reader-note { text-align:left; margin-top:6px; }
 .offline-status .goal-details { margin-top:16px; }
 .offline-status .secondary { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; }
+
+/* Book page: cover and reading first, storage and edition details on request. */
+.book-presentation { border:1px solid var(--line); border-radius:20px; padding:20px 16px 10px; background:var(--surface); }
+.book-presentation-art { display:flex; flex-direction:column; align-items:center; gap:18px; padding:8px 12px 22px; background:var(--soft); border-radius:12px; }
+.book-presentation-art .cover { width:128px; height:auto; box-shadow:8px 12px 20px #0002; }
+.book-presentation-art .tag { font-size:10px; }
+.book-presentation-title { padding:22px 0; }
+.book-presentation-title h1 { font-size:30px; line-height:1.15; margin:12px 0; overflow-wrap:anywhere; }
+.book-presentation-title p { font-size:13px; color:var(--muted); }
+.book-presentation .book-shelf { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:8px; min-height:48px; border:0; }
+.book-shelf svg { width:17px; height:17px; }
+.book-about h2 { font-size:20px; }
+.book-about .description { margin-top:12px; }
+.book-offline { padding:20px 16px; border-radius:18px; border:1px solid var(--line); background:var(--surface); }
+.book-offline-heading { display:flex; align-items:center; gap:12px; }
+.book-offline-heading strong { display:block; font-size:14px; font-weight:600; }
+.book-offline-heading small { display:block; margin-top:6px; font-size:10px; color:var(--muted); }
+.book-offline>.secondary { display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 14px; min-height:48px; }
+.book-offline>.secondary svg { width:17px; }
+.book-offline .book-download-status { margin:12px 0; font-size:10px; }
+.book-download-progress { height:4px; margin-top:18px; background:var(--line); border-radius:4px; overflow:hidden; }
+.book-download-progress span { display:block; height:100%; background:var(--ink); }
+.book-source-links { display:grid; gap:4px; font-size:12px; }
+.book-source-links a { display:flex; align-items:center; min-height:44px; text-decoration:underline; }
+.book-edition { margin-bottom:12px; }
