@@ -32,9 +32,27 @@
 .gapList { list-style:none; margin:0; padding:0; }
 .gapList li { padding:12px 0; border-top:1px solid var(--line); }
 
-.timeSummary { display:grid; grid-template-columns:1fr auto; gap:16px; }
-.timeSummary dd { margin:0; font-weight:600; }
-.timeDay { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:16px; }
+.bookTime { display:grid; gap:22px; margin-top:20px; min-width:0; }
+.timeScope { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:10px; flex-wrap:wrap; }
+.timeScope svg { width:15px; height:15px; }
+.timeScope > span:last-child { margin-left:auto; padding:5px 8px; border:1px solid var(--line); border-radius:20px; }
+.timeTotals { margin:0; display:grid; gap:10px; font-variant-numeric:tabular-nums; }
+.timeTotals dt { font-size:11px; }
+.timeTotals dd { margin:0; overflow-wrap:anywhere; }
+.timeToday { background:var(--ink); color:var(--bg); border-radius:20px; padding:22px; display:grid; gap:14px; }
+.timeToday dd { font-size:36px; line-height:1.2; letter-spacing:-.04em; }
+.timeToday time { font-size:10px; }
+.timeAll { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:12px; padding:18px; background:var(--soft); border-radius:14px; }
+.timeAll dd { font-size:20px; }
+.timeDays { list-style:none; padding:0; margin:16px 0 0; display:grid; gap:18px; }
+.timeDays li > div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; font-size:11px; margin-bottom:9px; }
+.timeDays b { font-weight:500; font-variant-numeric:tabular-nums; }
+.timeTrack { display:block; height:5px; background:var(--soft); border-radius:4px; overflow:hidden; }
+.timeTrack > span { display:block; height:100%; background:var(--ink); border-radius:4px; }
+.timeCaption { color:var(--muted); font-size:10px; line-height:1.6; margin-top:8px; }
+.timeEmpty { display:grid; justify-items:center; gap:12px; text-align:center; padding:12px; font-size:12px; }
+.timeEmpty > svg { width:32px; height:32px; }
+.timeEmpty > span { color:var(--muted); line-height:1.7; }
 
 .readerSettings, .bookmarks { display:grid; gap:20px; margin-top:20px; }
 .typePreview { background:var(--soft); padding:20px; border-radius:16px; overflow-wrap:anywhere; }
