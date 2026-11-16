@@ -229,3 +229,31 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .transfer-zones { font-size:11px; margin-top:16px; }
 .transfer-zones > div { display:flex; justify-content:space-between; gap:12px; margin:10px 0; }
 .transfer-zones dd { margin:0; text-align:right; overflow-wrap:anywhere; min-width:0; }
+
+/* Books and reading places in account transfer previews. */
+.transfer-list { display:grid; gap:12px; margin-top:18px; }
+.transfer-card { border:1px solid var(--line); border-radius:16px; background:var(--surface); padding:16px; margin-top:14px; min-width:0; }
+.transfer-list > .transfer-card { margin-top:0; }
+.transfer-book { display:flex; align-items:center; gap:12px; min-width:0; }
+.transfer-book > .cover { width:42px; height:62px; object-fit:cover; flex:none; border-radius:3px; }
+.transfer-book > .icon { width:30px; flex:none; }
+.transfer-book > div { min-width:0; flex:1; }
+.transfer-book strong { display:block; font-size:13px; font-weight:600; line-height:1.5; overflow-wrap:anywhere; }
+.transfer-book small { display:block; margin-top:5px; font-size:10px; line-height:1.6; color:var(--muted); overflow-wrap:anywhere; }
+.transfer-fragment { display:block; font-size:12px; line-height:1.7; margin-top:10px; font-weight:400; overflow-wrap:anywhere; }
+.transfer-count { font-size:13px; color:var(--muted); margin:12px 0; }
+.transfer-count strong { font-size:42px; font-weight:500; color:var(--ink); }
+.transfer-places { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.transfer-places > div { min-width:0; padding:12px 10px; background:var(--soft); border-radius:10px; }
+.transfer-places small { display:block; color:var(--muted); font-size:10px; line-height:1.6; }
+.transfer-places strong { display:block; margin-top:8px; font-size:17px; font-weight:500; }
+.transfer-card .secondary { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; }
+.transfer-comparison > .section { padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+.transfer-comparison h3 { font-size:12px; }
+.transfer-comparison .description { margin-top:10px; }
+.transfer-pending { border-color:var(--ink); }
+.transfer-pending .secondary { margin-top:14px; }
+.sheet .transfer-bookmark { align-items:center; font-weight:400; }
+.transfer-bookmark > input { flex:none; }
+.transfer-bookmark .transfer-book { flex:1; }
+.transfer-bookmark .transfer-book strong { font-size:12px; margin:0; font-weight:600; }
