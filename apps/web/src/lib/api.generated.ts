@@ -442,6 +442,8 @@ export interface components {
         ChallengeMember: {
             self: boolean;
             todayComplete: boolean;
+            /** @description Competition place by completed days (1, 1, 3); omitted before start and for personal challenges. Includes saved results of departed members; late reports can update places. */
+            rank?: number;
             completedDays: number;
             nickname: string;
             /** @enum {integer} */

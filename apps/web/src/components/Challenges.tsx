@@ -21,6 +21,14 @@ export function ChallengeProgress({ item }: { item: Challenge }) {
  <p className="description">Твои выполненные дни: {self?.completedDays ?? 0} из {item.duration}. Последний день — {p.endDay}.</p>
  {p.status === 'active' && <p className="reader-note">Сегодня, {p.today}: цель выполнили {active.filter(m => m.todayComplete).length} из {active.length} участников.</p>}
  <p className="reader-note">{item.left ? 'После выхода результат сохранён на момент выхода.' : 'Показано время, сохранённое в аккаунте. Чтение без сети появится после отправки. Поздние записи могут дополнить прошедшие дни.'}</p>
+ {p.status === 'ended' && <p className="description">{self?.completedDays === item.duration ? 'Твоя цель выполнена во все дни.' : `Дней без выполненной цели: ${item.duration - (self?.completedDays ?? 0)}.`} Завершение периода само по себе не означает выполнение цели.</p>}
+ {item.mode === 'personal' && <p className="reader-note">Твой результат — выполненные дни по своей цели. Общего рейтинга в этом формате нет.</p>}
+ {item.mode === 'competitive' && p.status !== 'upcoming' && <>
+ <h3 className="section">{p.status === 'ended' ? 'Места по итогам периода' : 'Текущие места'}</h3>
+ <p className="reader-note">Больше выполненных дней — выше место. При равенстве место общее; минуты сверх цели преимущества не дают. Сохранённые результаты вышедших участников тоже учитываются.</p>
+ <ul className="description">{[...item.members].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)).map((m, index) => <li key={index}>{m.rank ?? '—'} место · {m.nickname}{m.self ? ' · ты' : ''} · {m.completedDays}/{item.duration} дней{m.left ? ' · вышел, результат сохранён' : ''}</li>)}</ul>
+ {p.status === 'ended' && <p className="reader-note">Места рассчитаны по сохранённому чтению. Поздние отправки участников, которые не вышли, могут изменить результат и места.</p>}
+ </>}
  <DatePolicy />
  <details className="section"><summary>Твои дни и время</summary><dl className="reading-days">{p.days.map(day => <div key={day.day}><dt>{day.day}{day.day === p.today ? ' · сегодня' : ''}</dt><dd>{day.day > p.today ? 'Впереди' : `${Math.floor(day.milliseconds / 60000)} / ${item.minutes} мин · ${day.complete ? 'выполнено' : 'не выполнено'}`}</dd></div>)}</dl></details>
  </section>;

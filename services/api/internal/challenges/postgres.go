@@ -33,6 +33,7 @@ type Create struct {
 	Nickname    string `json:"nickname"`
 }
 type Member struct {
+	Rank          int    `json:"rank,omitempty"`
 	Self          bool   `json:"self"`
 	TodayComplete bool   `json:"todayComplete"`
 	CompletedDays int    `json:"completedDays"`

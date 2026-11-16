@@ -33,3 +33,30 @@ it('explains frozen departures and never presents elapsed time as success', () =
  expect(html).not.toContain('цель выполнили');
  expect(html).not.toContain('Поздние записи');
 });
+
+it('shows tied competition places, saved departures and no time tiebreaker', () => {
+ const members = item.members.map((m, i) => ({ ...m, rank: i === 1 ? 3 : 1 }));
+ const html = renderToStaticMarkup(<ChallengeProgress item={{ ...item, mode: 'competitive', members }} />);
+ expect(html).toContain('Текущие места');
+ expect(html.match(/1 место/g)).toHaveLength(2);
+ expect(html).toContain('3 место');
+ expect(html).toContain('вышел, результат сохранён');
+ expect(html).toContain('минуты сверх цели преимущества не дают');
+ expect(html.indexOf('Друг')).toBeLessThan(html.indexOf('3 место'));
+});
+it('explains ended results and late updates without declaring automatic success', () => {
+ const html = renderToStaticMarkup(<ChallengeProgress item={{ ...item, mode: 'competitive', progress: { ...item.progress, status: 'ended' } }} />);
+ expect(html).toContain('Места по итогам периода');
+ expect(html).toContain('Дней без выполненной цели: 6');
+ expect(html).toContain('могут изменить результат и места');
+ expect(html).not.toContain('Твоя цель выполнена во все дни');
+});
+it('keeps personal results free of places and hides competition before start', () => {
+ const html = renderToStaticMarkup(<ChallengeProgress item={{ ...item, progress: { ...item.progress, status: 'ended' }, members: [{ ...item.members[0], completedDays: 7 }] }} />);
+ expect(html).toContain('Твоя цель выполнена во все дни');
+ expect(html).toContain('Общего рейтинга в этом формате нет');
+ expect(html).not.toContain('место');
+ const upcoming = renderToStaticMarkup(<ChallengeProgress item={{ ...item, mode: 'competitive', progress: { ...item.progress, status: 'upcoming' } }} />);
+ expect(upcoming).not.toContain('место');
+ expect(upcoming).not.toContain('Дней без выполненной цели');
+});

@@ -668,6 +668,7 @@ components:
       properties:
         self: { type: boolean }
         todayComplete: { type: boolean }
+        rank: { type: integer, minimum: 1, description: "Competition place by completed days (1, 1, 3); omitted before start and for personal challenges. Includes saved results of departed members; late reports can update places." }
         completedDays: { type: integer, minimum: 0, maximum: 30 }
         nickname: { type: string }
         minutes: { type: integer, enum: [5, 10, 20, 30, 60] }

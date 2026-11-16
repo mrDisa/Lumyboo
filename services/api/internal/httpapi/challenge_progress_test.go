@@ -137,6 +137,9 @@ func TestPostgresChallengeProgress(t *testing.T) {
 				got = list(owner)
 				self := 0
 				for _, m := range got.Members {
+					if mode == "competitive" && m.Rank != 1 || mode == "personal" && m.Rank != 0 {
+						t.Fatalf("invalid tied rank: %+v", m)
+					}
 					if m.CompletedDays != 2 {
 						t.Fatal(m)
 					}
@@ -162,7 +165,6 @@ func TestPostgresChallengeProgress(t *testing.T) {
 			frozen, _ := json.Marshal(left.Challenge.Progress.Days)
 			report(a.session.User.ID, "2026-03-10", 600000)
 			report(a.session.User.ID, "2026-03-09", 600000)
-			report(b.session.User.ID, "2026-03-10", target)
 			now = time.Date(2026, 3, 16, 12, 0, 0, 0, time.UTC)
 			got = list(a.session.User.ID)
 			actual, _ := json.Marshal(got.Progress.Days)
@@ -170,7 +172,34 @@ func TestPostgresChallengeProgress(t *testing.T) {
 				t.Fatalf("exit snapshot changed: %+v", got)
 			}
 			for _, m := range got.Members {
-				if m.Self && m.CompletedDays != 2 || !m.Self && m.CompletedDays != 3 {
+				wantRank := 0
+				if mode == "competitive" {
+					wantRank = 1
+				}
+				if m.Rank != wantRank {
+					t.Fatalf("invalid ended rank: %+v", m)
+				}
+				if m.CompletedDays != 2 {
+					t.Fatal(m)
+				}
+			}
+
+			report(b.session.User.ID, "2026-03-10", target) // Late sync after the period changes active members' places.
+			updated := list(b.session.User.ID)
+			for _, m := range updated.Members {
+				if m.Self && m.CompletedDays != 3 || !m.Self && m.CompletedDays != 2 {
+					t.Fatal(m)
+				}
+				if mode == "competitive" {
+					wantRank := 2
+					if m.Self {
+						wantRank = 1
+					}
+					if m.Rank != wantRank {
+						t.Fatal(m)
+					}
+				}
+				if mode == "personal" && m.Rank != 0 {
 					t.Fatal(m)
 				}
 			}

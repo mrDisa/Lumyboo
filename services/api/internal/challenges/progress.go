@@ -94,6 +94,24 @@ func (s Postgres) progress(ctx context.Context, q progressQuery, owner string, c
 	if err := rows.Err(); err != nil {
 		return err
 	}
+	rankMembers(c.Mode, status, members)
 	c.Members = members
 	return nil
+}
+
+// Competition ranking: equal completed-day counts share a place (1, 1, 3).
+// Departures retain their saved results; extra minutes never break a tie.
+func rankMembers(mode, status string, members []Member) {
+	for i := range members {
+		members[i].Rank = 0
+		if mode != "competitive" || status == "upcoming" {
+			continue
+		}
+		members[i].Rank = 1
+		for j := range members {
+			if members[j].CompletedDays > members[i].CompletedDays {
+				members[i].Rank++
+			}
+		}
+	}
 }
