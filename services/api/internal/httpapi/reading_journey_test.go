@@ -188,6 +188,10 @@ func journeyEqual(t *testing.T, got, want any) {
 }
 
 func journeyServer(t *testing.T, pool *pgxpool.Pool, wrappers ...func(http.Handler) http.Handler) (*journeyMailbox, func() *journeyDevice) {
+	return journeyServerChallenges(t, pool, challenges.Postgres{Pool: pool}, wrappers...)
+}
+
+func journeyServerChallenges(t *testing.T, pool *pgxpool.Pool, challengeStore challenges.Store, wrappers ...func(http.Handler) http.Handler) (*journeyMailbox, func() *journeyDevice) {
 	t.Helper()
 	mailbox := &journeyMailbox{codes: map[string]string{}}
 	service, err := auth.New(auth.NewPostgres(pool), mailbox, []byte(strings.Repeat("s", 32)))
@@ -200,7 +204,7 @@ func journeyServer(t *testing.T, pool *pgxpool.Pool, wrappers ...func(http.Handl
 		Service: service, Origin: origin, SecureCookies: true,
 		Shelf: shelf.Postgres{Pool: pool}, Positions: positions.Postgres{Pool: pool},
 		Bookmarks: bookmarks.Postgres{Pool: pool}, ReadingSessions: readingsessions.Postgres{Pool: pool},
-		Challenges: challenges.Postgres{Pool: pool}, ReadingCoverage: readingcoverage.Postgres{Pool: pool}, DailyGoals: dailygoals.Postgres{Pool: pool},
+		Challenges: challengeStore, ReadingCoverage: readingcoverage.Postgres{Pool: pool}, DailyGoals: dailygoals.Postgres{Pool: pool},
 	})
 	for _, wrap := range wrappers {
 		server.Config.Handler = wrap(server.Config.Handler)
