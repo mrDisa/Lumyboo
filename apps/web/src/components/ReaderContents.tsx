@@ -21,21 +21,21 @@ export function ReaderContents({ content, store, chapter, changeChapter, openPar
   return () => subscription.unsubscribe();
  }, [store, content, attempt]);
  const firstUnshown = state.summary ? firstUnshownLocation(state.summary) : null;
- return <><p className="reader-note section">Показанные абзацы — сохранённые участки текста, которые появлялись на экране. Это не подтверждение прочтения. Можно вернуться к первому непоказанному участку главы. Место приблизительное и может сместиться при изменении шрифта.</p>
+ return <div className={styles.contents}><div className={styles.contentsIntro}><span>Главы книги</span><b>{content.chapters.length}</b></div><details className={styles.coverageHelp}><summary>Что означают отметки?</summary><p className="reader-note">Показанные абзацы — сохранённые участки текста, которые появлялись на экране. Это не подтверждение прочтения. Можно вернуться к первому непоказанному участку главы. Место приблизительное и может сместиться при изменении шрифта.</p></details>
   {state.error ? <p className="description" role="alert">Не удалось загрузить фрагменты. <button className="text-button" onClick={() => setAttempt(value => value + 1)}>Повторить</button></p> : !state.summary && <p className="description" role="status">Загружаем фрагменты…</p>}
-  {firstUnshown && <button className="secondary section" onClick={() => openParagraph(firstUnshown.chapter, content.chapters[firstUnshown.chapter].paragraphs[firstUnshown.paragraph].id, firstUnshown.offset)}>Первый непоказанный участок книги →</button>}
+  {firstUnshown && <button className="secondary section" onClick={() => openParagraph(firstUnshown.chapter, content.chapters[firstUnshown.chapter].paragraphs[firstUnshown.paragraph].id, firstUnshown.offset)}>Продолжить с непоказанного →</button>}
   {content.chapters.map((item, index) => {
    const counts = state.summary?.[index];
-   return <div key={item.id} className={`goal-option ${styles.contentsItem}`}>
+   return <div key={item.id} className={styles.contentsItem} data-current={index === chapter || undefined}>
     <button className={styles.contentsChapter} aria-current={index === chapter ? 'location' : undefined} onClick={() => changeChapter(index)}>
-    <span>{String(index + 1).padStart(2, '0')} — {item.title}</span>
-    {counts && <small>Абзацы · целиком: {counts.full} · частично: {counts.partial} · ещё не показаны: {counts.unseen}</small>}
+    <span className={styles.chapterHeading}><span className={styles.chapterNumber}>{String(index + 1).padStart(2, '0')}</span><span className={styles.chapterTitle}>{index === chapter && <small className={styles.currentChapter}>Сейчас читаешь</small>}{item.title}</span><span aria-hidden="true">→</span></span>
+    {counts && <><small className={styles.coverageLabel}>Показанные абзацы</small><span className={styles.coverageBar} aria-hidden="true"><span style={{ flex: counts.full }} /><span style={{ flex: counts.partial }} /><span style={{ flex: counts.unseen }} /></span><span className={styles.coverageStats}><span><b>{counts.full}</b>целиком</span><span><b>{counts.partial}</b>частично</span><span><b>{counts.unseen}</b>не показаны</span></span></>}
     </button>
-    {counts && counts.firstIncomplete !== null && <button className="text-button" aria-label={`${item.title}: открыть первый непоказанный участок, абзац ${counts.firstIncomplete + 1}`} onClick={() => openParagraph(index, item.paragraphs[counts.firstIncomplete!].id, counts.firstIncompleteOffset!)}>К непоказанному участку · абзац {counts.firstIncomplete + 1} →</button>}
+    {counts && counts.firstIncomplete !== null && <button className="text-button" aria-label={`${item.title}: открыть первый непоказанный участок, абзац ${counts.firstIncomplete + 1}`} onClick={() => openParagraph(index, item.paragraphs[counts.firstIncomplete!].id, counts.firstIncompleteOffset!)}>Дальше · абзац {counts.firstIncomplete + 1} →</button>}
     {counts && counts.firstIncomplete !== null && state.rows && <ChapterGaps key={JSON.stringify([store.name, content.id, content.version, item.id])} content={content} rows={state.rows} chapter={index} openParagraph={openParagraph} />}
    </div>;
   })}
- </>;
+ </div>;
 }
 
 function ChapterGaps({ content, rows, chapter, openParagraph }: {
@@ -46,7 +46,7 @@ function ChapterGaps({ content, rows, chapter, openParagraph }: {
  const [limit, setLimit] = useState(20);
  const gaps = expanded ? chapterUnshownLocations(content, rows, chapter) : [];
  return <details className={styles.gaps} onToggle={event => { setExpanded(event.currentTarget.open); if (!event.currentTarget.open) setLimit(20); }}>
-  <summary>Выбрать непоказанный участок</summary>
+  <summary>Все непоказанные участки</summary>
   {expanded && <><ol className={styles.gapList}>{gaps.slice(0, limit).map((gap, index) => {
    const paragraph = content.chapters[chapter].paragraphs[gap.paragraph];
    return <li key={`${paragraph.id}:${gap.offset}`}><button className={styles.contentsChapter} onClick={() => openParagraph(chapter, paragraph.id, gap.offset)}>
