@@ -1,3 +1,4 @@
+import { DayProgress } from './DayProgress';
 import { GuestGoalImport } from './GuestGoalImport';
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -57,17 +58,18 @@ export function DailyGoalCard({ store }: { store: LocalDatabase }) {
  return <section className="daily-goal section" aria-label={store.scope === 'guest' ? 'Дневная цель гостя' : 'Дневная цель аккаунта'}>
   <span className="eyebrow">{store.scope === 'guest' ? 'Твой день · гость' : 'Твой день · аккаунт'}</span>
   {error ? <p role="alert">Не удалось загрузить цель. <button className="text-button" onClick={retry}>Повторить</button></p> : !goal || progress === undefined ? <p role="status">Загружаем цель…</p> : progress === null ? <p role="alert">Не удалось загрузить время. <button className="text-button" onClick={retry}>Повторить</button></p> : <>
-   <h3 className="section">{(accepted?.complete ?? progress.complete) ? 'Цель на сегодня выполнена.' : `${progress.minutes} минут для себя.`}</h3>
-   <p className="description section">{Math.floor((accepted ? accepted.milliseconds / 1000 : progress.seconds) / 60)} из {progress.minutes} мин{!(accepted?.complete ?? progress.complete) && <> · осталось {readingDuration(accepted ? Math.max(0, progress.minutes * 60000 - accepted.milliseconds) : progress.remaining * 1000)}</>}</p>
-   <progress className="goal-progress" aria-label="Прогресс дневной цели" max={progress.minutes * 60} value={Math.min(accepted ? accepted.milliseconds / 1000 : progress.seconds, progress.minutes * 60)} />
-   <p className="description section">Дней подряд: {accepted?.streak ?? progress.streak}</p>
-   <p className="reader-note">Выполняй цель каждый день, чтобы продолжать серию. Пропущенный день сбрасывает её; сегодня ещё можно успеть.</p>
-   <p className="reader-note">{day.split('-').reverse().join('.')} · {goal.timeZone}</p>
+   <DayProgress milliseconds={accepted ? accepted.milliseconds : progress.seconds * 1000} minutes={progress.minutes} complete={accepted?.complete ?? progress.complete} label={store.scope === 'guest' ? 'На этом устройстве' : accepted ? 'Подтверждено аккаунтом' : 'На устройстве · предварительно'} progressLabel="Прогресс дневной цели" />
+   <div className="day-streak"><span>Дней подряд · <strong>{accepted?.streak ?? progress.streak}</strong></span><span>{day.split('-').reverse().join('.')}</span></div>
    {tomorrow !== progress.minutes && <p className="description section">С завтрашнего дня — {tomorrow} мин.</p>}
    <button className="text-button section" aria-expanded={editing} onClick={() => setEditing(!editing)}>Изменить цель</button>
-   {editing && <><p className="description section">Новая цель действует с завтрашнего дня. Сегодняшний план и прошлые дни сохраняются.</p><div className="choice-row goal-options" aria-label="Цель на завтра">{goalOptions.map(minutes => <button className={`pill ${tomorrow === minutes ? 'active' : ''}`} aria-pressed={tomorrow === minutes} key={minutes} disabled={busy} onClick={() => void choose(minutes)}>{minutes} мин</button>)}</div></>}
-   <p className="reader-note section">{store.scope === 'guest' ? 'Цель и результат на этом устройстве. Учитывается только гостевое чтение.' : accepted ? 'Подтверждено аккаунтом · время с подключённых устройств на момент обновления.' : 'Предварительный результат: чтение этого аккаунта на устройстве.'}</p>
-   {store.scope !== 'guest' && <><p className="reader-note">На этом устройстве — {readingDuration(progress.seconds * 1000)}. Это время может уже входить в подтверждённый итог; значения не складываются. Неотправленные записи сохраняются до подключения.</p><GuestGoalImport store={store} saved={value => { setConfirmed(value); setRemoteError(''); }} />{remoteError && <p className="description" role="alert">{remoteError}</p>}<button className="text-button section" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Обновить цель и итог аккаунта</button></>}
+   {editing && <><p className="reader-note section">С завтрашнего дня · история сохраняется</p><div className="choice-row goal-options" aria-label="Цель на завтра">{goalOptions.map(minutes => <button className={`pill ${tomorrow === minutes ? 'active' : ''}`} aria-pressed={tomorrow === minutes} key={minutes} disabled={busy} onClick={() => void choose(minutes)}>{minutes} мин</button>)}</div></>}
+   <details className="day-details section"><summary>Как считается день</summary>
+    <p className="reader-note section">Выполняй цель каждый день, чтобы продолжать серию. Пропущенный день сбрасывает её; сегодня ещё можно успеть.</p>
+    <p className="reader-note">Часовой пояс · {goal.timeZone}. Новая цель действует с завтрашнего дня; сегодняшний план и прошлые дни сохраняются.</p>
+    <p className="reader-note section">{store.scope === 'guest' ? 'Цель и результат на этом устройстве. Учитывается только гостевое чтение.' : accepted ? 'Подтверждено аккаунтом · время с подключённых устройств на момент обновления.' : 'Предварительный результат: чтение этого аккаунта на устройстве.'}</p>
+    {store.scope !== 'guest' && <p className="reader-note">На этом устройстве — {readingDuration(progress.seconds * 1000)}. Это время может уже входить в подтверждённый итог; значения не складываются. Неотправленные записи сохраняются до подключения.</p>}
+   </details>
+   {store.scope !== 'guest' && <><GuestGoalImport store={store} saved={value => { setConfirmed(value); setRemoteError(''); }} />{remoteError && <p className="description" role="alert">{remoteError}</p>}<button className="text-button section" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Обновить цель и итог аккаунта</button></>}
   </>}
  </section>;
 }

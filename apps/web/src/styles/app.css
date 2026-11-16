@@ -98,3 +98,24 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .challenge-form button:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
 .challenge-form button:disabled { opacity:.55; }
 .challenge-choice > legend { padding-top:24px; margin-top:0; }
+
+/* Daily reading: a single result, with the accounting details on request. */
+.daily-goal { border-radius:20px; }
+.day-progress-card { margin-top:20px; padding:20px; border-radius:16px; background:var(--surface); border:1px solid var(--line); }
+.day-progress-card .eyebrow { font-size:10px; line-height:1.6; }
+.day-progress-score { display:flex; align-items:center; gap:16px; margin-top:16px; font-variant-numeric:tabular-nums; }
+.day-progress-score > strong { font-size:64px; line-height:1; font-weight:500; letter-spacing:-.06em; overflow-wrap:anywhere; min-width:0; }
+.day-progress-score > span { font-size:22px; flex-shrink:0; }
+.day-progress-score small { display:block; font-size:10px; margin-top:4px; }
+.day-progress-caption { font-size:12px; line-height:1.6; }
+.day-progress-card.is-complete { background:var(--ink); color:var(--bg); }
+.day-progress-card.is-complete .goal-progress { accent-color:var(--bg); }
+.day-progress-card.is-complete .goal-progress::-webkit-progress-value { background:var(--bg); }
+.day-progress-card.is-complete .goal-progress::-moz-progress-bar { background:var(--bg); }
+.day-streak { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:16px; font-size:11px; color:var(--muted); }
+.day-streak strong { font-size:22px; font-weight:500; color:var(--ink); }
+.day-details { border-top:1px solid var(--line); padding-top:16px; }
+.day-details summary { cursor:pointer; font-size:12px; min-height:28px; }
+.reading-session-result { display:flex; flex-direction:column; gap:10px; margin:20px 0 24px; }
+.reading-session-result > span { font-size:12px; color:var(--muted); }
+.reading-session-result > strong { font-size:32px; font-weight:500; line-height:1.3; overflow-wrap:anywhere; }
