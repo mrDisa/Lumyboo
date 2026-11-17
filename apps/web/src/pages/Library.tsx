@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import catalog from '../data/catalog.json';
+import { useAccount } from '../lib/auth';
+import { accountDatabase } from '../lib/account-reading';
 import { db, toggleShelf } from '../lib/db';
 import { type Book, downloadBook, removeDownload } from '../lib/books';
 import { useApp } from '../lib/context';
@@ -11,21 +13,36 @@ import { BookCard } from '../components/BookCard';
 import styles from './Catalog.module.css';
 import entry from './Entry.module.css';
 export const books = catalog as Book[];
+function useReadingEntry(bookId: string) {
+  const account = useAccount();
+  const owner = account.session?.user.id ?? account.localAccount?.id;
+  const store = owner ? accountDatabase(owner) : db;
+  const snapshot = useLiveQuery(async () => ({ scope: store.scope, bookId, position: await store.positions.get(bookId) }), [store, bookId]);
+  // Dexie can retain the previous result while the new owner's query runs.
+  const position = snapshot?.scope === store.scope && snapshot.bookId === bookId ? snapshot.position : undefined;
+  return { position, store, accountMode: !!owner, checking: account.checking, unavailable: !!account.error && !owner };
+}
+function ReadingEntry({ entry, bookId, label }: { entry: ReturnType<typeof useReadingEntry>; bookId: string; label: string }) {
+  if (entry.checking) return <button className="primary" disabled>Проверяем вход…</button>;
+  if (entry.unavailable) return <Link className="primary" to="/profile">Проверить вход<Icon name="arrow" /></Link>;
+  return <Link className="primary" to={entry.accountMode ? '/account/read/$bookId' : '/read/$bookId'} params={{ bookId }}>{label}<Icon name="arrow" /></Link>;
+}
 export function Home() {
   const { settings } = useApp();
   const current = books.find(b => b.id === settings.currentBook) ?? books[0];
-  const position = useLiveQuery(() => db.positions.get(current.id), [current.id]);
+  const reading = useReadingEntry(current.id);
+  const position = reading.checking || reading.unavailable ? undefined : reading.position;
   const continuing = position?.version === current.version;
   const recommendations = books.filter(book => book.id !== current.id).slice(0, 2);
   return <>
     <p className={`greeting ${entry.greeting}`}>Твоё время для себя{settings.name ? `, ${settings.name}` : ''}</p>
     <div className={`headline ${entry.headline}`}><h1>Между строк —<br /><em>целый мир.</em></h1><Sculpture className="spark-mini" /></div>
     <section aria-label={continuing ? 'Вернуться к книге' : 'Книга для начала'}>
-      <div className="book-hero"><div className="hero-light" aria-hidden="true" /><div className="hero-meta"><span>{continuing ? 'ТВОЯ ТЕКУЩАЯ ИСТОРИЯ' : 'С ЭТОГО МОЖНО НАЧАТЬ'}</span><span className="hero-edition" aria-hidden="true">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside">{continuing ? <><div className="percent">{String(position.chapter + 1).padStart(2, '0')}</div><small>сохранённая глава</small></> : <><Icon name="books" /><p className={entry.invitation}>Первая<br />страница ждёт</p></>}</div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div>
-      <Link className="primary" to="/read/$bookId" params={{ bookId: current.id }}>{continuing ? 'Продолжить чтение' : 'Начать чтение'}<Icon name="arrow" /></Link>
+      <div className="book-hero"><div className="hero-light" aria-hidden="true" /><div className="hero-meta"><span>{continuing ? 'ТВОЯ ТЕКУЩАЯ ИСТОРИЯ' : 'С ЭТОГО МОЖНО НАЧАТЬ'}</span><span className="hero-edition" aria-hidden="true">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside">{continuing ? <><div className="percent">{String(position.chapter + 1).padStart(2, '0')}</div><small>сохранённая глава</small></> : <><Icon name="books" /><p className={entry.invitation}>{reading.accountMode ? <>Продолжим<br />в аккаунте</> : <>Первая<br />страница ждёт</>}</p></>}</div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div>
+      <ReadingEntry entry={reading} bookId={current.id} label={reading.accountMode ? 'Читать в аккаунте' : continuing ? 'Продолжить чтение' : 'Начать чтение'} />
       <div className={entry.bookInfo}><span>{current.kind === 'fixture' ? 'Тестовая книга' : current.kind === 'full' ? 'Полный текст' : 'Фрагмент'}</span><Link className="text-button" to="/book/$bookId" params={{ bookId: current.id }}>О книге ↗</Link></div>
     </section>
-    <DailyGoalCard store={db} />
+    <>{!reading.checking && !reading.unavailable && <DailyGoalCard key={reading.store.scope} store={reading.store} />}</>
     <div className="section-head"><h3>Другая история</h3><Link className="text-button" to="/catalog">В каталог ↗</Link></div>
     <div className="book-grid">{recommendations.map(book => <BookCard key={book.id} book={book} />)}</div>
   </>;
@@ -54,7 +71,8 @@ export function Catalog() {
 }
 export function BookDetail() {
   const { bookId } = useParams({ strict: false }); const book = books.find(b => b.id === bookId);
-  const position = useLiveQuery(() => db.positions.get(bookId ?? ''), [bookId]);
+  const reading = useReadingEntry(bookId ?? '');
+  const position = reading.checking || reading.unavailable ? undefined : reading.position;
   const continuing = !!book && position?.version === book.version;
   const saved = useLiveQuery(() => db.shelf.get(bookId ?? ''), [bookId]);
   const downloaded = useLiveQuery(() => db.downloads.get(bookId ?? ''), [bookId]);
@@ -79,8 +97,8 @@ export function BookDetail() {
     <article className="book-presentation section">
       <div className="book-presentation-art"><Cover id={book.cover} title={book.title} /><span className="tag">{format}</span></div>
       <div className="book-presentation-title"><span className="eyebrow muted">{book.genre} · {book.year}</span><h1>{book.title}</h1><p>{book.author}</p></div>
-      <Link className="primary" to="/read/$bookId" params={{ bookId: book.id }}>{continuing ? 'Продолжить чтение' : 'Читать'}<Icon name="arrow" /></Link>
-      {continuing && <p className="book-resume" role="status">Гостевое место на устройстве · глава {position.chapter + 1}</p>}
+      <ReadingEntry entry={reading} bookId={book.id} label={reading.accountMode ? 'Читать в аккаунте' : continuing ? 'Продолжить чтение' : 'Читать'} />
+      {continuing && <p className="book-resume" role="status">{reading.accountMode ? 'Место аккаунта на устройстве' : 'Гостевое место на устройстве'} · глава {position.chapter + 1}</p>}
       <button className="secondary book-shelf" aria-pressed={!!saved} onClick={() => void act(() => toggleShelf(book.id))}><Icon name="books" />{saved ? 'На полке · убрать' : 'Добавить на полку'}</button>
     </article>
     <section className="book-about section"><h2>Об истории</h2><p className="description">{book.description}</p></section>
