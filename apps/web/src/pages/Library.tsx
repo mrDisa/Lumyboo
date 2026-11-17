@@ -8,6 +8,7 @@ import { useApp } from '../lib/context';
 import { Cover, Empty, Icon, Modal, Sculpture } from '../components/ui';
 import { DailyGoalCard } from '../components/DailyGoal';
 import { BookCard } from '../components/BookCard';
+import styles from './Catalog.module.css';
 export const books = catalog as Book[];
 export function Home() {
   const { settings } = useApp();
@@ -19,7 +20,22 @@ export function Catalog() {
   const [query, setQuery] = useState(''); const [genre, setGenre] = useState('Все'); const [shelfOnly, setShelfOnly] = useState(false);
   const shelf = useLiveQuery(() => db.shelf.toArray(), [], []);
   const list = books.filter(b => (!shelfOnly || shelf.some(s => s.bookId === b.id)) && (genre === 'Все' || b.genre === genre) && `${b.title} ${b.author}`.toLocaleLowerCase('ru').includes(query.trim().toLocaleLowerCase('ru')));
-  return <><h1>Найди свою<br /><em className="serif">историю.</em></h1><div className="catalog-tools"><button className={`pill ${!shelfOnly ? 'active' : ''}`} aria-pressed={!shelfOnly} onClick={() => setShelfOnly(false)}>Открывай</button><button className={`pill ${shelfOnly ? 'active' : ''}`} aria-pressed={shelfOnly} onClick={() => setShelfOnly(true)}>Моя полка · {shelf.length}</button></div><div className="search-wrap"><Icon name="search" /><input aria-label="Поиск книг" placeholder="Книга или автор" value={query} onChange={e => setQuery(e.target.value)} /></div><Link className="text-button downloads-link" to="/downloads"><Icon name="books" />Скачанные книги ↗</Link><div className="filter-row" aria-label="Жанры">{['Все', ...new Set(books.map(b => b.genre))].map(g => <button className={`pill ${genre === g ? 'active' : ''}`} aria-pressed={genre === g} key={g} onClick={() => setGenre(g)}>{g}</button>)}</div>{!shelfOnly && <div className="feature-banner"><span className="eyebrow">Локальная библиотека</span><h3>Небольшие книги.<br />Большое послевкусие.</h3><p>Полные рассказы и знакомство с классикой</p><Sculpture /></div>}<div className="section-head"><h3>{shelfOnly ? 'Твоя коллекция' : 'С чего начнём?'}</h3><span className="eyebrow muted">{list.length} текста</span></div><div className="book-grid">{list.map(b => <BookCard key={b.id} book={b} />)}</div>{!list.length && <Empty>{shelfOnly ? 'На полке пока нет таких книг. Добавь их из каталога.' : 'Ничего не найдено. Попробуй другое название или жанр.'}</Empty>}<p className="reader-note section">Это технический пилот. Каталог пополняется по мере проверки текстов и прав.</p></>;
+  const filtered = !!query.trim() || genre !== 'Все';
+  const emptyShelf = shelfOnly && shelf.length === 0;
+  function resetFilters() { setQuery(''); setGenre('Все'); }
+  return <>
+    <h1>Найди свою<br /><em className="serif">историю.</em></h1>
+    <div className="catalog-tools"><button className={`pill ${!shelfOnly ? 'active' : ''}`} aria-pressed={!shelfOnly} onClick={() => setShelfOnly(false)}>Открывай</button><button className={`pill ${shelfOnly ? 'active' : ''}`} aria-pressed={shelfOnly} onClick={() => setShelfOnly(true)}>Моя полка · {shelf.length}</button></div>
+    <div className={`search-wrap ${styles.search}`}><Icon name="search" /><input type="search" aria-label="Поиск книг" placeholder="Книга или автор" value={query} onChange={e => setQuery(e.target.value)} />{query && <button className={styles.clear} aria-label="Очистить поиск" onClick={() => setQuery('')}><Icon name="close" /></button>}</div>
+    <Link className={`text-button ${styles.downloads}`} to="/downloads"><Icon name="books" />Скачанные книги<Icon name="arrow" /></Link>
+    <div className="filter-row" aria-label="Жанры">{['Все', ...new Set(books.map(b => b.genre))].map(g => <button className={`pill ${genre === g ? 'active' : ''}`} aria-pressed={genre === g} key={g} onClick={() => setGenre(g)}>{g}</button>)}</div>
+    <section className={styles.results} aria-label="Результаты поиска">
+      <div className={styles.heading}><div><span className="eyebrow muted">{shelfOnly ? 'На этом устройстве' : filtered ? 'По твоему запросу' : 'Открой новую историю'}</span><h2>{shelfOnly ? 'Твоя полка' : filtered ? 'Найдено' : 'Библиотека'}</h2></div><div className={styles.count} role="status" aria-live="polite" aria-atomic="true"><strong>{list.length}</strong><span>{list.length % 10 === 1 && list.length % 100 !== 11 ? 'книга' : [2, 3, 4].includes(list.length % 10) && ![12, 13, 14].includes(list.length % 100) ? 'книги' : 'книг'}</span></div></div>
+      {filtered && <div className={styles.selection}><span>{genre === 'Все' ? 'Все жанры' : genre}{query.trim() && ` · «${query.trim()}»`}</span><button className="text-button" onClick={resetFilters}>Сбросить фильтры</button></div>}
+      {list.length > 0 ? <div className="book-grid">{list.map(b => <BookCard key={b.id} book={b} />)}</div> : <div className={styles.empty}><span className={styles.emptyIcon}><Icon name={emptyShelf ? 'books' : 'search'} /></span><h3>{emptyShelf ? 'Место для любимых историй' : 'Пока без совпадений'}</h3><p>{emptyShelf ? 'Открой книгу и добавь её на полку — она появится здесь.' : 'Попробуй другое название, автора или убери фильтры.'}</p><button className="primary" onClick={() => { resetFilters(); if (emptyShelf) setShelfOnly(false); }}>{emptyShelf ? 'Выбрать книгу' : 'Сбросить фильтры'}<Icon name="arrow" /></button></div>}
+    </section>
+  </>;
+
 }
 export function BookDetail() {
   const { bookId } = useParams({ strict: false }); const book = books.find(b => b.id === bookId);
