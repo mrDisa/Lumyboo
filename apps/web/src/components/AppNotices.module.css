@@ -1,0 +1,15 @@
+.network { border:1px solid var(--line); border-radius:16px; background:var(--soft); padding:14px 16px; margin-bottom:20px; min-width:0; }
+.heading { display:flex; align-items:center; gap:10px; min-width:0; }
+.heading strong { font-size:13px; }
+.dot { width:7px; height:7px; border:1.5px solid var(--ink); border-radius:50%; flex:none; }
+.heading a { display:flex; align-items:center; gap:6px; margin-left:auto; min-height:44px; font-size:11px; font-weight:700; }
+.heading a svg { width:15px; height:15px; }
+.network p { color:var(--muted); font-size:11px; line-height:1.7; margin-top:4px; }
+.compact { padding:4px 12px; margin-bottom:12px; }
+.update { border:1px solid var(--line); border-radius:20px; padding:20px; margin-top:24px; min-width:0; }
+.mark { display:grid; place-items:center; width:44px; height:44px; border-radius:14px; background:var(--soft); flex:none; }
+.heading h2 { font-size:22px; margin-top:3px; overflow-wrap:anywhere; }
+.heading .eyebrow { color:var(--muted); }
+.caption { color:var(--muted); font-size:12px; line-height:1.7; margin:16px 0; }
+.update button { gap:12px; text-align:left; }
+.feedback { font-size:12px; line-height:1.7; margin-top:14px; overflow-wrap:anywhere; }
