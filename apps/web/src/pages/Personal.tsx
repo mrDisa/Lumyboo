@@ -11,6 +11,7 @@ import { AccountPanel } from '../components/AccountPanel';
 import { useAccount } from '../lib/auth';
 import { ProfileSection } from '../components/ProfileSection';
 import { OfflineStatus } from '../components/OfflineStatus';
+import entry from './Entry.module.css';
 export function SettingsPage() {
   const { settings, act } = useApp(); const [name, setName] = useState(settings.name);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
@@ -52,6 +53,23 @@ export function Profile() {
 export { Challenges as Together } from '../components/Challenges';
 export function Onboarding() {
   const { act } = useApp(); const navigate = useNavigate();
-  async function finish() { if (await act(() => setSettings({ onboarded: true }))) await navigate({ to: '/catalog' }); }
-  return <div className="onboarding"><div className="onboard-art"><Sculpture /><span className="art-caption">БОЛЬШЕ ИСТОРИЙ ВНУТРИ ↗</span></div><span className="eyebrow muted">Личное. Книжное. Твоё.</span><h1 className="section">Открывай книги.<br /><em>Находи себя.</em></h1><p>Истории, которые остаются с тобой. В своём ритме, без обязательной анкеты.</p><p className="section">Это первая локальная версия. Попробуй тестовую книгу, сохрани закладку и скачай её для чтения без сети.</p><div className="onboard-actions"><button className="primary" onClick={() => void finish()}>Найти свою историю<Icon name="arrow" /></button><p className="reader-note section">Без регистрации. Бесплатно.</p></div></div>;
+  const [busy, setBusy] = useState(false);
+  async function finish() {
+    if (busy) return;
+    setBusy(true);
+    try { if (await act(() => setSettings({ onboarded: true }))) await navigate({ to: '/catalog' }); }
+    finally { setBusy(false); }
+  }
+  return <div className={`onboarding ${entry.onboarding}`}>
+    <div className={`onboard-art ${entry.art}`}><Sculpture /><span className="art-caption">БОЛЬШЕ ИСТОРИЙ ВНУТРИ ↗</span></div>
+    <span className="eyebrow muted">Личное. Книжное. Твоё.</span>
+    <h1 className="section">Открывай книги.<br /><em>Находи себя.</em></h1>
+    <p>Истории, которые остаются с тобой. В своём ритме, без обязательной анкеты.</p>
+    <ul className={entry.features}>
+      <li><Icon name="books" /><div><strong>Выбери историю</strong><span>Книги можно открыть без регистрации.</span></div></li>
+      <li><Icon name="bookmark" /><div><strong>Остановись на своей строке</strong><span>Место и закладки сохраняются на устройстве.</span></div></li>
+      <li><Icon name="arrow" /><div><strong>Возьми книгу с собой</strong><span>Скачай текст заранее для чтения без сети.</span></div></li>
+    </ul>
+    <div className="onboard-actions"><button className="primary" disabled={busy} aria-busy={busy} onClick={() => void finish()}>{busy ? 'Открываем каталог…' : 'Найти свою историю'}<Icon name="arrow" /></button><p className="reader-note section">Без регистрации. Бесплатно.</p></div>
+  </div>;
 }

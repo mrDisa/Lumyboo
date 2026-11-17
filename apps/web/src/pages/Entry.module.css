@@ -1,0 +1,15 @@
+.greeting { overflow-wrap: anywhere; }
+.invitation { margin-top: 12px; font-family: var(--serif); font-size: 18px; line-height: 1.35; }
+.bookInfo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; font-size: 11px; color: var(--muted); }
+.onboarding .art { height: 205px; margin-top: 0; }
+.onboarding .art :global(.sculpture) { width: 190px; top: 0; }
+.features { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 16px; }
+.features li { display: flex; align-items: flex-start; gap: 12px; }
+.features :global(.icon) { flex: none; width: 19px; height: 19px; margin-top: 2px; color: var(--muted); }
+.features div { min-width: 0; }
+.features strong { display: block; font-size: 13px; font-weight: 600; }
+.features span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.features li:last-child :global(.icon) { transform: rotate(90deg); }
+@media (max-width: 365px) {
+  .headline.headline :global(.spark-mini) { right: 0; width: 60px; height: 60px; top: 5px; }
+}

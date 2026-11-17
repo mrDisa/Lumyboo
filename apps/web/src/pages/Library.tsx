@@ -9,12 +9,26 @@ import { Cover, Empty, Icon, Modal, Sculpture } from '../components/ui';
 import { DailyGoalCard } from '../components/DailyGoal';
 import { BookCard } from '../components/BookCard';
 import styles from './Catalog.module.css';
+import entry from './Entry.module.css';
 export const books = catalog as Book[];
 export function Home() {
   const { settings } = useApp();
   const current = books.find(b => b.id === settings.currentBook) ?? books[0];
   const position = useLiveQuery(() => db.positions.get(current.id), [current.id]);
-  return <><p className="greeting">Твоё время для себя{settings.name ? `, ${settings.name}` : ''}</p><div className="headline"><h1>Между строк —<br /><em>целый мир.</em></h1><Sculpture className="spark-mini" /></div><div className="book-hero"><div className="hero-light" /><div className="hero-meta"><span>01 — ТВОЯ ТЕКУЩАЯ ИСТОРИЯ</span><span className="hero-edition">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside"><div className="percent">{position ? String(position.chapter + 1).padStart(2, '0') : '01'}</div><small>{position ? 'текущая глава' : 'история ждёт'}</small><div className="ticks">{Array.from({ length: 16 }, (_, i) => <i key={i} />)}</div><small>в своём ритме</small></div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div><Link className="primary" to="/read/$bookId" params={{ bookId: current.id }}>{position ? 'Продолжить чтение' : 'Начать чтение'}<Icon name="arrow" /></Link><p className="reader-note section">{current.kind === 'fixture' ? 'Полная тестовая книга · локальный пилот' : current.kind === 'full' ? 'Полный текст' : 'Фрагмент из прототипа'}</p><DailyGoalCard store={db} /><div className="section-head"><h3>С чего начнём?</h3><Link className="text-button" to="/catalog">В каталог ↗</Link></div><div className="book-grid">{books.slice(0, 2).map(b => <BookCard key={b.id} book={b} />)}</div><blockquote className="quote serif">«Я читаю — и целый мир<br />становится ближе».<small>ТВОЯ СЛЕДУЮЩАЯ ИСТОРИЯ ЖДЁТ</small></blockquote></>;
+  const recommendations = books.filter(book => book.id !== current.id).slice(0, 2);
+  return <>
+    <p className={`greeting ${entry.greeting}`}>Твоё время для себя{settings.name ? `, ${settings.name}` : ''}</p>
+    <div className={`headline ${entry.headline}`}><h1>Между строк —<br /><em>целый мир.</em></h1><Sculpture className="spark-mini" /></div>
+    <section aria-label={position ? 'Вернуться к книге' : 'Книга для начала'}>
+      <div className="book-hero"><div className="hero-light" aria-hidden="true" /><div className="hero-meta"><span>{position ? 'ТВОЯ ТЕКУЩАЯ ИСТОРИЯ' : 'С ЭТОГО МОЖНО НАЧАТЬ'}</span><span className="hero-edition" aria-hidden="true">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside">{position ? <><div className="percent">{String(position.chapter + 1).padStart(2, '0')}</div><small>сохранённая глава</small></> : <><Icon name="books" /><p className={entry.invitation}>Первая<br />страница ждёт</p></>}</div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div>
+      <Link className="primary" to="/read/$bookId" params={{ bookId: current.id }}>{position ? 'Продолжить чтение' : 'Начать чтение'}<Icon name="arrow" /></Link>
+      <div className={entry.bookInfo}><span>{current.kind === 'fixture' ? 'Тестовая книга' : current.kind === 'full' ? 'Полный текст' : 'Фрагмент'}</span><Link className="text-button" to="/book/$bookId" params={{ bookId: current.id }}>О книге ↗</Link></div>
+    </section>
+    <DailyGoalCard store={db} />
+    <div className="section-head"><h3>Другая история</h3><Link className="text-button" to="/catalog">В каталог ↗</Link></div>
+    <div className="book-grid">{recommendations.map(book => <BookCard key={book.id} book={book} />)}</div>
+  </>;
+
 }
 export function Catalog() {
   const [query, setQuery] = useState(''); const [genre, setGenre] = useState('Все'); const [shelfOnly, setShelfOnly] = useState(false);
