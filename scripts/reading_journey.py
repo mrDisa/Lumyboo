@@ -33,6 +33,10 @@ class JourneyControls:
         if parts == ['expire']:
             self.expire()
             return 'Expired all sessions in this run; sign in again to recover.'
+        if len(parts) == 2 and parts[0] in ('disconnect', 'reconnect') and parts[1] in self.servers:
+            event = self.servers[parts[1]].transport_offline
+            (event.set if parts[0] == 'disconnect' else event.clear)()
+            return f'Frontend {parts[1].upper()} transport: {parts[0]} (app, books and API).'
         if len(parts) == 2 and parts[0] in ('offline', 'online') and parts[1] in self.servers:
             event = self.servers[parts[1]].api_offline
             (event.set if parts[0] == 'offline' else event.clear)()
@@ -41,7 +45,7 @@ class JourneyControls:
                 and parts[2] in ('before-headers', 'after-headers')):
             self.servers[parts[1]].lost_responses.arm_verify(parts[2])
             return f'Frontend {parts[1].upper()}: next successful verify reply will be lost {parts[2]}.'
-        return ('Commands: offline a | online a | offline b | online b | expire | '
+        return ('Commands: disconnect/reconnect a/b | offline a | online a | offline b | online b | expire | '
                 'lose-verify a/b before-headers/after-headers')
 
 
@@ -88,6 +92,12 @@ class LostReadingResponses:
 
 
 class Frontend(http.server.SimpleHTTPRequestHandler):
+    def handle_one_request(self):
+        if getattr(self.server, 'transport_offline', threading.Event()).is_set():
+            disconnect(self)
+            return
+        super().handle_one_request()
+
     def do_GET(self):
         if self.path.startswith('/api/') or self.path in ('/readyz', '/healthz'):
             return self.proxy()
@@ -189,7 +199,7 @@ def run():
     parser.add_argument('--drop-first-verify-response', choices=('before-headers', 'after-headers'),
                         help='Lose the first successful login reply per frontend, before Set-Cookie or after headers but before the body')
     parser.add_argument('--interactive-faults', action='store_true',
-                        help='Read terminal commands: offline/online a/b, expire, lose-verify a/b before-headers/after-headers')
+                        help='Read terminal commands: disconnect/reconnect a/b, offline/online a/b, expire, lose-verify a/b before-headers/after-headers')
     args = parser.parse_args()
     container = args.postgres_container
     database = 'journey_' + secrets.token_hex(8)
@@ -212,6 +222,7 @@ def run():
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
             server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response, args.drop_first_verify_response)
             server.api_offline = threading.Event()
+            server.transport_offline = threading.Event()
             server.trace_api = args.trace_api
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)

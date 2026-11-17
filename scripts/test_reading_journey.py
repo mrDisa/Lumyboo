@@ -75,6 +75,7 @@ class ReadingResponseLossTests(unittest.TestCase):
         class Server:
             def __init__(self):
                 self.api_offline = threading.Event()
+                self.transport_offline = threading.Event()
         a, b = Server(), Server()
         expirations = []
         controls = JourneyControls([a, b], lambda: expirations.append(True))
@@ -87,6 +88,12 @@ class ReadingResponseLossTests(unittest.TestCase):
         controls.execute('offline b')
         controls.execute('online a')
         self.assertFalse(a.api_offline.is_set())
+        self.assertTrue(b.api_offline.is_set())
+        controls.execute('disconnect a')
+        self.assertTrue(a.transport_offline.is_set())
+        self.assertFalse(b.transport_offline.is_set())
+        controls.execute('reconnect a')
+        self.assertFalse(a.transport_offline.is_set())
         self.assertTrue(b.api_offline.is_set())
         controls.execute('expire')
         self.assertEqual(expirations, [True])
@@ -196,6 +203,7 @@ class ReadingResponseLossTests(unittest.TestCase):
         frontend = http.server.ThreadingHTTPServer(('127.0.0.1', 0), QuietFrontend)
         frontend.api_port = upstream.server_port
         frontend.api_offline = threading.Event()
+        frontend.transport_offline = threading.Event()
         frontend.lost_responses = LostReadingResponses(True, True, True)
         servers = [upstream, frontend]
         threads = [threading.Thread(target=server.serve_forever, daemon=True) for server in servers]
@@ -203,6 +211,22 @@ class ReadingResponseLossTests(unittest.TestCase):
             thread.start()
         try:
             payload = b'{"operationId":"same-on-retry"}'
+
+            for offline in (False, True, False):
+                (frontend.transport_offline.set if offline else frontend.transport_offline.clear)()
+                for url in ('/index.html', '/books/room-for-stories.json', '/api/v1/auth/session'):
+                    with self.subTest(offline=offline, url=url):
+                        connection = http.client.HTTPConnection('127.0.0.1', frontend.server_port, timeout=3)
+                        try:
+                            connection.request('GET', url)
+                            if offline:
+                                with self.assertRaises(http.client.RemoteDisconnected):
+                                    connection.getresponse()
+                            else:
+                                response = connection.getresponse()
+                                response.read()
+                        finally:
+                            connection.close()
 
             def post(path):
                 connection = http.client.HTTPConnection('127.0.0.1', frontend.server_port, timeout=3)
