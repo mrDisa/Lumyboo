@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import http.client
 import http.server
+import datetime
 import io
 import json
 import threading
@@ -13,6 +14,19 @@ from reading_journey import Frontend, JourneyControls, LostReadingResponses
 
 
 class ReadingResponseLossTests(unittest.TestCase):
+    def test_challenge_calendar_is_opt_in_and_rejects_invalid_dates(self):
+        clock = Mock()
+        disabled = JourneyControls([], Mock())
+        self.assertTrue(disabled.execute('challenge-day 2026-11-25').startswith('Commands:'))
+        controls = JourneyControls([], Mock(), clock)
+        for command in ('challenge-day', 'challenge-day 2026-02-30',
+                        'challenge-day 20261125', 'challenge-day 2026-11-25 extra'):
+            controls.execute(command)
+        clock.assert_not_called()
+        result = controls.execute('challenge-day 2026-11-25')
+        clock.assert_called_once_with(datetime.date(2026, 11, 25))
+        self.assertIn('reading/auth clocks unchanged', result)
+
     def test_trace_distinguishes_delivery_cancellation_and_upstream_failure(self):
         for failure in (None, 'client', 'upstream'):
             with self.subTest(failure=failure):

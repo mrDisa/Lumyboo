@@ -2,6 +2,7 @@
 """Disposable, loopback-only two-browser environment using real API/PostgreSQL."""
 import argparse
 import base64
+import datetime
 import functools
 import http.client
 import http.server
@@ -24,12 +25,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class JourneyControls:
     """Explicit terminal controls for this run's disposable environment only."""
-    def __init__(self, servers, expire):
+    def __init__(self, servers, expire, challenge_clock=None):
         self.servers = dict(zip(('a', 'b'), servers))
         self.expire = expire
+        self.challenge_clock = challenge_clock
 
     def execute(self, command):
         parts = command.lower().split()
+        if len(parts) == 2 and parts[0] == 'challenge-day' and self.challenge_clock:
+            try:
+                day = datetime.date.fromisoformat(parts[1])
+            except ValueError:
+                return 'Invalid date; use challenge-day YYYY-MM-DD.'
+            if day.isoformat() != parts[1]:
+                return 'Invalid date; use challenge-day YYYY-MM-DD.'
+            self.challenge_clock(day)
+            return f'Challenge calendar: {day} at 12:00 UTC; reading/auth clocks unchanged.'
         if parts == ['expire']:
             self.expire()
             return 'Expired all sessions in this run; sign in again to recover.'
@@ -46,7 +57,8 @@ class JourneyControls:
             self.servers[parts[1]].lost_responses.arm_verify(parts[2])
             return f'Frontend {parts[1].upper()}: next successful verify reply will be lost {parts[2]}.'
         return ('Commands: disconnect/reconnect a/b | offline a | online a | offline b | online b | expire | '
-                'lose-verify a/b before-headers/after-headers')
+                'lose-verify a/b before-headers/after-headers' +
+                (' | challenge-day YYYY-MM-DD' if self.challenge_clock else ''))
 
 
 def disconnect(handler):
@@ -200,6 +212,8 @@ def run():
                         help='Lose the first successful login reply per frontend, before Set-Cookie or after headers but before the body')
     parser.add_argument('--interactive-faults', action='store_true',
                         help='Read terminal commands: disconnect/reconnect a/b, offline/online a/b, expire, lose-verify a/b before-headers/after-headers')
+    parser.add_argument('--challenge-clock', action='store_true',
+                        help='Use a test-only API binary with a terminal-controlled challenge calendar; implies --interactive-faults')
     args = parser.parse_args()
     container = args.postgres_container
     database = 'journey_' + secrets.token_hex(8)
@@ -228,8 +242,17 @@ def run():
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
         with tempfile.TemporaryDirectory(prefix='lumyboo-journey-') as temporary:
             binary = str(Path(temporary) / 'api')
-            subprocess.run(['go', 'build', '-o', binary, './cmd/api'],
+            build = ['go', 'test', '-c', '-o', binary, './internal/httpapi'] if args.challenge_clock else ['go', 'build', '-o', binary, './cmd/api']
+            subprocess.run(build,
                            cwd=ROOT / 'services/api', check=True)
+            clock_file = Path(temporary) / 'challenge-clock'
+
+            def set_challenge_day(day):
+                pending = clock_file.with_suffix('.pending')
+                pending.write_text(f'{day.isoformat()}T12:00:00Z')
+                pending.replace(clock_file)
+
+            set_challenge_day(datetime.datetime.now(datetime.timezone.utc).date())
             subprocess.run(['docker', 'exec', container, 'createdb', '-U', 'lumyboo', database], check=True)
             created = True
             for migration in sorted((ROOT / 'services/api/db/migrations').glob('*.up.sql')):
@@ -243,7 +266,13 @@ def run():
                            SMTP_ADDRESS='127.0.0.1:1025', SMTP_FROM='login@lumyboo.local',
                            SMTP_ALLOW_INSECURE='true', SMTP_USERNAME='', SMTP_PASSWORD='',
                            TRUSTED_PROXY_CIDRS='')
-                process = subprocess.Popen([binary], env=env)
+                command = [binary]
+                if args.challenge_clock:
+                    env['JOURNEY_CHALLENGE_CLOCK_FILE'] = str(clock_file)
+                    command += ['-test.run=^TestBrowserJourneyAPI$', '-test.timeout=0']
+                else:
+                    env.pop('JOURNEY_CHALLENGE_CLOCK_FILE', None)
+                process = subprocess.Popen(command, env=env)
                 processes.append(process)
                 for attempt in range(100):
                     if process.poll() is not None:
@@ -269,8 +298,8 @@ def run():
             if args.drop_first_verify_response:
                 print(f'Response loss enabled: first successful verify reply on EACH frontend, {args.drop_first_verify_response}.', flush=True)
             print('Separate cookies/IndexedDB; shared disposable database. Ctrl+C cleans up.', flush=True)
-            controls = JourneyControls(servers, lambda: sql("UPDATE auth_sessions SET expires_at = now() - interval '1 second';"))
-            interactive = args.interactive_faults
+            controls = JourneyControls(servers, lambda: sql("UPDATE auth_sessions SET expires_at = now() - interval '1 second';"), set_challenge_day if args.challenge_clock else None)
+            interactive = args.interactive_faults or args.challenge_clock
             if interactive:
                 print(controls.execute('help'), flush=True)
             while True:
