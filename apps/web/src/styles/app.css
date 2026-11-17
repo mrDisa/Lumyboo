@@ -287,3 +287,14 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .local-day-button:hover { background:var(--soft); }
 .local-day-share { height:4px; margin-top:14px; border-radius:4px; overflow:hidden; background:var(--soft); }
 .local-day-share > span { display:block; height:100%; background:var(--ink); }
+
+/* Remembered account reading without a verified connection. */
+.local-access-status { display:flex; align-items:center; gap:12px; padding:16px; margin-top:18px; border:1px solid var(--line); border-radius:16px; background:var(--soft); }
+.local-access-status > div { min-width:0; }
+.local-access-status strong { display:block; font-size:13px; line-height:1.5; }
+.local-access-status small { display:block; margin-top:5px; font-size:10px; line-height:1.7; color:var(--muted); overflow-wrap:anywhere; }
+.local-books-count { display:grid; place-items:center; min-width:30px; height:30px; border:1px solid var(--line); border-radius:50%; font-size:12px; flex:none; }
+.local-books-empty { display:grid; justify-items:center; gap:12px; padding:26px 16px; border:1px dashed var(--line); border-radius:16px; text-align:center; }
+.local-books-empty > .icon { width:26px; height:26px; }
+.local-books-empty strong { font-size:13px; line-height:1.6; }
+.local-books-empty p { margin:0; font-size:11px; line-height:1.8; color:var(--muted); }
