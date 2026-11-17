@@ -7,6 +7,7 @@ import { useDailyGoal } from '../lib/use-daily-goal';
 import { localDay } from '../lib/reading';
 import { loadLocalReadingTime } from '../lib/local-reading-time';
 import { LocalReadingDay } from './LocalReadingDay';
+import { Icon } from './ui';
 import { readingDuration } from '../lib/reading-session-history';
 
 export function GuestReadingTime() {
@@ -48,14 +49,14 @@ function LocalReadingTime({ store, guest, showGoal = true }: { store: LocalDatab
    <div className={guest ? 'stats' : 'stats stats-time'}><div><b>{Math.floor(state.value.total / 60)}</b><small>минут за текстом</small></div><div><b>{Math.floor(state.value.today / 60)}</b><small>минут сегодня</small></div>{guest && <div><b>{state.value.bookmarks}</b><small>закладок</small></div>}</div>
    <button className="text-button section" aria-expanded={expanded} aria-controls={historyId} onClick={() => { setExpanded(!expanded); setLimit(20); }}>История чтения по дням</button>
    {expanded && <div id={historyId}>
-    <p className="description section">{guest ? 'Сохранённое гостевое время' : 'Сохранённое время этого аккаунта'} за всеми книгами и изданиями на этом устройстве. Дни сохраняются в часовом поясе чтения; старые записи сохраняют исходную дату. Нажми на дату, чтобы увидеть книги.</p>
+    <p className="transfer-notice">На этом устройстве · {guest ? 'гостевое чтение' : 'этот аккаунт'}</p>
     {state.value.days.length ? <>
-     <dl className="reading-days">{state.value.days.slice(0, limit).map(row => <div key={row.day}><dt><button className="text-button" aria-label={`Книги за ${row.day.split('-').reverse().join('.')}`} onClick={() => setSelectedDay(row.day)}><time dateTime={row.day}>{row.day.split('-').reverse().join('.')}</time></button></dt><dd>{readingDuration(Math.round(row.seconds * 1000))}</dd></div>)}</dl>
+     <ul className="local-day-list">{state.value.days.slice(0, limit).map(row => <li key={row.day}><button className="local-day-button" aria-label={`Книги за ${row.day.split('-').reverse().join('.')}`} onClick={() => setSelectedDay(row.day)}><span><time dateTime={row.day}>{row.day.split('-').reverse().join('.')}</time><strong>{readingDuration(Math.round(row.seconds * 1000))}</strong><small>Посмотреть книги</small></span><Icon name="arrow" /></button></li>)}</ul>
      {state.value.days.length > limit && <button className="text-button section" onClick={() => setLimit(value => value + 20)}>Показать ещё · осталось {state.value.days.length - limit}</button>}
     </> : <p className="description section">{guest ? 'Пока нет сохранённого гостевого времени. Открой книгу и начни читать.' : 'Пока нет сохранённого времени этого аккаунта на устройстве. Открой книгу из полки аккаунта и начни читать.'}</p>}
    </div>}
   </>}
-  <p className="reader-note section">{guest ? 'Здесь только гостевое чтение на этом устройстве. Время аккаунта показано отдельно.' : 'Здесь только чтение этого аккаунта на устройстве, включая ещё не отправленное время. Гостевое время и серверная история сюда не прибавляются.'}</p>
+  <details className="day-details section"><summary>Как считается время на устройстве</summary><p className="description">Дни сохраняются в часовом поясе чтения; старые записи сохраняют исходную дату.</p><p className="description">{guest ? 'Здесь только гостевое чтение на этом устройстве. Время аккаунта показано отдельно.' : 'Здесь только чтение этого аккаунта на устройстве, включая ещё не отправленное время. Гостевое время и серверная история сюда не прибавляются.'}</p></details>
   {selectedDay && <LocalReadingDay key={selectedDay} store={store} day={selectedDay} close={() => setSelectedDay(null)} />}
  </section>;
 }
