@@ -15,13 +15,14 @@ export function Home() {
   const { settings } = useApp();
   const current = books.find(b => b.id === settings.currentBook) ?? books[0];
   const position = useLiveQuery(() => db.positions.get(current.id), [current.id]);
+  const continuing = position?.version === current.version;
   const recommendations = books.filter(book => book.id !== current.id).slice(0, 2);
   return <>
     <p className={`greeting ${entry.greeting}`}>Твоё время для себя{settings.name ? `, ${settings.name}` : ''}</p>
     <div className={`headline ${entry.headline}`}><h1>Между строк —<br /><em>целый мир.</em></h1><Sculpture className="spark-mini" /></div>
-    <section aria-label={position ? 'Вернуться к книге' : 'Книга для начала'}>
-      <div className="book-hero"><div className="hero-light" aria-hidden="true" /><div className="hero-meta"><span>{position ? 'ТВОЯ ТЕКУЩАЯ ИСТОРИЯ' : 'С ЭТОГО МОЖНО НАЧАТЬ'}</span><span className="hero-edition" aria-hidden="true">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside">{position ? <><div className="percent">{String(position.chapter + 1).padStart(2, '0')}</div><small>сохранённая глава</small></> : <><Icon name="books" /><p className={entry.invitation}>Первая<br />страница ждёт</p></>}</div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div>
-      <Link className="primary" to="/read/$bookId" params={{ bookId: current.id }}>{position ? 'Продолжить чтение' : 'Начать чтение'}<Icon name="arrow" /></Link>
+    <section aria-label={continuing ? 'Вернуться к книге' : 'Книга для начала'}>
+      <div className="book-hero"><div className="hero-light" aria-hidden="true" /><div className="hero-meta"><span>{continuing ? 'ТВОЯ ТЕКУЩАЯ ИСТОРИЯ' : 'С ЭТОГО МОЖНО НАЧАТЬ'}</span><span className="hero-edition" aria-hidden="true">L / B</span></div><div className="book-object"><Cover id={current.cover} title={current.title} /></div><div className="hero-aside">{continuing ? <><div className="percent">{String(position.chapter + 1).padStart(2, '0')}</div><small>сохранённая глава</small></> : <><Icon name="books" /><p className={entry.invitation}>Первая<br />страница ждёт</p></>}</div><div className="bottom-caption"><div><h3>{current.title}</h3><small>{current.author}</small></div></div></div>
+      <Link className="primary" to="/read/$bookId" params={{ bookId: current.id }}>{continuing ? 'Продолжить чтение' : 'Начать чтение'}<Icon name="arrow" /></Link>
       <div className={entry.bookInfo}><span>{current.kind === 'fixture' ? 'Тестовая книга' : current.kind === 'full' ? 'Полный текст' : 'Фрагмент'}</span><Link className="text-button" to="/book/$bookId" params={{ bookId: current.id }}>О книге ↗</Link></div>
     </section>
     <DailyGoalCard store={db} />
@@ -53,6 +54,8 @@ export function Catalog() {
 }
 export function BookDetail() {
   const { bookId } = useParams({ strict: false }); const book = books.find(b => b.id === bookId);
+  const position = useLiveQuery(() => db.positions.get(bookId ?? ''), [bookId]);
+  const continuing = !!book && position?.version === book.version;
   const saved = useLiveQuery(() => db.shelf.get(bookId ?? ''), [bookId]);
   const downloaded = useLiveQuery(() => db.downloads.get(bookId ?? ''), [bookId]);
   const [busy, setBusy] = useState(false);
@@ -76,7 +79,8 @@ export function BookDetail() {
     <article className="book-presentation section">
       <div className="book-presentation-art"><Cover id={book.cover} title={book.title} /><span className="tag">{format}</span></div>
       <div className="book-presentation-title"><span className="eyebrow muted">{book.genre} · {book.year}</span><h1>{book.title}</h1><p>{book.author}</p></div>
-      <Link className="primary" to="/read/$bookId" params={{ bookId: book.id }}>Читать<Icon name="arrow" /></Link>
+      <Link className="primary" to="/read/$bookId" params={{ bookId: book.id }}>{continuing ? 'Продолжить чтение' : 'Читать'}<Icon name="arrow" /></Link>
+      {continuing && <p className="book-resume" role="status">Гостевое место на устройстве · глава {position.chapter + 1}</p>}
       <button className="secondary book-shelf" aria-pressed={!!saved} onClick={() => void act(() => toggleShelf(book.id))}><Icon name="books" />{saved ? 'На полке · убрать' : 'Добавить на полку'}</button>
     </article>
     <section className="book-about section"><h2>Об истории</h2><p className="description">{book.description}</p></section>
