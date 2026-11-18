@@ -14,6 +14,29 @@ from reading_journey import Frontend, JourneyControls, LostReadingResponses
 
 
 class ReadingResponseLossTests(unittest.TestCase):
+    def test_streak_fixture_is_opt_in_and_has_no_api_writes(self):
+        for enabled in (False, True):
+            handler = object.__new__(Frontend)
+            handler.server = Mock(streak_fixture=enabled)
+            handler.path = '/books/__qa/guest-streak.html'
+            handler.wfile = io.BytesIO()
+            handler.send_response = Mock()
+            handler.send_header = Mock()
+            handler.end_headers = Mock()
+            handler.translate_path = Mock(return_value='/nonexistent')
+            with patch('reading_journey.http.server.SimpleHTTPRequestHandler.do_GET') as fallback:
+                handler.do_GET()
+            if enabled:
+                handler.send_response.assert_called_once_with(200)
+                body = handler.wfile.getvalue().decode()
+                self.assertIn('sessions.count()', body)
+                self.assertIn('1199.999', body)
+                self.assertNotIn('fetch(', body)
+                fallback.assert_not_called()
+            else:
+                fallback.assert_called_once()
+                self.assertEqual(handler.wfile.getvalue(), b'')
+
     def test_challenge_calendar_is_opt_in_and_rejects_invalid_dates(self):
         clock = Mock()
         disabled = JourneyControls([], Mock())

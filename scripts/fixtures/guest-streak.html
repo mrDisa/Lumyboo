@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Guest streak QA setup</title>
+<h1>Disposable guest streak fixture</h1>
+<p>Open the app on this origin first. Requires an empty guest sessions table.
+Seeds yesterday and the day before with 20 minutes each; today with 1,199,999 ms.
+Guest goal: 5 minutes. Account default goal: 20 minutes. No account writes.</p>
+<button id="seed">Seed three guest days</button>
+<button id="finish">Add the final 1 ms</button>
+<a href="/profile">Open profile</a>
+<pre id="result" role="status"></pre>
+<script type="module">
+const result = document.querySelector('#result');
+const sessionId = 'f1a00000-0000-4000-8000-000000000003';
+function request(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function write(finish) {
+  const open = indexedDB.open('lumyboo-local-v1');
+  open.onupgradeneeded = () => open.transaction.abort();
+  const db = await request(open);
+  try {
+    const tx = db.transaction(['sessions', 'dailyGoals'], 'readwrite');
+    const done = new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onabort = () => reject(tx.error ?? new Error('Fixture refused: guest data already exists or seed is missing.'));
+    });
+    const sessions = tx.objectStore('sessions');
+    if (finish) {
+      const row = await request(sessions.get(sessionId));
+      if (!row) tx.abort();
+      else sessions.put({ ...row, seconds: 1200 });
+    } else {
+      if (await request(sessions.count())) tx.abort();
+      else {
+        const today = new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit'}).format(new Date());
+        const days = [-2, -1, 0].map(offset => {
+          const date = new Date(today + 'T12:00:00Z');
+          date.setUTCDate(date.getUTCDate() + offset);
+          return date.toISOString().slice(0, 10);
+        });
+        days.forEach((day, index) => sessions.put({
+          id: 'f1a00000-0000-4000-8000-00000000000' + (index + 1),
+          deviceId: 'f1a00000-0000-4000-8000-000000000004',
+          bookId: 'room-for-stories', version: '1', day,
+          seconds: index === 2 ? 1199.999 : 1200,
+        }));
+        tx.objectStore('dailyGoals').put({id: 'local', timeZone: 'Europe/Moscow', changes: [{from: days[0], minutes: 5}]});
+      }
+    }
+    await done;
+    result.textContent = finish ? 'Today: 1,200,000 ms. Import today again.' : 'Seeded three days. Import all three in the profile.';
+  } finally { db.close(); }
+}
+document.querySelector('#seed').onclick = () => write(false).catch(error => result.textContent = error.message);
+document.querySelector('#finish').onclick = () => write(true).catch(error => result.textContent = error.message);
+</script>

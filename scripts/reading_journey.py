@@ -111,6 +111,13 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
         super().handle_one_request()
 
     def do_GET(self):
+        if self.path == '/books/__qa/guest-streak.html' and getattr(self.server, 'streak_fixture', False):
+            body = (ROOT / 'scripts/fixtures/guest-streak.html').read_bytes()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if self.path.startswith('/api/') or self.path in ('/readyz', '/healthz'):
             return self.proxy()
         path = self.translate_path(self.path.split('?', 1)[0])
@@ -200,6 +207,10 @@ class Frontend(http.server.SimpleHTTPRequestHandler):
 def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--postgres-container', default='ops-postgres-1')
+    parser.add_argument('--port-offset', type=int, choices=range(0, 1001), default=0,
+                        metavar='0..1000', help='Offset frontend/API ports for fresh browser origins')
+    parser.add_argument('--streak-fixture', action='store_true',
+                        help='Expose /books/__qa/guest-streak.html to seed an empty guest store with exact calendar totals')
     parser.add_argument('--trace-api', action='store_true',
                         help='Log API status, request ID, timing and delivery outcome, without bodies/cookies/query strings')
     parser.add_argument('--drop-first-reading-response', action='store_true',
@@ -232,12 +243,13 @@ def run():
     try:
         # Bind first: an occupied port must fail before provisioning anything.
         handler = functools.partial(Frontend, directory=str(ROOT / 'apps/web/dist'))
-        for port in (4311, 4312):
+        for port in (4311 + args.port_offset, 4312 + args.port_offset):
             server = http.server.ThreadingHTTPServer(('127.0.0.1', port), handler)
             server.lost_responses = LostReadingResponses(args.drop_first_reading_response, args.drop_first_save_response, args.drop_first_logout_response, args.drop_first_verify_response)
             server.api_offline = threading.Event()
             server.transport_offline = threading.Event()
             server.trace_api = args.trace_api
+            server.streak_fixture = args.streak_fixture
             servers.append(server)
         subprocess.run(['npm', 'run', 'build'], cwd=ROOT, check=True)
         with tempfile.TemporaryDirectory(prefix='lumyboo-journey-') as temporary:
@@ -258,7 +270,7 @@ def run():
             for migration in sorted((ROOT / 'services/api/db/migrations').glob('*.up.sql')):
                 sql(migration.read_text())
             secret = base64.b64encode(secrets.token_bytes(32)).decode()
-            for server, host, api_port in zip(servers, ('127.0.0.1', 'localhost'), (8311, 8312)):
+            for server, host, api_port in zip(servers, ('127.0.0.1', 'localhost'), (8311 + args.port_offset, 8312 + args.port_offset)):
                 origin = f'http://{host}:{server.server_port}'
                 env = dict(os.environ, DATABASE_URL=f'postgres://lumyboo:local-development-only@127.0.0.1:5432/{database}?sslmode=disable',
                            API_ADDRESS=f'127.0.0.1:{api_port}', APP_ENV='development',
