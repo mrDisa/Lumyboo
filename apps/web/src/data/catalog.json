@@ -15,6 +15,24 @@
     "rights": "Оригинальный тестовый текст, сгенерированный при разработке Lumyboo. Только локальный пилот; не заменяет проверку каталога перед запуском."
   },
   {
+    "id": "white-nights",
+    "title": "Белые ночи",
+    "author": "Фёдор Достоевский",
+    "genre": "Классика",
+    "year": "1848",
+    "cover": 7,
+    "description": "Четыре ночи, одна встреча и целая жизнь надежды. Полный текст повести: эпиграф, четыре ночи, история Настеньки и утро.",
+    "kind": "full",
+    "version": "1",
+    "url": "/books/white-nights.json",
+    "sha256": "b1c52426306ad0e50f9e6a56a6cbcc76d1c5faad6cfc13f8a66bb273468e355e",
+    "bytes": 208731,
+    "rights": "Русский оригинал — общественное достояние. Текст: Викитека, версия 5783311, по собранию сочинений в 15 т., т. 2 (Наука, 1988), CC BY-SA 4.0. Пробелы нормализованы; комментарии не включены. Изображение — титульный лист отдельного издания 1865 года, Wikimedia Commons (Public Domain); это другое издание.",
+    "sourceUrl": "https://ru.wikisource.org/w/index.php?oldid=5783311",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "coverSourceUrl": "https://commons.wikimedia.org/wiki/File:Dostoyevski_-_White_Nights_(1865).jpg"
+  },
+  {
     "id": "white-nights-excerpt",
     "title": "Белые ночи",
     "author": "Фёдор Достоевский",
