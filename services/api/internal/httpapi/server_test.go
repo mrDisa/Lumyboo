@@ -9,6 +9,10 @@ import (
 
 func TestCatalogSearchAndPagination(t *testing.T) {
 	handler := New(nil)
+	var books []Book
+	if err := json.Unmarshal(seed, &books); err != nil {
+		t.Fatal(err)
+	}
 	for _, test := range []struct {
 		path                 string
 		status, total, count int
@@ -16,8 +20,9 @@ func TestCatalogSearchAndPagination(t *testing.T) {
 		{"/api/v1/catalog?q=Достоевский", 200, 3, 3},
 		{"/api/v1/catalog?q=Толстой", 200, 1, 1},
 		{"/api/v1/catalog?q=Чехов", 200, 1, 1},
-		{"/api/v1/catalog?offset=999", 200, 6, 0},
-		{"/api/v1/catalog?limit=1", 200, 6, 1},
+		{"/api/v1/catalog?q=Барышня-крестьянка", 200, 1, 1},
+		{"/api/v1/catalog?offset=999", 200, len(books), 0},
+		{"/api/v1/catalog?limit=1", 200, len(books), 1},
 		{"/api/v1/catalog?limit=0", 400, 0, 0},
 		{"/api/v1/catalog?offset=-1", 400, 0, 0},
 	} {

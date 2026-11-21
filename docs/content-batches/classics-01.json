@@ -1,0 +1,126 @@
+[
+  {
+    "id": "stationmaster",
+    "version": "1",
+    "title": "Станционный смотритель",
+    "author": "Александр Пушкин",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/89/p.5/index.html",
+      "scope": "page",
+      "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/89/p.5/index.html",
+        "sha256": "a0d5257d780770a8ea2ecebaf92be8251e36bb8affb8b75143fbd6d96a230f52",
+        "page": 5,
+        "totalPages": 6,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "b557173e3db9abcd541eab7360bcbc5e6802d8369ef18a3ad366ad80aea677fb",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+    "cover": {
+      "approved": true,
+      "id": 9,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+    }
+  },
+  {
+    "id": "blizzard",
+    "version": "1",
+    "title": "Метель",
+    "author": "Александр Пушкин",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/89/p.3/index.html",
+      "scope": "page",
+      "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/89/p.3/index.html",
+        "sha256": "4bbfe59f9a2da0f8da2dd4bbb15db237792a509e1ee563321602a9921477174b",
+        "page": 3,
+        "totalPages": 6,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "0eadcc48c60c7f907fe69d34beec650e58b4a438be64591dc5062886800c90eb",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+    "cover": {
+      "approved": true,
+      "id": 9,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+    }
+  },
+  {
+    "id": "shot",
+    "version": "1",
+    "title": "Выстрел",
+    "author": "Александр Пушкин",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/89/p.2/index.html",
+      "scope": "page",
+      "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/89/p.2/index.html",
+        "sha256": "2eb7f642634554532c3a35c6d109e80a63b8ebb0deb4800cc1340eb03ed40426",
+        "page": 2,
+        "totalPages": 6,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "86cd7d8826e8711d16311e13ee7e404a37801bc9c92a4de431c24a2368473e2c",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+    "cover": {
+      "approved": true,
+      "id": 9,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+    }
+  },
+  {
+    "id": "squires-daughter",
+    "version": "1",
+    "title": "Барышня-крестьянка",
+    "author": "Александр Пушкин",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/89/p.6/index.html",
+      "scope": "page",
+      "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/89/p.6/index.html",
+        "sha256": "d449d65bf3c08dc52c1c6d0453062a74cb3ca4500ee7951e4e72c47b4dc5a1b7",
+        "page": 6,
+        "totalPages": 6,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "a37900c367955db798f9555243346091133d71f7481bc8300d060587f9125084",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+    "cover": {
+      "approved": true,
+      "id": 9,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+      "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+    }
+  }
+]

@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { icons } from './icons';
 export function Icon({ name }: { name: string }) { return <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><path d={icons[name] || icons.spark} /></svg>; }
 export function Sculpture({ className = 'sculpture' }: { className?: string }) { return <img className={`${className} ink-sculpture`} src="/assets/sculpture.svg" alt="" />; }
-export function Cover({ id, title }: { id: number; title: string }) { return <img className="cover" src={`/assets/cover-${id}.${[6, 7, 8].includes(id) ? 'jpg' : 'svg'}`} alt={`Обложка: ${title}`} />; }
+export function Cover({ id, title }: { id: number; title: string }) { return <img className="cover" src={`/assets/cover-${id}.${id >= 6 ? 'jpg' : 'svg'}`} alt={`Обложка: ${title}`} />; }
 export function Empty({ children }: { children: ReactNode }) { return <div className="empty">{children}</div>; }
 export function Modal({ title, children, close }: { title: string; children: ReactNode; close: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);

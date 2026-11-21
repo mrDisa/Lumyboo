@@ -1,0 +1,474 @@
+{
+  "schemaVersion": 1,
+  "id": "classics-01",
+  "books": [
+    {
+      "id": "queen-of-spades",
+      "title": "Пиковая дама",
+      "author": "Александр Пушкин",
+      "genre": "Классика",
+      "year": "1834",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/480/p.1/index.html",
+        "scope": "work",
+        "edition": "<a href=http://www.rvb.ru>Русская виртуальная библиотека</a>"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Германн узнаёт о тайне трёх выигрышных карт и решает добиться её любой ценой. Повесть о расчёте, азарте и роковой случайности."
+      },
+      "cover": null,
+      "expectedSha256": "ef4f8f043c4bd0ca00f87664f1f2b0367c77e9e2d06068a48dad2115c546522a"
+    },
+    {
+      "id": "stationmaster",
+      "title": "Станционный смотритель",
+      "author": "Александр Пушкин",
+      "genre": "Классика",
+      "year": "1831",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/89/p.5/index.html",
+        "scope": "page",
+        "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+      },
+      "review": {
+        "textApproved": true,
+        "rightsApproved": true,
+        "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+        "description": "Проезжий знакомится со станционным смотрителем Самсоном Выриным и его дочерью Дуней. Через несколько лет он возвращается на станцию и узнаёт, как изменилась их жизнь."
+      },
+      "cover": {
+        "approved": true,
+        "id": 9,
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+        "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+      },
+      "expectedSha256": "b557173e3db9abcd541eab7360bcbc5e6802d8369ef18a3ad366ad80aea677fb"
+    },
+    {
+      "id": "blizzard",
+      "title": "Метель",
+      "author": "Александр Пушкин",
+      "genre": "Классика",
+      "year": "1831",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/89/p.3/index.html",
+        "scope": "page",
+        "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+      },
+      "review": {
+        "textApproved": true,
+        "rightsApproved": true,
+        "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+        "description": "Марья Гавриловна собирается тайно обвенчаться с возлюбленным, но метель меняет судьбы всех участников этой истории."
+      },
+      "cover": {
+        "approved": true,
+        "id": 9,
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+        "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+      },
+      "expectedSha256": "0eadcc48c60c7f907fe69d34beec650e58b4a438be64591dc5062886800c90eb"
+    },
+    {
+      "id": "shot",
+      "title": "Выстрел",
+      "author": "Александр Пушкин",
+      "genre": "Классика",
+      "year": "1831",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/89/p.2/index.html",
+        "scope": "page",
+        "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+      },
+      "review": {
+        "textApproved": true,
+        "rightsApproved": true,
+        "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+        "description": "Отложенная дуэль связывает судьбы двух мужчин на долгие годы. Сильвио ждёт часа, когда сможет воспользоваться правом на выстрел."
+      },
+      "cover": {
+        "approved": true,
+        "id": 9,
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+        "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+      },
+      "expectedSha256": "86cd7d8826e8711d16311e13ee7e404a37801bc9c92a4de431c24a2368473e2c"
+    },
+    {
+      "id": "squires-daughter",
+      "title": "Барышня-крестьянка",
+      "author": "Александр Пушкин",
+      "genre": "Классика",
+      "year": "1831",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/89/p.6/index.html",
+        "scope": "page",
+        "edition": "А. С. Пушкин. Собрание сочинений в шести томах. Том 4. Библиотека Огонек, М., Правда, 1969"
+      },
+      "review": {
+        "textApproved": true,
+        "rightsApproved": true,
+        "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+        "description": "Лиза Муромская переодевается крестьянкой, чтобы познакомиться с сыном соседского помещика. Игра оборачивается настоящим чувством."
+      },
+      "cover": {
+        "approved": true,
+        "id": 9,
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg",
+        "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+        "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
+      },
+      "expectedSha256": "a37900c367955db798f9555243346091133d71f7481bc8300d060587f9125084"
+    },
+    {
+      "id": "overcoat",
+      "title": "Шинель",
+      "author": "Николай Гоголь",
+      "genre": "Классика",
+      "year": "1842",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/980/p.1/index.html",
+        "scope": "work",
+        "edition": "Н. В. Гоголь. Собрание сочинений в девяти томах. Т. 3. М.: Русская книга, 1994"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Переписчик Акакий Акакиевич копит на новую шинель. Маленькая перемена становится главным событием его жизни и началом беды."
+      },
+      "cover": null,
+      "expectedSha256": "01cfef0348a7d6ef4ecae6bbccd35f1c227687de4bc11ede8a471360302a9071"
+    },
+    {
+      "id": "nose",
+      "title": "Нос",
+      "author": "Николай Гоголь",
+      "genre": "Классика",
+      "year": "1836",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/76/p.1/index.html",
+        "scope": "work",
+        "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Коллежский асессор Ковалёв обнаруживает, что его нос исчез и живёт самостоятельной жизнью. Петербургская повесть о чине, внешности и невероятном."
+      },
+      "cover": null,
+      "expectedSha256": "eff9545b7c7060bcf0d9c36013a67a93935faffa92f63fefdf6b5f61c51874dc"
+    },
+    {
+      "id": "nevsky-prospect",
+      "title": "Невский проспект",
+      "author": "Николай Гоголь",
+      "genre": "Классика",
+      "year": "1835",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1332/p.1/index.html",
+        "scope": "work",
+        "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3. М.: Русская книга, 1994"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "На главной улице Петербурга пересекаются истории художника Пискарёва и поручика Пирогова. За блеском проспекта скрываются обман и разочарование."
+      },
+      "cover": null,
+      "expectedSha256": "0f7738c73da71cd76bc78a2139075597af15f2cb0655e96f5d41bd882215a867"
+    },
+    {
+      "id": "portrait",
+      "title": "Портрет",
+      "author": "Николай Гоголь",
+      "genre": "Классика",
+      "year": "1842",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/77/p.1/index.html",
+        "scope": "work",
+        "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Купленный в лавке портрет меняет судьбу молодого художника Чарткова. Повесть о таланте, богатстве и цене успеха."
+      },
+      "cover": null,
+      "expectedSha256": "a3546025f9a2e06d0961d18e2a18a9cfc0181004e093d20c769b7e701f91f544"
+    },
+    {
+      "id": "diary-of-madman",
+      "title": "Записки сумасшедшего",
+      "author": "Николай Гоголь",
+      "genre": "Классика",
+      "year": "1835",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/14/p.1/index.html",
+        "scope": "work",
+        "edition": ""
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Мелкий чиновник ведёт дневник, в котором повседневная обида постепенно уступает место фантастическим открытиям и мечте о другой жизни."
+      },
+      "cover": null,
+      "expectedSha256": "1ad45627199293511ef7e874caf335eac9d8dc46cea2140ed19c83edb794b0e4"
+    },
+    {
+      "id": "asya",
+      "title": "Ася",
+      "author": "Иван Тургенев",
+      "genre": "Классика",
+      "year": "1858",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1097/p.1/index.html",
+        "scope": "work",
+        "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 5. М.: Наука, 1980"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Во время путешествия по Германии рассказчик знакомится с Гагиным и его сестрой Асей. Встреча становится воспоминанием о любви и упущенной возможности."
+      },
+      "cover": null,
+      "expectedSha256": "4ff866fe9afb2b730eac919ddc64559c8aa7bf637e2e172e4ba55b9a1aad4c1e"
+    },
+    {
+      "id": "first-love",
+      "title": "Первая любовь",
+      "author": "Иван Тургенев",
+      "genre": "Классика",
+      "year": "1860",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1335/p.1/index.html",
+        "scope": "work",
+        "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 6. М.: Наука, 1981"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Шестнадцатилетний Владимир влюбляется в соседку Зинаиду и пытается понять мир взрослых, где чувства оказываются сложнее его ожиданий."
+      },
+      "cover": null,
+      "expectedSha256": "201d185cbc4fed8d4613fc7bdcec271bf4621f26280c3c41f92b9e4e3b05509f"
+    },
+    {
+      "id": "mumu",
+      "title": "Муму",
+      "author": "Иван Тургенев",
+      "genre": "Классика",
+      "year": "1854",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1250/p.1/index.html",
+        "scope": "work",
+        "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 4. М.: Наука, 1980"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Дворник Герасим находит маленькую собаку и привязывается к ней. Рассказ о одиночестве, зависимости и жестокости чужой воли."
+      },
+      "cover": null,
+      "expectedSha256": "c6ce23bac77ce9b489611d32759725c99367bf99ee20593c5861fbcef2c93c00"
+    },
+    {
+      "id": "death-of-ivan-ilyich",
+      "title": "Смерть Ивана Ильича",
+      "author": "Лев Толстой",
+      "genre": "Классика",
+      "year": "1886",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/7/p.1/index.html",
+        "scope": "work",
+        "edition": ""
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Тяжёлая болезнь заставляет судебного чиновника Ивана Ильича по-новому взглянуть на прожитую жизнь, семью и представления о благополучии."
+      },
+      "cover": null,
+      "expectedSha256": "bffa777c7722249eef5d37e2e231c4062b5cfb110014192b68bf37391dbc1731"
+    },
+    {
+      "id": "kreutzer-sonata",
+      "title": "Крейцерова соната",
+      "author": "Лев Толстой",
+      "genre": "Классика",
+      "year": "1889",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1009/p.1/index.html",
+        "scope": "work",
+        "edition": "Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Во время поездки в поезде Позднышев рассказывает незнакомцу историю своего брака. Повесть о ревности, близости и разрушительной страсти."
+      },
+      "cover": null,
+      "expectedSha256": "f818e7c112d2c7f60f26a60008381a2241e5613cbf02a96f6981dddfa274a575"
+    },
+    {
+      "id": "after-the-ball",
+      "title": "После бала",
+      "author": "Лев Толстой",
+      "genre": "Классика",
+      "year": "1911",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1005/p.1/index.html",
+        "scope": "work",
+        "edition": "Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Воспоминание о прекрасном бале и встрече на следующее утро меняет отношение рассказчика к любви и к человеку, которым он восхищался."
+      },
+      "cover": null,
+      "expectedSha256": "6c685e1062031f51fc6a9cd554722b93948373876b127795e4fc5e5ce6d94eaa"
+    },
+    {
+      "id": "prisoner-of-caucasus",
+      "title": "Кавказский пленник",
+      "author": "Лев Толстой",
+      "genre": "Классика",
+      "year": "1872",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/1846/p.1/index.html",
+        "scope": "work",
+        "edition": "Толстой Л. Н. Полное собрание сочинений: В 90 т. Юбилейное издание (1828—1928). Серия 1: Произведения. Т. 21. — М.; Л.: Гослитиздат, 1957"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Офицеры Жилин и Костылин попадают в плен на Кавказе. Надежда на спасение испытывает их решимость, а помощь приходит с неожиданной стороны."
+      },
+      "cover": null,
+      "expectedSha256": "c7594be87a21972ccd964350a318b1936f8cfe592c9eacfbb631f8d083216013"
+    },
+    {
+      "id": "gambler",
+      "title": "Игрок",
+      "author": "Фёдор Достоевский",
+      "genre": "Классика",
+      "year": "1866",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/67/p.1/index.html",
+        "scope": "work",
+        "edition": "Ф. М. Достоевский. Собрание сочинений в 15-ти томах. Л., Наука, 1989. Том 4"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "На курорте Рулетенбург Алексей Иванович оказывается между любовной зависимостью и страстью к рулетке. Роман о деньгах, риске и потере свободы."
+      },
+      "cover": null,
+      "expectedSha256": "98df83cd537059e328a4f21bf32ef07e51ffcab26afaae75412c18b0feda6c1d"
+    },
+    {
+      "id": "lady-with-dog",
+      "title": "Дама с собачкой",
+      "author": "Антон Чехов",
+      "genre": "Классика",
+      "year": "1899",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/976/p.1/index.html",
+        "scope": "work",
+        "edition": "А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Курортное знакомство Дмитрия Гурова и Анны Сергеевны постепенно меняет их привычную жизнь. Рассказ о чувстве, которое оказалось серьёзнее ожидаемого."
+      },
+      "cover": null,
+      "expectedSha256": "4cdaab51a1685557f34559dde9fd875e81f7a8e1344494d89bc2ec8a425622a9"
+    },
+    {
+      "id": "ionych",
+      "title": "Ионыч",
+      "author": "Антон Чехов",
+      "genre": "Классика",
+      "year": "1898",
+      "version": "1",
+      "source": {
+        "type": "ilibrary",
+        "url": "https://ilibrary.ru/text/437/p.1/index.html",
+        "scope": "work",
+        "edition": "А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986"
+      },
+      "review": {
+        "textApproved": false,
+        "rightsApproved": false,
+        "rightsBasis": "",
+        "description": "Молодой врач Дмитрий Старцев приезжает в провинциальный город и знакомится с семьёй Туркиных. Проходят годы, меняя его надежды, привычки и характер."
+      },
+      "cover": null,
+      "expectedSha256": "7107857356003fc3ad61f41ea8b9126afc82dfe3055cf8a03609bf1f613c3f8d"
+    }
+  ]
+}
