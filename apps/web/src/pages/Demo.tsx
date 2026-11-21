@@ -1,6 +1,6 @@
 import { appHref, assetUrl, routeSearch } from '../lib/hosting';
 import { useEffect, useRef, useState } from 'react';
-import { Icon } from '../components/ui';
+import { BrandMark, Icon } from '../components/ui';
 import { verifiedResponse, type BookContent } from '../lib/books';
 import { coverUrl, showcase } from '../lib/showcase';
 import styles from './Demo.module.css';
@@ -41,12 +41,12 @@ export function Demo() {
   {!embedded && <a className={styles.back} href={appHref('/')}>На сайт Lumyboo</a>}
   <div className={`phone ${styles.phone}`}>
    <div className={`screen ${styles.screen}`} ref={screen}>
-    {page !== 'reader' && <header className="topbar"><span className="brand">lumyboo<span>✳</span></span><span className={styles.badge}>Демо</span><button className="circle" aria-label="Переключить тему демо" onClick={() => setDark(!dark)}><Icon name={dark ? 'sun' : 'moon'} /></button></header>}
+    {page !== 'reader' && <header className="topbar"><span className="brand">lumyboo<BrandMark /></span><span className={styles.badge}>Демо</span><button className="circle" aria-label="Переключить тему демо" onClick={() => setDark(!dark)}><Icon name={dark ? 'sun' : 'moon'} /></button></header>}
     {page === 'home' && <>
      <p className="greeting">Твоё время для себя</p><div className="headline"><h1>Между строк —<br /><em>целый мир.</em></h1></div>
      <div className="book-hero"><div className="hero-meta">ТВОЯ СЛЕДУЮЩАЯ ИСТОРИЯ</div><div className="book-object"><img className="cover" src={coverUrl(book.cover)} alt={`Печатное издание: ${book.title}`} /></div><div className="hero-aside"><Icon name="books" /><p>Одна глава.<br />В своём ритме.</p></div><div className="bottom-caption"><div><h3>{book.title}</h3><small>{book.author}</small></div><span className="tag">Полный текст</span></div></div>
      <button className="primary" onClick={() => open(book.id)}>Читать книгу<Icon name="books" /></button>
-     <section className={styles.goal}><span className={styles.goalIcon}>✳</span><div><span className="eyebrow">Маленькая привычка</span><h2>{goal} минут для себя.</h2><p>Выбери удобный ритм чтения.</p></div><select aria-label="Дневная цель в демо" value={goal} onChange={event => setGoal(Number(event.target.value))}>{[5, 10, 20, 30, 60].map(value => <option key={value} value={value}>{value} мин</option>)}</select></section>
+     <section className={styles.goal}><BrandMark className={styles.goalIcon} /><div><span className="eyebrow">Маленькая привычка</span><h2>{goal} минут для себя.</h2><p>Выбери удобный ритм чтения.</p></div><select aria-label="Дневная цель в демо" value={goal} onChange={event => setGoal(Number(event.target.value))}>{[5, 10, 20, 30, 60].map(value => <option key={value} value={value}>{value} мин</option>)}</select></section>
      <div className="section-head"><h3>С чего начнём?</h3><button className="text-button" onClick={() => setPage('catalog')}>Все книги</button></div>
      <div className="book-grid">{showcase.filter(b => b.id !== book.id).slice(0, 2).map(b => <button className="book-card" key={b.id} onClick={() => open(b.id)}><img className="cover" src={coverUrl(b.cover)} alt={`Печатное издание: ${b.title}`} /><h3>{b.title}</h3><p>{b.author}</p></button>)}</div>
     </>}

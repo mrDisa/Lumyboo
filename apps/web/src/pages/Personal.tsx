@@ -1,3 +1,4 @@
+import { staticHost } from '../lib/hosting';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
@@ -26,10 +27,10 @@ export function SettingsPage() {
       <ProfileSection title="Имя" description={settings.name || 'Как к тебе обращаться'} icon="profile">
         <label className="field-label" htmlFor="name">Как к тебе обращаться?</label><input id="name" maxLength={60} value={name} onChange={e => setName(e.target.value)} autoComplete="nickname" /><button className="secondary section" onClick={() => void act(() => setSettings({ name: name.trim() }), 'Имя сохранено')}>Сохранить имя</button>
       </ProfileSection>
-      <ProfileSection title="Хранилище и данные" description="Место в браузере и сохранение в аккаунте" icon="books">
+      <ProfileSection title="Хранилище и данные" description="Книги и данные на устройстве" icon="books">
         <button className="secondary section" onClick={() => void act(async () => { const estimate = await navigator.storage?.estimate?.(); setStorage(estimate ? { usage: estimate.usage ?? 0, quota: estimate.quota ?? 0 } : null); setStorageChecked(true); })}>Проверить хранилище</button>
         <div role="status">{storage ? <div className="storage-result"><strong>{(storage.usage / 1024 / 1024).toFixed(1)} <small>МБ занято</small></strong><progress max={Math.max(storage.quota, storage.usage, 1)} value={storage.usage} aria-label="Использование хранилища сайта" /><p className="reader-note">Доступный объём сайта: {Math.round(storage.quota / 1024 / 1024)} МБ</p></div> : storageChecked && <p className="description section">Браузер не сообщает объём хранилища.</p>}</div>
-        <p className="description section">Полка, места и закладки хранятся в этом браузере. В профиле можно войти, скопировать полку и закладки в аккаунт, сравнить и сохранить место чтения.</p><Link className="text-button" to="/profile">Открыть профиль ↗</Link>
+        <p className="description section">{staticHost ? 'Полка, места, закладки и история чтения хранятся на этом устройстве. Открой профиль, чтобы посмотреть свою полку и время за книгами.' : 'Полка, места и закладки хранятся в этом браузере. В профиле можно войти, скопировать полку и закладки в аккаунт, сравнить и сохранить место чтения.'}</p><Link className="text-button" to="/profile">Открыть профиль ↗</Link>
       </ProfileSection>
       <ProfileSection title="Установить приложение" description="Читать в отдельном окне на телефоне" icon="monitor">
         <ol className="install-steps"><li><strong>Android · Chrome</strong><span>Меню → «Установить приложение».</span></li><li><strong>iPhone · Safari</strong><span>«Поделиться» → «На экран Домой».</span></li></ol>
@@ -45,7 +46,7 @@ export function Profile() {
   const hasAccount = !!(account.session || account.localAccount);
   const data = useLiveQuery(async () => ({ shelf: await db.shelf.toArray() }));
   const guestShelf = <><div className="section-head section"><h3>Гостевая полка</h3><Link to="/catalog" className="text-button">В каталог ↗</Link></div><div className="book-grid">{books.filter(b => data?.shelf.some(s => s.bookId === b.id)).map(b => <BookCard key={b.id} book={b} />)}</div>{!data?.shelf.length && <Empty>Сохрани первую книгу из каталога.</Empty>}</>;
-  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>{hasAccount ? 'Твоё пространство для чтения' : 'Гостевой профиль этого устройства'}</p></div><AccountPanel />
+  return <><div className="profile-identity"><div className="profile-avatar"><Sculpture /></div><h1>{settings.name || 'Твоя история'}</h1><p>{hasAccount ? 'Твоё пространство для чтения' : 'Гостевой профиль этого устройства'}</p></div>{!staticHost && <AccountPanel />}
    {hasAccount ? <div className="profile-sections section"><ProfileSection title="Гостевое чтение" description="Отдельные минуты, цель и полка устройства" icon="profile"><GuestReadingTime />{guestShelf}</ProfileSection></div> : !account.checking && <><GuestReadingTime />{guestShelf}</>}
    <Link to="/settings" className="secondary section">Настроить своё пространство</Link></>;
 

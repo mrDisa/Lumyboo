@@ -299,3 +299,12 @@ a { color:inherit; text-decoration:none; } a:focus-visible { outline:2px solid v
 .local-books-empty > .icon { width:26px; height:26px; }
 .local-books-empty strong { font-size:13px; line-height:1.6; }
 .local-books-empty p { margin:0; font-size:11px; line-height:1.8; color:var(--muted); }
+
+/* The approved sculptural mark is shared by the app, landing and exports. */
+.brand { display:inline-flex; align-items:center; gap:6px; }
+.brand-symbol { display:inline-block; width:1.2em; height:1.2em; object-fit:contain; vertical-align:middle; flex-shrink:0; }
+:root[data-telegram=true] .desktop,:root[data-telegram=true] .notes { display:none; }
+:root[data-telegram=true] .stage { display:block; min-height:100dvh; padding:0; }
+:root[data-telegram=true] .phone { width:100%; height:var(--tg-viewport-stable-height,100dvh); margin:0; border:0; border-radius:0; box-shadow:none; }
+:root[data-telegram=true] .screen { padding-top:calc(24px + var(--lumyboo-safe-top,0px)); padding-left:calc(24px + var(--lumyboo-safe-left,0px)); padding-right:calc(24px + var(--lumyboo-safe-right,0px)); padding-bottom:calc(112px + var(--lumyboo-safe-bottom,0px)); }
+:root[data-telegram=true] .bottom-nav { bottom:calc(14px + var(--lumyboo-safe-bottom,0px)); left:calc(18px + var(--lumyboo-safe-left,0px)); right:calc(18px + var(--lumyboo-safe-right,0px)); }

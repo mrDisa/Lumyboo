@@ -18,10 +18,10 @@ export default defineConfig(({ mode }) => {
   rmSync(staging, { recursive: true, force: true });
   mkdirSync(path.join(staging, 'books'), { recursive: true });
   mkdirSync(path.join(staging, 'assets'), { recursive: true });
-  for (const name of ['icon-192.png', 'icon-512.png', 'licenses']) cpSync(path.join(original, name), path.join(staging, name), { recursive: true });
+  for (const name of ['icon-180.png', 'icon-192.png', 'icon-512.png', 'licenses']) cpSync(path.join(original, name), path.join(staging, name), { recursive: true });
   const covers = new Set(published.map((book: any) => `cover-${book.cover}.jpg`));
   for (const name of readdirSync(path.join(original, 'assets'))) {
-   if (/^font-\d+\.ttf$/.test(name) || name === 'sculpture.svg' || covers.has(name)) cpSync(path.join(original, 'assets', name), path.join(staging, 'assets', name));
+   if (/^font-\d+\.ttf$/.test(name) || ['sculpture.svg', 'brand-mark.svg', 'logo.svg'].includes(name) || covers.has(name)) cpSync(path.join(original, 'assets', name), path.join(staging, 'assets', name));
   }
   for (const book of published) cpSync(path.join(original, book.url.slice(1)), path.join(staging, book.url.slice(1)));
   writeFileSync(path.join(staging, 'publication.json'), JSON.stringify({ type: 'guest-reading-preview', base, books: published.map(({ id, title, author, version, sha256, bytes, url, sourceUrl, coverSourceUrl }: any) => ({ id, title, author, version, sha256, bytes, url, sourceUrl, coverSourceUrl })) }, null, 2) + '\n');
@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
    transform(_source, id) { if (preview && id.endsWith('/src/data/catalog.json')) return JSON.stringify(published); },
   }, VitePWA({
    registerType: 'prompt', includeManifestIcons: false,
-   manifest: { id: base, scope: base, name: 'Lumyboo — время для историй', short_name: 'Lumyboo', lang: 'ru', description: 'Книги, которые остаются с тобой', theme_color: '#fafafa', background_color: '#fafafa', display: 'standalone', start_url: preview ? `${base}#/app` : '/app', icons: [{ src: `${base}icon-192.png`, sizes: '192x192', type: 'image/png' }, { src: `${base}icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' }] },
+   manifest: { id: base, scope: base, name: 'Lumyboo — время для историй', short_name: 'Lumyboo', lang: 'ru', description: 'Книги, которые остаются с тобой', theme_color: '#fafafa', background_color: '#fafafa', display: 'standalone', start_url: preview ? `${base}#/app` : '/app', icons: [{ src: `${base}icon-192.png`, sizes: '192x192', type: 'image/png' }, { src: `${base}icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }] },
    workbox: { clientsClaim: true, skipWaiting: false, inlineWorkboxRuntime: true, dontCacheBustURLsMatching: /assets\/.*-[a-zA-Z0-9_-]{8,}\.(js|css)$/, globPatterns: ['**/*.{js,css,html,ttf,svg,png,jpg}'], navigateFallback: `${base}index.html`, navigateFallbackDenylist: [new RegExp(`^${base}(api|books)/`)], cleanupOutdatedCaches: true },
   })],
   server: { proxy: { '/api': 'http://127.0.0.1:8080' } },

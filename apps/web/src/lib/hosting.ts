@@ -12,3 +12,8 @@ export function readingLocation(value: { pathname: string; hash?: string }) {
  const path = value.hash?.startsWith('#/') ? value.hash.slice(1).split(/[?#]/)[0] : value.pathname;
  return path.startsWith('/read/') || path.startsWith('/account/read/');
 }
+
+export function applicationEntry(search = location.search): '/app' | '/catalog' | '/profile' {
+ const view = new URLSearchParams(search).get('view');
+ return view === 'catalog' ? '/catalog' : view === 'profile' ? '/profile' : '/app';
+}

@@ -1,0 +1,3 @@
+# Telegram uses X-Telegram-Bot-Api-Secret-Token, validated in the handler.
+[functions.telegram-bot]
+verify_jwt = false
