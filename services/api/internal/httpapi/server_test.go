@@ -17,7 +17,9 @@ func TestCatalogSearchAndPagination(t *testing.T) {
 		path                 string
 		status, total, count int
 	}{
-		{"/api/v1/catalog?q=Достоевский", 200, 3, 3},
+		{"/api/v1/catalog?q=Достоевский", 200, 4, 4},
+		{"/api/v1/catalog?q=Гоголь", 200, 4, 4},
+		{"/api/v1/catalog?q=Игрок", 200, 2, 2},
 		{"/api/v1/catalog?q=Толстой", 200, 1, 1},
 		{"/api/v1/catalog?q=Чехов", 200, 1, 1},
 		{"/api/v1/catalog?q=Барышня-крестьянка", 200, 1, 1},

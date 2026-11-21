@@ -122,5 +122,348 @@
       "rightsBasis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
       "sha256": "f7047578863705f7f0ad67ff8e37b9233b7452456b8360cac0aa2cdd0795c0c8"
     }
+  },
+  {
+    "id": "overcoat",
+    "version": "1",
+    "title": "Шинель",
+    "author": "Николай Гоголь",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/980/p.1/index.html",
+      "scope": "work",
+      "edition": "Н. В. Гоголь. Собрание сочинений в девяти томах. Т. 3. М.: Русская книга, 1994"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/980/p.1/index.html",
+        "sha256": "1f5be732fc100909b0cf9c76474f841d6b9f6ff0a41d2c339c4c48149a007939",
+        "page": 1,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.2/index.html",
+        "sha256": "1fc9bf8521b52ec56aa795d9fa2a8dea1707bc0ee9587598fa678c25d313593f",
+        "page": 2,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.3/index.html",
+        "sha256": "44e16f259f55ffcb541b1e2a5eb232a76afbe8bd927a144f4ff9691f76252e66",
+        "page": 3,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.4/index.html",
+        "sha256": "01cd587fa350f575fd76a479eadd4f5618546160bd0779066d70dc4e25b80b31",
+        "page": 4,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.5/index.html",
+        "sha256": "b5da8e0a269f203357631fe0f35f3c9518ad587db5c67e1e76b976905a6c58b0",
+        "page": 5,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.6/index.html",
+        "sha256": "ba6c836a4ff5f13c3cf5e00a1074eb6439c4e5d4caf8d1c98ced35c85b30b7d3",
+        "page": 6,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/980/p.7/index.html",
+        "sha256": "d9fd967815a0a2bff73a656f400448821ea08ceea4ff612d951d8d42d8109218",
+        "page": 7,
+        "totalPages": 7,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "01cfef0348a7d6ef4ecae6bbccd35f1c227687de4bc11ede8a471360302a9071",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в девяти томах. Т. 3. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+    "cover": {
+      "approved": true,
+      "id": 11,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf/page10-500px-%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf",
+      "rightsBasis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "sha256": "860920b2b3604da1ef4918bf524f20f6a677cc13bc21926c05da4b6180481462",
+      "pdfSha256": "7c3d8b3c6e6331571d708ddafa3cc28fe816cc661dddae10c0f79e00818d4c0f",
+      "pdfPage": 10
+    }
+  },
+  {
+    "id": "nose",
+    "version": "1",
+    "title": "Нос",
+    "author": "Николай Гоголь",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/76/p.1/index.html",
+      "scope": "work",
+      "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/76/p.1/index.html",
+        "sha256": "17989bf17ca67d0e6d9617bdb7f190a86f75e8726c8c35ab0da0f37fc95863c6",
+        "page": 1,
+        "totalPages": 3,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/76/p.2/index.html",
+        "sha256": "97d30e67e2c58ddf717ebbdc0405edd49bcf92fca426a92037e95500f5343eac",
+        "page": 2,
+        "totalPages": 3,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/76/p.3/index.html",
+        "sha256": "9173600f9455546c11eb07c1398c91a615dc3a730c4b1b89e56b0c89a7f0fd12",
+        "page": 3,
+        "totalPages": 3,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "eff9545b7c7060bcf0d9c36013a67a93935faffa92f63fefdf6b5f61c51874dc",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+    "cover": {
+      "approved": true,
+      "id": 11,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf/page10-500px-%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf",
+      "rightsBasis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "sha256": "860920b2b3604da1ef4918bf524f20f6a677cc13bc21926c05da4b6180481462",
+      "pdfSha256": "7c3d8b3c6e6331571d708ddafa3cc28fe816cc661dddae10c0f79e00818d4c0f",
+      "pdfPage": 10
+    }
+  },
+  {
+    "id": "nevsky-prospect",
+    "version": "1",
+    "title": "Невский проспект",
+    "author": "Николай Гоголь",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1332/p.1/index.html",
+      "scope": "work",
+      "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3. М.: Русская книга, 1994"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1332/p.1/index.html",
+        "sha256": "ed659d53fbf301f53bce309143ca9257a58c8a87c21c45156fcde4985e122df5",
+        "page": 1,
+        "totalPages": 1,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1332/index.html",
+        "sha256": "ab969d62de2cb9a40d1cfa6d0d13d51b2b32a19514115f8154094347ff7ba1f6",
+        "role": "single-page-index"
+      }
+    ],
+    "textSha256": "0f7738c73da71cd76bc78a2139075597af15f2cb0655e96f5d41bd882215a867",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+    "cover": {
+      "approved": true,
+      "id": 12,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf/page8-500px-%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf",
+      "rightsBasis": "Шмуцтитул печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 1, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 8 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "sha256": "610f982c78e11838d9135e6142274a53587f3a486d77c71421a9cf78e822a028",
+      "pdfSha256": "ae8fb6da0840359345c6f4c68881c2233572d5aba785bb5a91d5e40dddbe1d6f",
+      "pdfPage": 8
+    }
+  },
+  {
+    "id": "portrait",
+    "version": "1",
+    "title": "Портрет",
+    "author": "Николай Гоголь",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/77/p.1/index.html",
+      "scope": "work",
+      "edition": "Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/77/p.1/index.html",
+        "sha256": "7a5e992ae1bfe097b786e179f18be2152090a95a3e46524a959d4b215b15d7f3",
+        "page": 1,
+        "totalPages": 2,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/77/p.2/index.html",
+        "sha256": "49f8cf2db2ad24536364ac082707330d14640ba36c1dea955ab1d923d76df668",
+        "page": 2,
+        "totalPages": 2,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "a3546025f9a2e06d0961d18e2a18a9cfc0181004e093d20c769b7e701f91f544",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+    "cover": {
+      "approved": true,
+      "id": 12,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf/page8-500px-%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf",
+      "rightsBasis": "Шмуцтитул печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 1, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 8 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "sha256": "610f982c78e11838d9135e6142274a53587f3a486d77c71421a9cf78e822a028",
+      "pdfSha256": "ae8fb6da0840359345c6f4c68881c2233572d5aba785bb5a91d5e40dddbe1d6f",
+      "pdfPage": 8
+    }
+  },
+  {
+    "id": "gambler",
+    "version": "1",
+    "title": "Игрок",
+    "author": "Фёдор Достоевский",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/67/p.1/index.html",
+      "scope": "work",
+      "edition": "Ф. М. Достоевский. Собрание сочинений в 15-ти томах. Л., Наука, 1989. Том 4"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/67/p.1/index.html",
+        "sha256": "fdd689c3f79f2472de8d3121430d6fbb2bc250f80911cb3f7d8a4c3e3cc6b10b",
+        "page": 1,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.2/index.html",
+        "sha256": "72826630a7ee643ddc6751dcee886ee22febcc692a4b3d27bddc9780e5f27ba2",
+        "page": 2,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.3/index.html",
+        "sha256": "4f8140b8bcfcd1131bcadc10a84e3c8dec3833817518fbde90ea214d36d9719d",
+        "page": 3,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.4/index.html",
+        "sha256": "88b6f700dc1dd0ed0096403c41c21f257d4a89a3038d495d2990e5196e774f59",
+        "page": 4,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.5/index.html",
+        "sha256": "9327816609a4eafd3de8f198c88c90b2473351e2f49fec64735e69baddff0357",
+        "page": 5,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.6/index.html",
+        "sha256": "83934685ea0b5efb840e348a2f882c8973fb90936603cecfe5e07d7f432ffdd1",
+        "page": 6,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.7/index.html",
+        "sha256": "a6dc60dc87b065fee5e8f38300abf13ab123e8bfcc24e0e0d2c227bfda5a697d",
+        "page": 7,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.8/index.html",
+        "sha256": "c1cf668734f3fe26a252d84ff5e746df8b81c3bd09e17b5ebd7b8763c7e09b2b",
+        "page": 8,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.9/index.html",
+        "sha256": "17a4aad27da702bcf83b01059e2d84fb4f35043829e68dbcbc32b11938a4fbf6",
+        "page": 9,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.10/index.html",
+        "sha256": "1efd58c175c0a8f76136d96a2f1bc0c000aea70d424c179de489cbb65de21f33",
+        "page": 10,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.11/index.html",
+        "sha256": "e1003a4777ec71f2c406bf907b7ac5ecae4b2106a45ca77dcdebd07381423090",
+        "page": 11,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.12/index.html",
+        "sha256": "f52d5ec4038b71529e2aefa4d33c60921a99e1abd53e211847d73dc1f8efd1b6",
+        "page": 12,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.13/index.html",
+        "sha256": "e792b166db252804e77f5c997793c198c9a1b8c766be14ac1f986476588c4daa",
+        "page": 13,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.14/index.html",
+        "sha256": "048934628bffeb7b2a91ca3fe31f84dd5e632e3655b6177fc02907952944ca73",
+        "page": 14,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.15/index.html",
+        "sha256": "95e97d664e709016db850eba8a4be87af50f2c97e6d0a2f9052f1c5eb8d31459",
+        "page": 15,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.16/index.html",
+        "sha256": "481aaa51b693e2bc839efb7b7b5f573ed5be410a12b9927e1cf28082f467815b",
+        "page": 16,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/67/p.17/index.html",
+        "sha256": "f9da3714b438d5e305af46900ba67623b5f00fb117617c54b770abb97a2bf201",
+        "page": 17,
+        "totalPages": 17,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "98df83cd537059e328a4f21bf32ef07e51ffcab26afaae75412c18b0feda6c1d",
+    "rightsBasis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Ф. М. Достоевский. Собрание сочинений в 15-ти томах. Л., Наука, 1989. Том 4. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+    "cover": {
+      "approved": true,
+      "id": 10,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Gambler_%28novel%29_1866_first_edition_cover.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_Gambler_(novel)_1866_first_edition_cover.jpg",
+      "rightsBasis": "Титульный лист русского печатного издания «Игрок», Ф. Стелловский, Санкт-Петербург, 1866. Wikimedia Commons, Public Domain; изображение не изменено. Другое издание, чем источник текста.",
+      "sha256": "2a5fff9cf98bab452ea2fbb6d7e7335dae1840c90290ca3087aa772c7a8279f9"
+    }
   }
 ]
