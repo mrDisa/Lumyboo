@@ -1,5 +1,15 @@
-name: Publish Pages preview
+name: Publish GitHub Pages
 on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "content/batches/**"
+      - "scripts/check-pages.mjs"
+      - "scripts/check-pwa.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 permissions:
   contents: read
