@@ -1,3 +1,4 @@
+import { assetUrl } from './hosting';
 import { db } from './db';
 import type { components } from './api.generated';
 export type Book = components['schemas']['Book'];
@@ -61,19 +62,19 @@ export async function verifiedResponse(book: Book, response: Response, onProgres
 export async function loadBook(book: Book): Promise<BookContent> {
   requireBookStorage();
   const cache = await caches.open(BOOK_CACHE);
-  const cached = await cache.match(book.url);
+  const cached = await cache.match(assetUrl(book.url));
   if (cached) {
     try { return await (await verifiedResponse(book, cached)).json(); }
-    catch { await cache.delete(book.url); await db.downloads.delete(book.id); }
+    catch { await cache.delete(assetUrl(book.url)); await db.downloads.delete(book.id); }
   } else await db.downloads.delete(book.id);
-  return (await verifiedResponse(book, await fetch(book.url))).json();
+  return (await verifiedResponse(book, await fetch(assetUrl(book.url)))).json();
 }
 export async function downloadBook(book: Book, onProgress?: (percent: number) => void) {
   requireBookStorage();
   const cache = await caches.open(BOOK_CACHE);
   try {
-    const response = await verifiedResponse(book, await fetch(book.url), onProgress);
-    await cache.put(book.url, response);
+    const response = await verifiedResponse(book, await fetch(assetUrl(book.url)), onProgress);
+    await cache.put(assetUrl(book.url), response);
     await db.downloads.put({ bookId: book.id, version: book.version, hash: book.sha256, bytes: book.bytes });
   } catch (error) {
     // A retry that fails must not delete an earlier verified copy.
@@ -93,12 +94,12 @@ export async function reconcileDownloads(books: Book[]) {
   const cache = await caches.open(BOOK_CACHE);
   for (const item of await db.downloads.toArray()) {
     const book = books.find(b => b.id === item.bookId);
-    const cached = book && await cache.match(book.url);
+    const cached = book && await cache.match(assetUrl(book.url));
     if (!book || book.version !== item.version || !cached) {
       await db.downloads.delete(item.bookId);
       continue;
     }
     try { await verifiedResponse(book, cached); }
-    catch { await cache.delete(book.url); await db.downloads.delete(item.bookId); }
+    catch { await cache.delete(assetUrl(book.url)); await db.downloads.delete(item.bookId); }
   }
 }

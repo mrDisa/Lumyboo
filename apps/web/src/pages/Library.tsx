@@ -29,11 +29,11 @@ function ReadingEntry({ entry, bookId, label }: { entry: ReturnType<typeof useRe
 }
 export function Home() {
   const { settings } = useApp();
-  const current = books.find(b => b.id === settings.currentBook) ?? books[0];
+  const current = books.find(b => b.id === settings.currentBook) ?? books.find(book => book.id === 'what-men-live-by') ?? books.find(book => book.kind === 'full') ?? books[0];
   const reading = useReadingEntry(current.id);
   const position = reading.checking || reading.unavailable ? undefined : reading.position;
   const continuing = position?.version === current.version;
-  const recommendations = books.filter(book => book.id !== current.id).slice(0, 2);
+  const recommendations = books.filter(book => book.kind === 'full' && book.id !== current.id).slice(0, 2);
   return <>
     <p className={`greeting ${entry.greeting}`}>Твоё время для себя{settings.name ? `, ${settings.name}` : ''}</p>
     <div className={`headline ${entry.headline}`}><h1>Между строк —<br /><em>целый мир.</em></h1><Sculpture className="spark-mini" /></div>

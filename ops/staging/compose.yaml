@@ -37,6 +37,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  telegram:
+    profiles: [telegram]
+    build:
+      context: ../../services/api
+      dockerfile: Dockerfile.telegram
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      MINI_APP_URL: https://${STAGING_HOST:?Set STAGING_HOST}/app
+    networks: [edge]
   postgres:
     image: postgres:17.6-alpine
     restart: unless-stopped

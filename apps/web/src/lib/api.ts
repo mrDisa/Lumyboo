@@ -1,6 +1,8 @@
+import { staticHost } from './hosting';
 import type { paths } from './api.generated';
 type CatalogResponse = paths['/catalog']['get']['responses'][200]['content']['application/json'];
 export async function listBooks(search = '', signal?: AbortSignal): Promise<CatalogResponse> {
+ if (staticHost) throw new Error('Онлайн-каталог недоступен в демоверсии.');
  const response = await fetch(`/api/v1/catalog?q=${encodeURIComponent(search)}&limit=50`, { signal, headers: { Accept: 'application/json' } });
  if (!response.ok) throw new Error(`Каталог недоступен (${response.status}). Попробуй ещё раз.`);
  return response.json();
@@ -20,6 +22,7 @@ function retryAfterSeconds(value: string | null) {
  return Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
 }
 export async function requestJSON<T>(path: string, init: RequestInit = {}): Promise<T> {
+ if (staticHost) throw new ApiError('В этой демоверсии доступно чтение без аккаунта.', 503, 'preview_only');
  const headers = new Headers(init.headers);
  headers.set('Accept', 'application/json');
  if (init.body !== undefined) headers.set('Content-Type', 'application/json');

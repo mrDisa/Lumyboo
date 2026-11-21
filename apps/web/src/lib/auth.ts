@@ -1,3 +1,4 @@
+import { staticHost } from './hosting';
 import { randomId } from './random-id';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,6 +12,7 @@ const eventKey = authChangeKey;
 export function requestCode(email: string) { return requestJSON<LoginChallenge>('/auth/code', { method: 'POST', body: JSON.stringify({ email }) }); }
 export function verifyCode(challengeId: string, code: string) { return requestJSON<AccountSession>('/auth/verify', { method: 'POST', body: JSON.stringify({ challengeId, code }) }); }
 export async function getSession(signal?: AbortSignal): Promise<AccountSession | null> {
+ if (staticHost) return null;
  const generation = authGeneration();
  try {
   const session = await requestJSON<AccountSession>('/auth/session', { signal });

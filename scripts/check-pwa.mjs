@@ -1,6 +1,6 @@
 // Build smoke check: every emitted UI resource must be available to the offline shell.
 import { readFile, readdir, access } from 'node:fs/promises';
-const dist = new URL('../apps/web/dist/', import.meta.url);
+const dist = new URL(`../apps/web/${process.argv[2] ?? 'dist'}/`, import.meta.url);
 const worker = await readFile(new URL('sw.js', dist), 'utf8');
 if (/importScripts\s*\(/.test(worker)) throw Error('The worker must be self-contained for cold startup');
 const cached = [...worker.matchAll(/\burl:"([^"]+)"/g)].map(match => match[1]);

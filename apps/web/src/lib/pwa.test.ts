@@ -85,3 +85,10 @@ it('recovers from an activation request failure without a delayed reload', async
   callbacks.onNeedReload(); expect(reload).not.toHaveBeenCalled();
   await pwa.applyAppUpdate(); expect(reload).toHaveBeenCalledOnce();
 });
+it.each(['#/read/test', '#/account/read/test'])('does not activate an update during Pages reading at %s', async hash => {
+ const pwa = await import('./pwa'); pwa.startOfflineShell(); callbacks.onNeedRefresh();
+ location.pathname = '/Lumyboo/'; location.hash = hash;
+ await pwa.applyAppUpdate(); expect(activate).not.toHaveBeenCalled(); expect(reload).not.toHaveBeenCalled();
+ location.hash = '#/catalog'; const update = pwa.applyAppUpdate(); await vi.waitFor(() => expect(activate).toHaveBeenCalledOnce()); callbacks.onNeedReload(); await update;
+ expect(reload).toHaveBeenCalledOnce();
+});

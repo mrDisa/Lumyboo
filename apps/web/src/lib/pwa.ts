@@ -1,3 +1,4 @@
+import { assetUrl, readingLocation } from './hosting';
 import { registerSW } from 'virtual:pwa-register';
 import { withUpdateProtection } from './update-guard';
 
@@ -33,13 +34,13 @@ export function subscribeOffline(listener: () => void) { listeners.add(listener)
 export async function checkOfflineShell() {
   if (!state.supported) return;
   try {
-    const shell = await caches.match('/index.html', { ignoreSearch: true });
+    const shell = await caches.match(assetUrl('/index.html'), { ignoreSearch: true });
     change({ shellReady: !!navigator.serviceWorker.controller && !!shell });
   } catch { change({ shellReady: false, error: 'Не удалось проверить сохранённое приложение. Проверь разрешение на хранение данных.' }); }
 }
 function reloadIfRequested() {
   // Another tab can activate an update, but it must never interrupt this reader.
-  if (requestedReload && !(location.pathname.startsWith('/read/') || location.pathname.startsWith('/account/read/'))) {
+  if (requestedReload && !readingLocation(location)) {
     requestedReload = false;
     location.reload();
   }
@@ -90,7 +91,7 @@ export async function retryOfflineShell() {
   await checkOfflineShell();
 }
 export async function applyAppUpdate() {
-  if (location.pathname.startsWith('/read/') || location.pathname.startsWith('/account/read/')) return;
+  if (readingLocation(location)) return;
   if (updatePromise) return updatePromise;
   change({ updating: true });
   updatePromise = withUpdateProtection(async () => {
