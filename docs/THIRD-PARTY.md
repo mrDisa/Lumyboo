@@ -37,3 +37,35 @@ Manrope, Literata и Unbounded используются локально, без
 Включены эпиграф с атрибуцией Тургеневу и шесть разделов: «Ночь первая», «Ночь вторая», «История Настеньки», «Ночь третья», «Ночь четвертая», «Утро». Всего 370 абзацев (1/53/60/84/56/94/22). Современный раздел «Комментарии», его примечания, навигация и оформление сайта исключены. Изменения Lumyboo: нормализация пробельных символов, объединение строк эпиграфа с именем автора, представление глав и абзацев в JSON; литературный текст не сокращён. SHA-256 и размер JSON закреплены в manifest. Извлечение воспроизводится командой `python3 scripts/import_white_nights.py SOURCE.html OUTPUT.json` по сохранённому HTML указанной ревизии; импортёр проверяет ревизию и структуру разделов.
 
 `apps/web/public/assets/cover-7.jpg` — печатный титульный лист первого отдельного издания «Белых ночей», СПб., Ф. Стелловский, 1865. Это титульный лист, а не внешняя обложка, и другое издание относительно транскрипции 1988 года. [Карточка Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dostoyevski_-_White_Nights_(1865).jpg), ревизия 1165865115, указывает Public Domain (PD-old-70-expired, Public Domain Mark), автора текста Ф. М. Достоевского, типографию Ф. Стелловского и первоисточник fedordostoevsky.ru. Локальный файл — неизменённый оригинал 450 × 630, 100 901 байт, SHA-256 `9b7de0925d7fa6be97af1c9e5f91dbb210f62789507381d2d13ccf4219e524ca`. Источники текста, лицензии и изображения доступны из карточки книги.
+
+## «Палата № 6» — Антон Чехов
+
+`ward-no-6` v1 — полный русский текст повести (1892), 19 глав и 372 абзаца. Русский оригинал находится в общественном достоянии; автор умер в 1904 году. Статус произведения и библиографические сведения: https://ru.wikisource.org/w/index.php?oldid=5680738 . Источник транскрипции, указанный Викитекой: А. П. Чехов, Полное собрание сочинений и писем в 30 т., Сочинения в 18 т., т. 8, Наука, 1977, с. 72–126. Академический электронный текст: https://feb-web.ru/feb/chekhov/texts/sp0/sp8/sp8-072-.htm?cmd=2 .
+
+Транскрипция Викитеки используется по CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/ . Нормализованный файл `apps/web/public/books/ward-no-6.json` распространяется на тех же условиях. Изменения Lumyboo: убраны навигация, современные редакционные примечания и их указатели; нормализованы пробелы, сохранены авторские абзацы и главы. Латинское `in spe` оставлено в оригинале без редакционного перевода в сноске. Курсив приведён к обычному тексту. История авторов доступна через вкладку «История» каждой главы (`action=history`). Закреплённые версии:
+
+| Глава | Ревизия Викитеки |
+| --- | --- |
+| I | https://ru.wikisource.org/w/index.php?oldid=5646963 |
+| II | https://ru.wikisource.org/w/index.php?oldid=5646638 |
+| III | https://ru.wikisource.org/w/index.php?oldid=5647275 |
+| IV | https://ru.wikisource.org/w/index.php?oldid=5646644 |
+| V | https://ru.wikisource.org/w/index.php?oldid=5647280 |
+| VI | https://ru.wikisource.org/w/index.php?oldid=1460473 |
+| VII | https://ru.wikisource.org/w/index.php?oldid=1460474 |
+| VIII | https://ru.wikisource.org/w/index.php?oldid=5646629 |
+| IX | https://ru.wikisource.org/w/index.php?oldid=1460476 |
+| X | https://ru.wikisource.org/w/index.php?oldid=1460477 |
+| XI | https://ru.wikisource.org/w/index.php?oldid=5646664 |
+| XII | https://ru.wikisource.org/w/index.php?oldid=5646631 |
+| XIII | https://ru.wikisource.org/w/index.php?oldid=5646659 |
+| XIV | https://ru.wikisource.org/w/index.php?oldid=5647273 |
+| XV | https://ru.wikisource.org/w/index.php?oldid=5646675 |
+| XVI | https://ru.wikisource.org/w/index.php?oldid=5646669 |
+| XVII | https://ru.wikisource.org/w/index.php?oldid=5646645 |
+| XVIII | https://ru.wikisource.org/w/index.php?oldid=5646655 |
+| XIX | https://ru.wikisource.org/w/index.php?oldid=5646797 |
+
+Для воспроизведения сохранить HTML каждой ревизии как `I.html` … `XIX.html` в отдельном каталоге и выполнить `python3 scripts/import_ward_no_6.py SOURCE_DIR OUTPUT.json`. Импортёр проверяет номера ревизий, уведомление о лицензии и структуру всех глав. Размер и SHA-256 результата закреплены в manifest.
+
+`apps/web/public/assets/cover-8.jpg` — неизменённый скан печатного титульного листа второго издания «Посредника», Москва, типография И. Д. Сытина, 1894; это другое издание, не источник транскрипции. Источник и обозначение Public Domain: https://commons.wikimedia.org/wiki/File:Salle_6_-_Anton_Tchekhov.jpg ; оригинальный файл: https://upload.wikimedia.org/wikipedia/commons/e/eb/Salle_6_-_Anton_Tchekhov.jpg . Печатная страница и её дата проверяются по самому изображению. SHA-256: `71102e094bba4a5e03c144253de23e9ea0b8df85549a6586e809f107442b4976`.
