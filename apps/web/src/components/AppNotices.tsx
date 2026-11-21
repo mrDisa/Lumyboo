@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Icon } from './ui';
+import { BrandMark, Icon } from './ui';
 import styles from './AppNotices.module.css';
 
 export function NetworkNotice({ online, reading }: { online: boolean; reading: boolean }) {
@@ -26,7 +26,7 @@ export function UpdateNotice({ available, reading, updating, onUpdate }: { avail
     finally { running.current = false; setPending(false); }
   }
   return <section className={styles.update} aria-label="Обновление приложения">
-    <div className={styles.heading}><span className={styles.mark}><Icon name="spark" /></span><div><p className="eyebrow">Lumyboo</p><h2>Новая версия</h2></div></div>
+    <div className={styles.heading}><span className={styles.mark}><BrandMark /></span><div><p className="eyebrow">Lumyboo</p><h2>Новая версия</h2></div></div>
     <p className={styles.caption}>Обнови приложение, когда будет удобно. Экран перезагрузится.</p>
     <button className="primary" disabled={busy} aria-busy={busy} onClick={() => void update()}><span>{busy ? 'Обновляем…' : error ? 'Повторить обновление' : 'Обновить приложение'}</span><Icon name="arrow" /></button>
     {busy && <p className={styles.feedback} role="status">Готовим новую версию…</p>}

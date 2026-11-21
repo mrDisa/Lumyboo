@@ -13,3 +13,5 @@
 .caption { color:var(--muted); font-size:12px; line-height:1.7; margin:16px 0; }
 .update button { gap:12px; text-align:left; }
 .feedback { font-size:12px; line-height:1.7; margin-top:14px; overflow-wrap:anywhere; }
+
+.mark :global(.brand-symbol) { width:30px; height:30px; }

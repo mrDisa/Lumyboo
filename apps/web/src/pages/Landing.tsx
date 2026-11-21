@@ -1,8 +1,9 @@
 import { appHref, routeSearch, staticHost } from '../lib/hosting';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link } from '@tanstack/react-router';
+import { UpdateNotice } from '../components/AppNotices';
 import { BrandMark, Icon } from '../components/ui';
-import { startOfflineShell } from '../lib/pwa';
+import { applyAppUpdate, getOfflineState, subscribeOffline, startOfflineShell } from '../lib/pwa';
 import { installPrompt } from '../lib/install-prompt';
 import { coverUrl, showcase, telegramLink } from '../lib/showcase';
 import styles from './Landing.module.css';
@@ -21,6 +22,7 @@ export function Landing() {
  const [installStatus, setInstallStatus] = useState('');
  const [installing, setInstalling] = useState(false);
  const installed = useSyncExternalStore(installPrompt?.subscribe ?? (() => () => {}), installPrompt?.installed ?? (() => false), () => false);
+ const offline = useSyncExternalStore(subscribeOffline, getOfflineState);
  const demo = useRef<HTMLIFrameElement>(null);
  useEffect(startOfflineShell, []);
  useEffect(() => { const section = routeSearch().get('section'); if (section && ['main', 'about', 'books', 'demo', 'install'].includes(section)) { if (section === 'demo') setDemoStarted(true); document.getElementById(section)?.scrollIntoView(); } }, []);
@@ -51,6 +53,7 @@ export function Landing() {
    <nav id="landing-mobile-nav" className={`${styles.navigation} ${menu ? styles.open : ''}`} aria-label="Навигация по сайту"><a href={staticHost ? appHref('/?section=about') : '#about'} onClick={() => setMenu(false)}>О приложении</a><a href={staticHost ? appHref('/?section=books') : '#books'} onClick={() => setMenu(false)}>Книги</a><a href={staticHost ? appHref('/?section=demo') : '#demo'} onClick={() => { setDemoStarted(true); setMenu(false); }}>Демо</a><a href={staticHost ? appHref('/?section=install') : '#install'} onClick={() => setMenu(false)}>Установить</a></nav>
    <div className={styles.headerActions}><button className={styles.theme} onClick={() => setDark(!dark)} aria-label={dark ? 'Светлая тема сайта' : 'Тёмная тема сайта'}><Icon name={dark ? 'sun' : 'moon'} /></button><Link className={styles.login} to="/app">Открыть приложение</Link><button className={styles.menuButton} aria-expanded={menu} aria-controls="landing-mobile-nav" aria-label="Меню сайта" onClick={() => setMenu(!menu)}><span /><span /></button></div>
   </header>
+  {offline.updateAvailable && <div className={styles.siteUpdate}><UpdateNotice available reading={false} updating={offline.updating} onUpdate={applyAppUpdate} /></div>}
   <main id="main">
    <section className={styles.hero}>
     <div className={styles.heroCopy}><span className={styles.kicker}><BrandMark className={styles.smallStar} /> Хорошие книги. В твоём ритме.</span><h1>Меньше шума.<br />Больше <em>историй.</em></h1><p className={styles.lead}>Открой книгу. Найди несколько минут для себя. Lumyboo поможет сделать чтение частью твоего дня.</p><div className={styles.heroActions}><Link className={styles.button} to="/app">Начать читать<Icon name="books" /></Link><button className={styles.secondary} onClick={() => tryDemo()}>Попробовать демо<Icon name="monitor" /></button></div><p className={styles.heroNote}>Бесплатно · На телефоне и компьютере</p><div className={styles.heroFootnote}><span aria-hidden="true">[ l / b ]</span><p>Твоя следующая история<br />начинается с одной страницы.</p></div></div>

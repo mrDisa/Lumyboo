@@ -6,3 +6,5 @@
 @media(prefers-reduced-motion:reduce){.landing *{scroll-behavior:auto!important;transition:none!important}}
 
 .logo :global(.brand-symbol){width:38px;height:38px}.smallStar{width:23px;height:23px}.posterTop :global(.brand-symbol){filter:invert(1)}.posterTop :global(.brand){gap:7px}.manifestoStar{display:block;width:72px;height:72px;margin:0 auto 28px;filter:invert(1)}:global([data-theme=dark]) .manifestoStar{filter:none}.finalCta>:global(.brand-symbol){display:block;width:64px;height:64px;margin:0 auto 25px}
+
+.siteUpdate{width:min(420px,calc(100% - 40px));margin:24px auto}
