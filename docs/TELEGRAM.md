@@ -39,3 +39,5 @@ docker compose --env-file ops/staging/.env -f ops/staging/compose.yaml \
 Сборка `npm run build:pages -w apps/web` размещается в `/Lumyboo/` и использует hash-маршруты. Для кнопки Telegram задайте `MINI_APP_URL=https://mrdisa.github.io/Lumyboo/?app=1`: входная страница направит в `#/app`. Сначала необходимо опубликовать и проверить этот адрес.
 
 После публикации можно один раз запустить `go run ./cmd/telegram-bot --configure-only` с секретом из окружения. Кнопка меню сохраняется у Telegram и открывает статическое приложение без постоянно работающего процесса. Ответы на `/start` и `/help` требуют работающего poller; на GitHub Pages он не запускается. Main Mini App в профиле бота настраивается отдельно через BotFather. В Pages доступны только гостевые данные на устройстве; вход по email и челленджи отключены.
+
+Текущий публичный адрес: `https://mrdisa.github.io/Lumyboo/?app=1`. У `@lumyboo_bot` сохранена кнопка меню «Читать» с этим URL. Постоянный poller не развёрнут: автоматические ответы `/start`/`/help` пока не работают. Запуск самого Telegram WebView и установка на физических устройствах требуют отдельной приёмки.
