@@ -8,6 +8,7 @@ Preparation never edits the application. Publication requires explicit text,
 rights and printed-cover records in the selection; blocked books stay private.
 """
 import argparse
+from datetime import date
 import hashlib
 import html
 from html.parser import HTMLParser
@@ -17,7 +18,7 @@ import re
 import subprocess
 import tempfile
 import time
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlencode, urljoin, urlparse
 from xml.etree.ElementTree import ParseError
 from zipfile import BadZipFile
 
@@ -34,6 +35,19 @@ def digest(raw):
 
 def json_bytes(value):
     return (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+
+
+def atomic_write(path, raw):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as temporary:
+        temporary_path = Path(temporary.name)
+        try:
+            temporary.write(raw)
+            temporary.close()
+            temporary_path.replace(path)
+        finally:
+            temporary_path.unlink(missing_ok=True)
 
 
 class Node:
@@ -159,7 +173,7 @@ def validate_content(content, book):
 
 def selection(path):
     value = json.loads(Path(path).read_text())
-    if value.get('schemaVersion') != 1 or not ID.fullmatch(value['id']):
+    if value.get('schemaVersion') not in (1, 2) or not ID.fullmatch(value['id']):
         raise ValueError('Unsupported selection')
     seen = set()
     for book in value['books']:
@@ -177,6 +191,7 @@ class Downloader:
         self.cache, self.offline = Path(cache), offline
         self.cache.mkdir(parents=True, exist_ok=True)
         self.last_request = 0
+        self.stats = {'downloads': 0, 'cacheHits': 0, 'downloadBytes': 0}
 
     def get(self, url, limit=8 * 1024 * 1024):
         parsed = urlparse(url)
@@ -196,11 +211,19 @@ class Downloader:
                 raw = Path(temporary.name).read_bytes()
                 if len(raw) > limit:
                     raise ValueError('Source exceeds size limit')
-                path.write_bytes(raw)
+                atomic_write(path, raw)
+                self.stats['downloads'] += 1
+                self.stats['downloadBytes'] += len(raw)
+        else:
+            self.stats['cacheHits'] += 1
         raw = path.read_bytes()
         if len(raw) > limit:
             raise ValueError('Cached source exceeds size limit')
         return raw
+
+    def cached_digest(self, url):
+        path = self.cache / digest(url.encode())
+        return digest(path.read_bytes()) if path.is_file() else None
 
 
 def import_book(book, downloader):
@@ -302,36 +325,174 @@ def blockers(book):
     return missing
 
 
-def prepare(value, output, downloader):
+def load_registry(path):
+    value = json.loads(Path(path).read_text())
+    if value.get('schemaVersion') != 1 or not isinstance(value.get('records'), dict):
+        raise ValueError('Invalid rights registry')
+    return value
+
+
+def fingerprint(value):
+    return digest(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode())
+
+
+def clearance_blockers(value, book, registry=None):
+    """No copyright arithmetic or source-site badge can create an approval."""
+    missing = blockers(book)
+    if value.get('schemaVersion') != 2:
+        return missing
+    territories = value.get('targetTerritories')
+    if not isinstance(territories, list) or not territories or any(not isinstance(t, str) or not t for t in territories):
+        return missing + ['target-territories']
+    refs = book.get('clearance', {})
+    records = (registry or {}).get('records', {})
+
+    def approved(key, kind):
+        record = records.get(refs.get(key), {})
+        try:
+            reviewed = date.fromisoformat(record.get('reviewedAt', '')) <= date.today()
+        except (ValueError, TypeError):
+            reviewed = False
+        evidence = record.get('evidence', [])
+        valid = (record.get('status') == 'approved' and record.get('kind') == kind
+                 and isinstance(record.get('basis'), str) and record['basis'].strip()
+                 and isinstance(record.get('reviewer'), str) and record['reviewer'].strip() and reviewed
+                 and isinstance(record.get('territories'), list) and set(territories) <= set(record['territories'])
+                 and isinstance(evidence, list) and bool(evidence)
+                 and all(isinstance(u, str) and u.startswith('https://') for u in evidence))
+        if not valid:
+            missing.append('rights-' + key)
+        return record if valid else {}
+
+    original = approved('original', 'original')
+    if original and original.get('author') != book['author']:
+        missing.append('rights-original-author')
+    # Missing and explicitly absent translations are different states.
+    if 'translation' not in refs:
+        missing.append('rights-translation-unknown')
+    elif refs['translation'] is not None:
+        approved('translation', 'translation')
+    edition = approved('edition', 'edition')
+    if edition and (edition.get('sourceFingerprint') != fingerprint(book['source'])
+                    or edition.get('textSha256') != book.get('expectedSha256')
+                    or not re.fullmatch(r'[a-f0-9]{64}', book.get('expectedSha256', ''))
+                    or edition.get('contributors') != [refs.get('original'), refs.get('translation')]):
+        missing.append('rights-edition-changed')
+    cover = approved('cover', 'printed-cover')
+    if cover and cover.get('coverFingerprint') != fingerprint(book.get('cover')):
+        missing.append('rights-cover-changed')
+    if not re.fullmatch(r'[a-f0-9]{64}', book.get('expectedSha256', '')):
+        missing.append('text-unpinned')
+    return list(dict.fromkeys(missing))
+
+
+def excluded(book, registry):
+    records = (registry or {}).get('records', {})
+    return any(records.get(ref, {}).get('status') == 'excluded'
+               for ref in book.get('clearance', {}).values() if isinstance(ref, str))
+
+
+def reviewed_cover_bytes(cover, downloader, root=ROOT):
+    cover_raw = downloader.get(cover['url'])
+    if digest(cover_raw) != cover['sha256']:
+        raise ValueError('Cover must match the reviewed source hash')
+    # Preserve the source hash when a printed PNG page needs JPEG encoding.
+    # The reviewed derivative is tracked separately; arbitrary local paths
+    # and an unpinned conversion must never enter the publication.
+    if cover.get('jpeg'):
+        jpeg = cover['jpeg']
+        if (not cover_raw.startswith(b'\x89PNG\r\n\x1a\n')
+                or not re.fullmatch(r'content/covers/[a-z0-9-]+\.jpg', jpeg.get('file', ''))
+                or not re.fullmatch(r'[a-f0-9]{64}', jpeg.get('sha256', ''))
+                or not jpeg.get('transformation', '').strip()):
+            raise ValueError('Invalid reviewed JPEG derivative')
+        derivative = root / jpeg['file']
+        if not derivative.resolve().is_relative_to((root / 'content/covers').resolve()):
+            raise ValueError('Invalid reviewed JPEG derivative path')
+        cover_raw = derivative.read_bytes()
+        if digest(cover_raw) != jpeg['sha256']:
+            raise ValueError('Reviewed JPEG derivative changed')
+    if not cover_raw.startswith(b'\xff\xd8\xff'):
+        raise ValueError('Cover must match the reviewed JPEG hash')
+    return cover_raw
+
+
+def prepare(value, output, downloader, registry=None, resume=True):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
+    checkpoints = output / '.checkpoints'
+    checkpoints.mkdir(exist_ok=True)
+    started = time.monotonic()
     rows = []
+    parser_hash = digest(Path(__file__).read_bytes())
     for book in value['books']:
-        row = {'id': book['id'], 'title': book['title'], 'author': book['author'], 'blockers': blockers(book)}
+        row = {'id': book['id'], 'title': book['title'], 'author': book['author'],
+               'blockers': clearance_blockers(value, book, registry), 'reused': False}
+        if excluded(book, registry):
+            row.update(status='excluded', outcome='excluded')
+            rows.append(row)
+            print(f'excluded: {book["id"]}', flush=True)
+            continue
+        signature = fingerprint({key: book.get(key) for key in ('id', 'title', 'version', 'source', 'expectedSha256')})
+        checkpoint = checkpoints / f'{book["id"]}.json'
         try:
-            content, sources = import_book(book, downloader)
-            raw = json_bytes(content)
-            (output / f'{book["id"]}.json').write_bytes(raw)
-            row.update(status='prepared', sha256=digest(raw), bytes=len(raw), sources=sources,
-                       chapters=len(content['chapters']), paragraphs=sum(len(c['paragraphs']) for c in content['chapters']))
+            previous = None
+            if resume and checkpoint.is_file() and hasattr(downloader, 'cached_digest'):
+                try:
+                    saved = json.loads(checkpoint.read_text())
+                    raw = (output / f'{book["id"]}.json').read_bytes()
+                    if (saved['signature'] == signature and saved['parserHash'] == parser_hash
+                            and digest(raw) == saved['row']['sha256'] and len(raw) == saved['row']['bytes']
+                            and all(downloader.cached_digest(r['url']) == r['sha256'] for r in saved['row']['sources'])):
+                        validate_content(json.loads(raw), book)
+                        previous = saved['row']
+                except (ValueError, OSError, KeyError, TypeError):
+                    pass
+            if previous:
+                row.update({k: previous[k] for k in ('sha256', 'bytes', 'sources', 'chapters', 'paragraphs')})
+                row.update(status='prepared', reused=True)
+            else:
+                content, sources = import_book(book, downloader)
+                raw = json_bytes(content)
+                atomic_write(output / f'{book["id"]}.json', raw)
+                row.update(status='prepared', sha256=digest(raw), bytes=len(raw), sources=sources,
+                           chapters=len(content['chapters']), paragraphs=sum(len(c['paragraphs']) for c in content['chapters']))
+            atomic_write(checkpoint, json_bytes({'signature': signature, 'parserHash': parser_hash, 'row': row}))
         except (ValueError, OSError, KeyError, ParseError, BadZipFile, subprocess.SubprocessError) as error:
             row.update(status='failed', error=str(error))
+        if value.get('schemaVersion') == 2:
+            row['coverStatus'] = 'missing'
+            if row['status'] == 'prepared' and (book.get('cover') or {}).get('approved') is True:
+                try:
+                    cover_raw = reviewed_cover_bytes(book['cover'], downloader)
+                    atomic_write(output / 'covers' / f'{book["id"]}.jpg', cover_raw)
+                    row.update(coverStatus='prepared', coverSha256=digest(cover_raw))
+                except (ValueError, OSError, KeyError, subprocess.SubprocessError) as error:
+                    row.update(coverStatus='failed', coverError=str(error))
+                    row['blockers'].append('cover-download')
+        row['outcome'] = 'ready' if row['status'] == 'prepared' and not row['blockers'] else 'review'
         rows.append(row)
-        print(f'{row["status"]}: {book["id"]}', flush=True)
-    report = {'schemaVersion': 1, 'batch': value['id'], 'books': rows}
-    (output / 'report.json').write_bytes(json_bytes(report))
+        print(f'{row["status"]}: {book["id"]}' + (' (reused)' if row['reused'] else ''), flush=True)
+    summary = {key: sum(r['outcome'] == key for r in rows) for key in ('ready', 'review', 'excluded')}
+    summary.update(prepared=sum(r['status'] == 'prepared' for r in rows),
+                   failed=sum(r['status'] == 'failed' for r in rows), reused=sum(r['reused'] for r in rows))
+    report = {'schemaVersion': 2, 'batch': value['id'], 'targetTerritories': value.get('targetTerritories', []),
+              'elapsedSeconds': round(time.monotonic() - started, 3), 'summary': summary,
+              'network': dict(getattr(downloader, 'stats', {})), 'books': rows}
+    atomic_write(output / 'report.json', json_bytes(report))
     body = ''.join('<tr>' + ''.join(f'<td>{html.escape(str(cell))}</td>' for cell in
-                   [r['title'], r['author'], r['status'], r.get('chapters', '—'), r.get('paragraphs', '—'), ', '.join(r['blockers']), r.get('error', '')]) + '</tr>' for r in rows)
+                   [r['title'], r['author'], r['outcome'], r['status'], r.get('chapters', '—'), ', '.join(r['blockers']), r.get('error', r.get('coverError', ''))]) + '</tr>' for r in rows)
     (output / 'report.html').write_text('<!doctype html><html lang="ru"><meta charset="utf-8"><title>Подготовка книг</title>'
         '<style>body{font:16px system-ui;margin:32px;line-height:1.5}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ddd;padding:10px;text-align:left}th{background:#eee}</style>'
-        f'<h1>Подготовка партии {html.escape(value["id"])}</h1><p>Подготовлено {sum(r["status"] == "prepared" for r in rows)} из {len(rows)}. '
-        'Этот отчёт фиксирует подготовку; команда prepare не публикует книги. Для допуска заполните проверку текста, основания использования, описание и сведения о печатной обложке в подборке.</p>'
-        '<table><thead><tr><th>Книга</th><th>Автор</th><th>Результат</th><th>Разделы</th><th>Абзацы</th><th>Что проверить</th><th>Ошибка</th></tr></thead>'
+        f'<h1>Подготовка партии {html.escape(value["id"])}</h1><p>Готовы: {summary["ready"]}; требуют проверки: {summary["review"]}; исключены: {summary["excluded"]}. '
+        f'Тексты подготовлены: {summary["prepared"]}/{len(rows)}, повторно использованы: {summary["reused"]}. '
+        'Подготовка не публикует книги. Печатная обложка обязательна; подтверждение автора не заменяет проверку перевода и конкретного издания.</p>'
+        '<table><thead><tr><th>Книга</th><th>Автор</th><th>Допуск</th><th>Текст</th><th>Разделы</th><th>Что проверить</th><th>Ошибка</th></tr></thead>'
         f'<tbody>{body}</tbody></table></html>')
     return report
 
 
-def publish(value, bundle, migration, downloader, root=ROOT):
+def publish(value, bundle, migration, downloader, root=ROOT, registry=None):
     """Preflight every eligible book before editing any repository file."""
     if not re.fullmatch(r'\d{3}_[a-z0-9_]+', migration):
         raise ValueError('Invalid migration name')
@@ -349,7 +510,7 @@ def publish(value, bundle, migration, downloader, root=ROOT):
     files, additions = {}, []
     cover_hashes = {}
     for book in value['books']:
-        if blockers(book):
+        if clearance_blockers(value, book, registry) or excluded(book, registry):
             continue
         row = rows.get(book['id'], {})
         if row.get('status') != 'prepared':
@@ -364,27 +525,7 @@ def publish(value, bundle, migration, downloader, root=ROOT):
         if json_bytes(original) != raw or sources != row['sources']:
             raise ValueError(f'Source selection changed: {book["id"]}')
         cover = book['cover']
-        cover_raw = downloader.get(cover['url'])
-        if digest(cover_raw) != cover['sha256']:
-            raise ValueError('Cover must match the reviewed source hash')
-        # Preserve the source hash when a printed PNG page needs JPEG encoding.
-        # The reviewed derivative is tracked separately; arbitrary local paths
-        # and an unpinned conversion must never enter the publication.
-        if cover.get('jpeg'):
-            jpeg = cover['jpeg']
-            if (not cover_raw.startswith(b'\x89PNG\r\n\x1a\n')
-                    or not re.fullmatch(r'content/covers/[a-z0-9-]+\.jpg', jpeg.get('file', ''))
-                    or not re.fullmatch(r'[a-f0-9]{64}', jpeg.get('sha256', ''))
-                    or not jpeg.get('transformation', '').strip()):
-                raise ValueError('Invalid reviewed JPEG derivative')
-            derivative = root / jpeg['file']
-            if not derivative.resolve().is_relative_to((root / 'content/covers').resolve()):
-                raise ValueError('Invalid reviewed JPEG derivative path')
-            cover_raw = derivative.read_bytes()
-            if digest(cover_raw) != jpeg['sha256']:
-                raise ValueError('Reviewed JPEG derivative changed')
-        if not cover_raw.startswith(b'\xff\xd8\xff'):
-            raise ValueError('Cover must match the reviewed JPEG hash')
+        cover_raw = reviewed_cover_bytes(cover, downloader, root)
         cover_path = root / f'apps/web/public/assets/cover-{cover["id"]}.jpg'
         if (cover_path in cover_hashes and cover_hashes[cover_path] != digest(cover_raw)) or (cover_path.exists() and cover_path.read_bytes() != cover_raw):
             raise ValueError('Cover number collision')
@@ -453,30 +594,128 @@ def publish(value, bundle, migration, downloader, root=ROOT):
     return len(additions)
 
 
+def cover_search_url(book):
+    return 'https://commons.wikimedia.org/w/api.php?' + urlencode({
+        'action': 'query', 'format': 'json', 'generator': 'search', 'gsrnamespace': 6,
+        'gsrsearch': f'"{book["title"]}" {book["author"]}', 'gsrlimit': 5,
+        'prop': 'imageinfo', 'iiprop': 'url|mime|sha1|extmetadata', 'iiurlwidth': 500,
+    })
+
+
+def discover_covers(value, output, downloader):
+    """Suggestions only: a search hit and license label never approve a cover."""
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for book in value['books']:
+        row = {'id': book['id'], 'title': book['title'], 'approved': False, 'candidates': []}
+        cover = book.get('cover') or {}
+        if cover.get('approved') is True:
+            row.update(status='already-selected', sourceUrl=cover.get('sourceUrl'))
+        else:
+            row['queryUrl'] = cover_search_url(book)
+            try:
+                response = json.loads(downloader.get(row['queryUrl']))
+                if 'error' in response:
+                    raise ValueError(str(response['error']))
+                for page in response.get('query', {}).get('pages', {}).values():
+                    info = (page.get('imageinfo') or [{}])[0]
+                    if info.get('mime') not in ('image/jpeg', 'image/png', 'image/vnd.djvu', 'application/pdf'):
+                        continue
+                    metadata = info.get('extmetadata', {})
+                    row['candidates'].append({'title': page.get('title'), 'sourceUrl': info.get('descriptionurl'),
+                        'url': info.get('url'), 'previewUrl': info.get('thumburl'), 'mime': info.get('mime'),
+                        'sourceSha1': info.get('sha1'),
+                        'licenseClaim': metadata.get('LicenseShortName', {}).get('value', ''),
+                        'licenseUrl': metadata.get('LicenseUrl', {}).get('value', ''),
+                        'printedEditionVerified': False, 'rightsApproved': False})
+                row['status'] = 'candidates' if row['candidates'] else 'not-found'
+            except (ValueError, OSError, KeyError, subprocess.SubprocessError) as error:
+                row.update(status='failed', error=str(error))
+        rows.append(row)
+    report = {'batch': value['id'], 'scope': 'Unreviewed printed-cover search suggestions; not publication permission', 'books': rows}
+    (output / 'cover-candidates.json').write_bytes(json_bytes(report))
+    return report
+
+
+def approved_catalog(root=ROOT):
+    """One clearance implementation for publication and the Pages payload."""
+    root = Path(root)
+    catalog = json.loads((root / 'apps/web/src/data/catalog.json').read_text())
+    decisions = {}
+    registry_path = root / 'content/rights-registry.json'
+    registry = load_registry(registry_path) if registry_path.exists() else None
+    for path in sorted((root / 'content/batches').glob('*.json')):
+        value = selection(path)
+        for book in value['books']:
+            # Version 2 decisions override legacy flags, regardless of file order.
+            previous = decisions.get(book['id'])
+            if previous and previous[0].get('schemaVersion') == 2 and value['schemaVersion'] == 1:
+                continue
+            decisions[book['id']] = (value, book)
+    approved = []
+    for item in catalog:
+        decision = decisions.get(item['id'])
+        if not decision:
+            # The two individually reviewed releases predate batch manifests.
+            if item['id'] in ('what-men-live-by', 'ward-no-6') and item.get('kind') == 'full':
+                approved.append(item)
+            continue
+        value, book = decision
+        if item.get('kind') != 'full' or clearance_blockers(value, book, registry) or excluded(book, registry):
+            continue
+        if any(item.get(k) != book.get(k) for k in ('title', 'author', 'version')):
+            raise ValueError(f'Published metadata differs from its review: {item["id"]}')
+        if book.get('expectedSha256') != item['sha256']:
+            raise ValueError(f'Published text differs from its reviewed edition: {item["id"]}')
+        if value['schemaVersion'] == 2:
+            cover = book['cover']
+            expected_cover = cover.get('jpeg', {}).get('sha256') or cover['sha256']
+            path = root / f'apps/web/public/assets/cover-{item["cover"]}.jpg'
+            if item['cover'] != cover['id'] or digest(path.read_bytes()) != expected_cover:
+                raise ValueError(f'Published cover differs from its review: {item["id"]}')
+        approved.append(item)
+    return approved
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
-    for command in ('prepare', 'publish'):
+    commands.add_parser('manifest', help='Emit the reviewed Pages catalog without downloading files')
+    for command in ('prepare', 'publish', 'covers'):
         sub = commands.add_parser(command)
         sub.add_argument('selection', type=Path)
         sub.add_argument('--cache', type=Path, default=ROOT / '.content-staging/cache')
         sub.add_argument('--offline', action='store_true')
-        sub.add_argument('--output' if command == 'prepare' else '--bundle', type=Path, required=True)
+        sub.add_argument('--rights-registry', type=Path)
+        if command == 'prepare':
+            sub.add_argument('--no-resume', action='store_true')
+        sub.add_argument('--bundle' if command == 'publish' else '--output', type=Path, required=True)
         if command == 'publish':
             sub.add_argument('--migration', required=True)
     args = parser.parse_args()
+    if args.command == 'manifest':
+        print(json.dumps(approved_catalog(), ensure_ascii=False))
+        return
     value = selection(args.selection)
-    destination = (args.output if args.command == 'prepare' else args.bundle).resolve()
+    destination = (args.bundle if args.command == 'publish' else args.output).resolve()
     public = (ROOT / 'apps/web/public').resolve()
     if destination == public or public in destination.parents or args.cache.resolve() == public or public in args.cache.resolve().parents:
         parser.error('Staging and cache must be outside public/')
+    if args.command != 'covers' and value.get('schemaVersion') == 2 and not args.rights_registry:
+        parser.error('Schema 2 requires --rights-registry; legacy approval flags are insufficient')
+    registry = load_registry(args.rights_registry) if args.rights_registry else None
     downloader = Downloader(args.cache, args.offline)
+    if args.command == 'covers':
+        report = discover_covers(value, destination, downloader)
+        print(f'Cover search report: {destination / "cover-candidates.json"}')
+        raise SystemExit(1 if any(r['status'] == 'failed' for r in report['books']) else 0)
     if args.command == 'prepare':
-        report = prepare(value, destination, downloader)
-        failures = sum(row['status'] == 'failed' for row in report['books'])
-        print(f'Prepared {len(report["books"]) - failures}/{len(report["books"])}. Report: {destination / "report.html"}')
+        report = prepare(value, destination, downloader, registry, resume=not args.no_resume)
+        failures = sum(row['status'] == 'failed' or row.get('coverStatus') == 'failed' for row in report['books'])
+        print(f'Prepared {report["summary"]["prepared"]}/{len(report["books"])}. Report: {destination / "report.html"}')
         raise SystemExit(1 if failures else 0)
-    print(f'Published {publish(value, destination, args.migration, downloader)} new editions; unreviewed books were excluded.')
+    print(f'Published {publish(value, destination, args.migration, downloader, registry=registry)} new editions; unreviewed books were excluded.')
 
 
 if __name__ == '__main__':

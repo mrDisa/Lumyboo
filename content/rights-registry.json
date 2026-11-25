@@ -1,0 +1,1672 @@
+{
+  "schemaVersion": 1,
+  "scope": "Explicit scoped review decisions; death years and source-site labels do not grant permission. Legacy decisions preserve prior approvals only.",
+  "records": {
+    "author-1": {
+      "kind": "original",
+      "author": "Александр Пушкин",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/89/p.5/index.html",
+        "https://ilibrary.ru/text/89/p.3/index.html",
+        "https://ilibrary.ru/text/89/p.2/index.html",
+        "https://ilibrary.ru/text/89/p.6/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-2": {
+      "kind": "original",
+      "author": "Николай Гоголь",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/980/p.1/index.html",
+        "https://ilibrary.ru/text/76/p.1/index.html",
+        "https://ilibrary.ru/text/1332/p.1/index.html",
+        "https://ilibrary.ru/text/77/p.1/index.html",
+        "https://ilibrary.ru/text/14/p.1/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-3": {
+      "kind": "original",
+      "author": "Михаил Лермонтов",
+      "status": "pending",
+      "basis": "Требуется проверка основания использования оригинальных произведений.",
+      "evidence": [],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null
+    },
+    "author-4": {
+      "kind": "original",
+      "author": "Иван Тургенев",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/1097/p.1/index.html",
+        "https://ilibrary.ru/text/1335/p.1/index.html",
+        "https://ilibrary.ru/text/1250/p.1/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-5": {
+      "kind": "original",
+      "author": "Лев Толстой",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/7/p.1/index.html",
+        "https://ilibrary.ru/text/1009/p.1/index.html",
+        "https://ilibrary.ru/text/1005/p.1/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-6": {
+      "kind": "original",
+      "author": "Фёдор Достоевский",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/67/p.1/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-7": {
+      "kind": "original",
+      "author": "Антон Чехов",
+      "status": "approved",
+      "basis": "Сохранён ранее принятый допуск русского оригинала для проверенных изданий classics-01; не распространяется автоматически на другие переводы, редакционные материалы и посмертные публикации.",
+      "evidence": [
+        "https://ilibrary.ru/text/976/p.1/index.html",
+        "https://ilibrary.ru/text/437/p.1/index.html"
+      ],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25"
+    },
+    "author-8": {
+      "kind": "original",
+      "author": "Иван Гончаров",
+      "status": "pending",
+      "basis": "Требуется проверка основания использования оригинальных произведений.",
+      "evidence": [],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null
+    },
+    "author-9": {
+      "kind": "original",
+      "author": "Николай Лесков",
+      "status": "pending",
+      "basis": "Требуется проверка основания использования оригинальных произведений.",
+      "evidence": [],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null
+    },
+    "author-10": {
+      "kind": "original",
+      "author": "Александр Куприн",
+      "status": "pending",
+      "basis": "Требуется проверка основания использования оригинальных произведений.",
+      "evidence": [],
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null
+    },
+    "edition-classic-1": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "6581ff5d3c788af41492f9377997237af6c3d794860c4b34ee33c5da1d4e8c10",
+      "textSha256": null,
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-classic-1": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-2": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "05755a9d2aa61cbe06220aa0f15e7ca19587446dd283c997f54b86bcd19364a4",
+      "textSha256": null,
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-classic-2": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-queen-of-spades": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "dee3ac11d742432813947199cdb0b576e57ff9cb10eda9ab4429f2c5d0710ae9",
+      "textSha256": "ef4f8f043c4bd0ca00f87664f1f2b0367c77e9e2d06068a48dad2115c546522a",
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-queen-of-spades": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-stationmaster": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+      "evidence": [
+        "https://ilibrary.ru/text/89/p.5/index.html"
+      ],
+      "sourceFingerprint": "b78fc44af05d90d915fc3adf86b47ff3fe5ad5020222f35e0849cf91f2918e96",
+      "textSha256": "b557173e3db9abcd541eab7360bcbc5e6802d8369ef18a3ad366ad80aea677fb",
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-stationmaster": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg"
+      ],
+      "coverFingerprint": "b47b6fcd8f3e1c594b801585f603b8302cac7ef5e62b1de4fc8ace94743db898"
+    },
+    "edition-blizzard": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+      "evidence": [
+        "https://ilibrary.ru/text/89/p.3/index.html"
+      ],
+      "sourceFingerprint": "83f8fc96544cae742635366094d02e244f70e8b173402a4166d26e0ec72f7ca4",
+      "textSha256": "0eadcc48c60c7f907fe69d34beec650e58b4a438be64591dc5062886800c90eb",
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-blizzard": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg"
+      ],
+      "coverFingerprint": "b47b6fcd8f3e1c594b801585f603b8302cac7ef5e62b1de4fc8ace94743db898"
+    },
+    "edition-shot": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+      "evidence": [
+        "https://ilibrary.ru/text/89/p.2/index.html"
+      ],
+      "sourceFingerprint": "839e24b176b0b53a904d3dd77f54ccf3167795b539b7a31d645adc03abd6750c",
+      "textSha256": "86cd7d8826e8711d16311e13ee7e404a37801bc9c92a4de431c24a2368473e2c",
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-shot": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg"
+      ],
+      "coverFingerprint": "b47b6fcd8f3e1c594b801585f603b8302cac7ef5e62b1de4fc8ace94743db898"
+    },
+    "edition-squires-daughter": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова, по собранию сочинений А. С. Пушкина в 6 т., т. 4 (Правда, 1969). Страница источника указывает свободное использование произведения. Навигация, оформление сайта и сноски не включены; пробелы нормализованы, курсив приведён к обычному тексту, стихотворные строки эпиграфов соединены пробелами.",
+      "evidence": [
+        "https://ilibrary.ru/text/89/p.6/index.html"
+      ],
+      "sourceFingerprint": "6c1ecfd55d383bb84e2345e05c63d26bdd6ccae0c5804b0aa447a2296f6ef289",
+      "textSha256": "a37900c367955db798f9555243346091133d71f7481bc8300d060587f9125084",
+      "contributors": [
+        "author-1",
+        null
+      ]
+    },
+    "cover-squires-daughter": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист сборника «Повести покойного Ивана Петровича Белкина», Санкт-Петербург, 1831. Wikimedia Commons, Public Domain. Другое издание, чем источник текста; изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%B8_%D0%91%D0%B5%D0%BB%D0%BA%D0%B8%D0%BD%D0%B0.jpg"
+      ],
+      "coverFingerprint": "b47b6fcd8f3e1c594b801585f603b8302cac7ef5e62b1de4fc8ace94743db898"
+    },
+    "edition-overcoat": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в девяти томах. Т. 3. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+      "evidence": [
+        "https://ilibrary.ru/text/980/p.1/index.html"
+      ],
+      "sourceFingerprint": "f75a31cfd49c789a192e432edd492a0c4c3dc8cee73bb9cfd4c59a7503dd2639",
+      "textSha256": "01cfef0348a7d6ef4ecae6bbccd35f1c227687de4bc11ede8a471360302a9071",
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-overcoat": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf"
+      ],
+      "coverFingerprint": "5f5c9a2f85ce32bbcf18050c808db1d4b07b1b713d64ea3d98c97946cd89931c"
+    },
+    "edition-nose": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+      "evidence": [
+        "https://ilibrary.ru/text/76/p.1/index.html"
+      ],
+      "sourceFingerprint": "8c04b666cd8a5286b735302a951c26a21583d57da20133514c93c8bd7623947a",
+      "textSha256": "eff9545b7c7060bcf0d9c36013a67a93935faffa92f63fefdf6b5f61c51874dc",
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-nose": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf"
+      ],
+      "coverFingerprint": "5f5c9a2f85ce32bbcf18050c808db1d4b07b1b713d64ea3d98c97946cd89931c"
+    },
+    "edition-nevsky-prospect": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+      "evidence": [
+        "https://ilibrary.ru/text/1332/p.1/index.html"
+      ],
+      "sourceFingerprint": "79d18b0973c197b720b6971c281c1deff82f7a4b11c2ef1667572b0d865193b6",
+      "textSha256": "0f7738c73da71cd76bc78a2139075597af15f2cb0655e96f5d41bd882215a867",
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-nevsky-prospect": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Шмуцтитул печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 1, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 8 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf"
+      ],
+      "coverFingerprint": "83872cf758d713fa82df8ff0078a9f580f5fc786a36fcf141a98e28f27d4ceef"
+    },
+    "edition-portrait": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Н. В. Гоголь. Собрание сочинений в 9 т. Т. 3 Повести. М.: Русская книга, 1994. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+      "evidence": [
+        "https://ilibrary.ru/text/77/p.1/index.html"
+      ],
+      "sourceFingerprint": "64eca7a94992c81f4873a733b0a49f6fe33aaf0b42b3be5194a002ebfee5a83f",
+      "textSha256": "a3546025f9a2e06d0961d18e2a18a9cfc0181004e093d20c769b7e701f91f544",
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-portrait": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Шмуцтитул печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 1, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 8 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_1_1893.pdf"
+      ],
+      "coverFingerprint": "83872cf758d713fa82df8ff0078a9f580f5fc786a36fcf141a98e28f27d4ceef"
+    },
+    "edition-diary-of-madman": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано. Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/14/p.1/index.html"
+      ],
+      "sourceFingerprint": "6a7dd12604c8fad69e4759c73ed0841951c0031fde1dd6a224943c842e031222",
+      "textSha256": "1ad45627199293511ef7e874caf335eac9d8dc46cea2140ed19c83edb794b0e4",
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-diary-of-madman": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf"
+      ],
+      "coverFingerprint": "5f5c9a2f85ce32bbcf18050c808db1d4b07b1b713d64ea3d98c97946cd89931c"
+    },
+    "edition-classic-13": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "92db1cd2f98b8b4cddff29d33367c24ca41021b574bbd989de966619fdbe1b69",
+      "textSha256": null,
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-classic-13": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-14": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "841bc95fded958d71abaa7a6ef084362917684f3444ecd8ab6c532c37041e3c1",
+      "textSha256": null,
+      "contributors": [
+        "author-2",
+        null
+      ]
+    },
+    "cover-classic-14": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-15": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "4168d699cb62ce40404746af90155acf8806beb1bde53be9f1596b0b4f2f27d0",
+      "textSha256": null,
+      "contributors": [
+        "author-3",
+        null
+      ]
+    },
+    "cover-classic-15": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-16": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "a977cf583d4cd5e8b610c1e4de9fb9fe891d941ac597ad3740cd8c0ec9429a79",
+      "textSha256": null,
+      "contributors": [
+        "author-3",
+        null
+      ]
+    },
+    "cover-classic-16": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-17": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "0a1620e507454d9f02c28480cd407b37a35e25ea1359888e0e3504fc2530c7c9",
+      "textSha256": null,
+      "contributors": [
+        "author-4",
+        null
+      ]
+    },
+    "cover-classic-17": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-asya": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 5. М.: Наука, 1980 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/1097/p.1/index.html"
+      ],
+      "sourceFingerprint": "2d0cfb7777ea031254465df48f587b92221c24e09933949098534f95fc6a3b16",
+      "textSha256": "4ff866fe9afb2b730eac919ddc64559c8aa7bf637e2e172e4ba55b9a1aad4c1e",
+      "contributors": [
+        "author-4",
+        null
+      ]
+    },
+    "cover-asya": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Печатная обложка «Аси», типография Глазунова, 1911. Wikimedia Commons: PD-RusEmpire. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:Иван_Тургенев_–_Ася_–_обложка_1911.jpg"
+      ],
+      "coverFingerprint": "4d937254217455fc0b5a9e335e4c1c44091321d507c224c4572f2cc64558b955"
+    },
+    "edition-first-love": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 6. М.: Наука, 1981 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/1335/p.1/index.html"
+      ],
+      "sourceFingerprint": "3c5abde89b5a0084fcb684849540d7001f5fae914389e1fbfc306cb50899a16a",
+      "textSha256": "201d185cbc4fed8d4613fc7bdcec271bf4621f26280c3c41f92b9e4e3b05509f",
+      "contributors": [
+        "author-4",
+        null
+      ]
+    },
+    "cover-first-love": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Шмуцтитул французского печатного издания «Premier Amour», 1889, перевод И. Гальперина-Каминского (1858–1936), скан Gallica bpt6k8764833, страница 9. Wikimedia Commons: PD-old-80-expired. В приложении публикуется русский оригинал; французский перевод не включён. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:Tourgueniev_-_Premier_Amour,_trad._Halpérine-Kaminsky.djvu"
+      ],
+      "coverFingerprint": "b2355b504601d1a739bfd0372480e8403c17249b39fc4c0ae13d19f783087603"
+    },
+    "edition-mumu": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 4. М.: Наука, 1980 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/1250/p.1/index.html"
+      ],
+      "sourceFingerprint": "2477d2075c40b2e583b99f2cf94d0e56f99fd611e4bdb051787ebdfdbf48e03f",
+      "textSha256": "c6ce23bac77ce9b489611d32759725c99367bf99ee20593c5861fbcef2c93c00",
+      "contributors": [
+        "author-4",
+        null
+      ]
+    },
+    "cover-mumu": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Первая печатная страница «Муму», журнал «Современник», 1854. Wikimedia Commons: PD-old-70-expired. Используется вместо отдельной обложки; другое издание, чем источник транскрипции. PNG перекодирован в JPEG quality 95 без обрезки и изменения размеров.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:Тургенев._Муму._Публикация_в_журнале_Современник._1854.png"
+      ],
+      "coverFingerprint": "9de124a1dd8e668ff0bb3e8b1de562b63d55aa2368480e018b70f06574460406"
+    },
+    "edition-classic-21": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "d6c9d2282705d8c449b3fae6a132403a98082c53910af9699c42c8462be543bf",
+      "textSha256": null,
+      "contributors": [
+        "author-4",
+        null
+      ]
+    },
+    "cover-classic-21": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-22": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "8986683b8e351525780522ae1bdd7dd6e822c6d9acb0536a34307149c6c6ceb0",
+      "textSha256": null,
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-classic-22": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-23": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "fffeb90d353b760aaf40beec0dbadeb624e535186d0f97cf1cdcc63945b371c3",
+      "textSha256": null,
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-classic-23": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-24": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "dd46c66eedf8c0d2f254d43b134dfd9c785dd42914097bdaad0993c3a8dfb5fc",
+      "textSha256": null,
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-classic-24": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-death-of-ivan-ilyich": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано. Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/7/p.1/index.html"
+      ],
+      "sourceFingerprint": "9a55067edc65e22964f4c4d463580e36411d45cd84763e4f9829651cc716d317",
+      "textSha256": "bffa777c7722249eef5d37e2e231c4062b5cfb110014192b68bf37391dbc1731",
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-death-of-ivan-ilyich": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист русского печатного издания «Смерть Ивана Ильича», 1895. Wikimedia Commons: PD-Art / PD-old-70. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:Death_of_Ivan_Ilyich_title_page.jpg"
+      ],
+      "coverFingerprint": "3da74c8d79a011aac15b05da2af0f6afc77205848aecd01ccf0cd8eb08fd190d"
+    },
+    "edition-kreutzer-sonata": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/1009/p.1/index.html"
+      ],
+      "sourceFingerprint": "18f297cd2662ec1f5b1291e9e442e593466dc587e15b54482a2cb83d39c327ac",
+      "textSha256": "f818e7c112d2c7f60f26a60008381a2241e5613cbf02a96f6981dddfa274a575",
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-kreutzer-sonata": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Печатная обложка английского издания «The Kreutzer Sonata», Boston, Benjamin R. Tucker, 4-е изд., 1890, страница 7 скана. Wikimedia Commons: PD-scan / PD-old-80-expired. Английский перевод не включён; текст в приложении русский. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:The_Kreutzer_Sonata_(Tucker_1890).djvu"
+      ],
+      "coverFingerprint": "5af3e440432235eb1989149a19732410fd61cec9f005febfdf5f1c021483ce7e"
+    },
+    "edition-after-the-ball": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/1005/p.1/index.html"
+      ],
+      "sourceFingerprint": "686839905706942f850decbc763729cc38b4630713be2ba532d7f1164a7fb80d",
+      "textSha256": "6c685e1062031f51fc6a9cd554722b93948373876b127795e4fc5e5ce6d94eaa",
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-after-the-ball": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Печатное издание «После бала», «Посредник», 1912, скан из НЭБ (003797786). Wikimedia Commons: PD-old-100. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:After_The_Ball_Posrednik.jpg"
+      ],
+      "coverFingerprint": "8ae35cbdeb9f98e89385b3aeea10d59de88628d06e442a6646f905fa63dfc8bd"
+    },
+    "edition-prisoner-of-caucasus": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "2e077e466ce38ef45e183ef3d00ab8ed43c70efcc00ef82bb59106cdb4dcef9a",
+      "textSha256": "c7594be87a21972ccd964350a318b1936f8cfe592c9eacfbb631f8d083216013",
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-prisoner-of-caucasus": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-29": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "dae5bf46a1b69df3f01a97de531ae25c8a7593b48fd3ad725c645c4e70beb530",
+      "textSha256": null,
+      "contributors": [
+        "author-5",
+        null
+      ]
+    },
+    "cover-classic-29": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-30": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "ac299a8b698e01cbc938bf2ffb61d32d70a9b09358592257707a6d3f1181d794",
+      "textSha256": null,
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-classic-30": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-31": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "a66ddd5aa1f0f76ddeb7f452ae9c5c0098ee246a3e940a763118a85f4aa40561",
+      "textSha256": null,
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-classic-31": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-32": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "6a840954b9bb8739779a3aa5fa48495da2fba4cd4ff15701a940d7d4860e85af",
+      "textSha256": null,
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-classic-32": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-33": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "fd5212a30ba8c03bc4972202e22a914caa9a27c990c1985e4293389964f14ec2",
+      "textSha256": null,
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-classic-33": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-gambler": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Текст: Интернет-библиотека Алексея Комарова; источник указывает свободное использование произведения. Печатный источник транскрипции: Ф. М. Достоевский. Собрание сочинений в 15-ти томах. Л., Наука, 1989. Том 4. Навигация, оформление сайта, сноски и редакционные пояснения не включены; пробелы нормализованы, курсив приведён к обычному тексту. Оригинальные иностранные реплики сохранены без переводов из сносок.",
+      "evidence": [
+        "https://ilibrary.ru/text/67/p.1/index.html"
+      ],
+      "sourceFingerprint": "a54159b3a1c3849a9031f393766ffeabd1d0588fd1f779bc44208b8f646b23bf",
+      "textSha256": "98df83cd537059e328a4f21bf32ef07e51ffcab26afaae75412c18b0feda6c1d",
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-gambler": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Титульный лист русского печатного издания «Игрок», Ф. Стелловский, Санкт-Петербург, 1866. Wikimedia Commons, Public Domain; изображение не изменено. Другое издание, чем источник текста.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:The_Gambler_(novel)_1866_first_edition_cover.jpg"
+      ],
+      "coverFingerprint": "de647f700c74b0f98f2b9ab1c5e715c44851d84344a89a006501a4cf377580bb"
+    },
+    "edition-classic-35": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "ea7c9185e82e2c9a95931b6c77d155c49739996f20cb719a99cc3bdc78dc844c",
+      "textSha256": null,
+      "contributors": [
+        "author-6",
+        null
+      ]
+    },
+    "cover-classic-35": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-lady-with-dog": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/976/p.1/index.html"
+      ],
+      "sourceFingerprint": "6894167de1a2f527ba9c6b64247d0366486eedae08a839a6155b9067ed132232",
+      "textSha256": "4cdaab51a1685557f34559dde9fd875e81f7a8e1344494d89bc2ec8a425622a9",
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-lady-with-dog": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Шмуцтитул печатного английского сборника «The Lady with the Dog and Other Stories», The Tales of Chekhov, vol. III, New York: Wiley, 1917, перевод Констанс Гарнетт (1862–1946), страница 7 скана Internet Archive chekhovstories00chekrich. Оглавление содержит The Lady with the Dog и Ionitch. Wikimedia Commons: PD-US-expired; автор и переводчик умерли более 70 лет назад. Переводы не включены; оба текста в приложении русские. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:The_lady_with_the_dog_-_and_other_stories_(IA_chekhovstories00chekrich).pdf"
+      ],
+      "coverFingerprint": "544513dac6f0effe64dff55d1011ea0bd16c7ea5c7c03e33739138082d2f7e4b"
+    },
+    "edition-classic-37": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "e2ea7f413e06235475b76b7ff4c36ef01cd14434ad103cc196b622059fd1a4dc",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-37": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-ionych": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "edition",
+      "basis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+      "evidence": [
+        "https://ilibrary.ru/text/437/p.1/index.html"
+      ],
+      "sourceFingerprint": "e750bb5bf012db07ee2e4060e9aa58f8ca6a91b3c85a246e58328f439264ec4e",
+      "textSha256": "7107857356003fc3ad61f41ea8b9126afc82dfe3055cf8a03609bf1f613c3f8d",
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-ionych": {
+      "status": "approved",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "legacy-classics-01-review",
+      "reviewedAt": "2026-11-25",
+      "kind": "printed-cover",
+      "basis": "Шмуцтитул печатного английского сборника «The Lady with the Dog and Other Stories», The Tales of Chekhov, vol. III, New York: Wiley, 1917, перевод Констанс Гарнетт (1862–1946), страница 7 скана Internet Archive chekhovstories00chekrich. Оглавление содержит The Lady with the Dog и Ionitch. Wikimedia Commons: PD-US-expired; автор и переводчик умерли более 70 лет назад. Переводы не включены; оба текста в приложении русские. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "evidence": [
+        "https://commons.wikimedia.org/wiki/File:The_lady_with_the_dog_-_and_other_stories_(IA_chekhovstories00chekrich).pdf"
+      ],
+      "coverFingerprint": "544513dac6f0effe64dff55d1011ea0bd16c7ea5c7c03e33739138082d2f7e4b"
+    },
+    "edition-classic-39": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "63300d371552779518803f4b21bbf34f6c07450437cbb65e3383866d7a0d58e9",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-39": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-40": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "78af75a42d590cb94a76f122206a1bc7b41d812a51bbbc97acefbe6aa662ca21",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-40": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-41": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "9c11058c5432f83278fb16c307f801b01042a4a0cb2d00d8c2e7759678f4ff0d",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-41": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-42": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "25801df41f06b626009aa3c91455cff95e3233a5904a595fc312df551d8d5604",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-42": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-43": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "a2776da95f5fc097128c6f97b718f4f1da2745c11ecda28933c8d06793200287",
+      "textSha256": null,
+      "contributors": [
+        "author-7",
+        null
+      ]
+    },
+    "cover-classic-43": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-44": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "10e00bcc7978d51296219bdd6a881a199c4b656679e73f7182d8cb83bf67f6c6",
+      "textSha256": null,
+      "contributors": [
+        "author-8",
+        null
+      ]
+    },
+    "cover-classic-44": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-45": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "a4a1a21f48b0a1d75ef41dd3c7956ca5d4b562aa6ac92b58c207e18da35cecc4",
+      "textSha256": null,
+      "contributors": [
+        "author-8",
+        null
+      ]
+    },
+    "cover-classic-45": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-46": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "449d264950789c82159755d5b3ec67c8eb46b2b1b735ff721d40600a2765cd29",
+      "textSha256": null,
+      "contributors": [
+        "author-9",
+        null
+      ]
+    },
+    "cover-classic-46": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-47": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "5d3321842266d20a7179cc4349baf1cfecfcf36ff6d43b8be9e5102c0bee8520",
+      "textSha256": null,
+      "contributors": [
+        "author-9",
+        null
+      ]
+    },
+    "cover-classic-47": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-48": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "0792a28b1799aeeb05e978d3b345a84282464beeb58bd9f44b4370ac848cebd2",
+      "textSha256": null,
+      "contributors": [
+        "author-9",
+        null
+      ]
+    },
+    "cover-classic-48": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-49": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "9885345a98b6ba47849cf2741bfcab8c10ecd2a9d112c9f8e689032863b7736c",
+      "textSha256": null,
+      "contributors": [
+        "author-10",
+        null
+      ]
+    },
+    "cover-classic-49": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    },
+    "edition-classic-50": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "edition",
+      "basis": "Издание, состав вкладов и полный текст требуют проверки.",
+      "evidence": [],
+      "sourceFingerprint": "6b5eede02aa9ceedc040cff763ed226e00bbe87ff241f6276da9c3b5221789bd",
+      "textSha256": null,
+      "contributors": [
+        "author-10",
+        null
+      ]
+    },
+    "cover-classic-50": {
+      "status": "pending",
+      "territories": [
+        "RU"
+      ],
+      "reviewer": "",
+      "reviewedAt": null,
+      "kind": "printed-cover",
+      "basis": "Нужно выбрать печатную обложку или страницу издания и проверить права.",
+      "evidence": [],
+      "coverFingerprint": null
+    }
+  }
+}

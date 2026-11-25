@@ -5,6 +5,9 @@ on:
     paths:
       - "apps/web/**"
       - "content/batches/**"
+      - "scripts/import_batch.py"
+      - "scripts/import_epub.py"
+      - "content/rights-registry.json"
       - "scripts/check-pages.mjs"
       - "scripts/check-pwa.mjs"
       - "package.json"

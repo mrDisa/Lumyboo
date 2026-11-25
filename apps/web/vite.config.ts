@@ -1,19 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 export default defineConfig(({ mode }) => {
  const preview = mode === 'pages';
  const base = preview ? '/Lumyboo/' : '/';
  const root = fileURLToPath(new URL('../../', import.meta.url));
  const original = path.join(root, 'apps/web/public');
  const staging = path.join(root, '.content-staging/pages-public');
- const catalog = JSON.parse(readFileSync(path.join(root, 'apps/web/src/data/catalog.json'), 'utf8'));
- const batch = JSON.parse(readFileSync(path.join(root, 'content/batches/classics-01.json'), 'utf8'));
- const approved = new Set(['what-men-live-by', 'ward-no-6', ...batch.books.filter((book: any) => book.review.textApproved && book.review.rightsApproved && book.cover?.approved).map((book: any) => book.id)]);
- const published = catalog.filter((book: any) => book.kind === 'full' && approved.has(book.id));
+ // The importer and Pages use the same fail-closed rights decisions.
+ const published = preview ? JSON.parse(execFileSync('python3', [path.join(root, 'scripts/import_batch.py'), 'manifest'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })) : [];
  if (preview) {
   rmSync(staging, { recursive: true, force: true });
   mkdirSync(path.join(staging, 'books'), { recursive: true });
