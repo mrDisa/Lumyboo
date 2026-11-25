@@ -465,5 +465,1047 @@
       "rightsBasis": "Титульный лист русского печатного издания «Игрок», Ф. Стелловский, Санкт-Петербург, 1866. Wikimedia Commons, Public Domain; изображение не изменено. Другое издание, чем источник текста.",
       "sha256": "2a5fff9cf98bab452ea2fbb6d7e7335dae1840c90290ca3087aa772c7a8279f9"
     }
+  },
+  {
+    "id": "diary-of-madman",
+    "version": "1",
+    "title": "Записки сумасшедшего",
+    "author": "Николай Гоголь",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/14/p.1/index.html",
+      "scope": "work",
+      "edition": "Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано."
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/14/p.1/index.html",
+        "sha256": "f8e4042381a1c3bc0eba642949e9540187ad539518cbc174d368c8d8bf3d2942",
+        "page": 1,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.2/index.html",
+        "sha256": "4ce5b05ce527f28257761c12eccb6b7d78654c3b81d80c2ba5efa67058f3f372",
+        "page": 2,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.3/index.html",
+        "sha256": "1242f1b3e38eeba8b6478c7965d43fe1a7c04ddc732f4d19d3c051dfaff75b1b",
+        "page": 3,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.4/index.html",
+        "sha256": "7cc42fa3c46b635ce204a69a23e3bc27a6da3e586bc1476b099f9754febeb8fc",
+        "page": 4,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.5/index.html",
+        "sha256": "462aaed6f8cb55fd538e1a82e1cd4cd883e115649f09a44ffe3dc5465f555014",
+        "page": 5,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.6/index.html",
+        "sha256": "79e6a5fbdf3eb9eaf84d5dadbdc577d417c0a7c586c39a48738df4a976b4676f",
+        "page": 6,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.7/index.html",
+        "sha256": "40ee01ab454f9a720823ba1ce2fc5b20edb15e6255896576a99a97c569393fb3",
+        "page": 7,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.8/index.html",
+        "sha256": "8a689679f48583bda1a8b5cc946e1f35a91451d917ec57b7837ec696e2517280",
+        "page": 8,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.9/index.html",
+        "sha256": "17ed8ac6b3e44e7c68f09b15ba90dc04eaf97a4954a3fecd77786bce6614386b",
+        "page": 9,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.10/index.html",
+        "sha256": "1ab650eac4593b5654d4c6f05dccb576cfb9da030a9099567c80b821568d0be6",
+        "page": 10,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.11/index.html",
+        "sha256": "862af3408d52ca596a2ad3ce33c00cd2e15ce5a8d11dd533cb79a8d4008d83f7",
+        "page": 11,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.12/index.html",
+        "sha256": "12a6e11e380db960c414ad59e019f91a6f33c2c8e07ffad4e9c7aae548798518",
+        "page": 12,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.13/index.html",
+        "sha256": "3078a4dc376efa2441dd4d89de2b6a6187d69e14b9233aab1be59482fd0ba795",
+        "page": 13,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.14/index.html",
+        "sha256": "45a1cf7e9ae195d7fbc7ca43fee74609178f3c6e4a4405e744ca0eba3fbb7cf5",
+        "page": 14,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.15/index.html",
+        "sha256": "2d82d3dfd643158192f909226cba3b0a8d99d3dff9bd91ae5ea779a2dd72163e",
+        "page": 15,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.16/index.html",
+        "sha256": "d473c8e2b9119f795409bef513c221f6682405c666a469cf8e08a9ca57ec995a",
+        "page": 16,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.17/index.html",
+        "sha256": "00ab40d12ab4ff9fed5ba1d89c2c808289240d46ffa045a823493a7328bb31a8",
+        "page": 17,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.18/index.html",
+        "sha256": "05682ceaffe2abcfd46c35f91cad210665dc806ce571a36f34fcc3972f2d133c",
+        "page": 18,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.19/index.html",
+        "sha256": "2184b3bb19435ef502340f2a65f07efb8c4db50e5b61fbe9689bf7f7fcbacb4b",
+        "page": 19,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/14/p.20/index.html",
+        "sha256": "4f40c2fea76cf1f3dfa3f3ac52705c134becaa2cbeeb61dc971da3995fabe339",
+        "page": 20,
+        "totalPages": 20,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "1ad45627199293511ef7e874caf335eac9d8dc46cea2140ed19c83edb794b0e4",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано. Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 11,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf/page10-500px-%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BE%D1%87%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D.%D0%92._%D0%93%D0%BE%D0%B3%D0%BE%D0%BB%D1%8F_%D0%A2%D0%BE%D0%BC_3_1893.pdf",
+      "rightsBasis": "Титульный лист печатного собрания «Сочинения Н. В. Гоголя», 11-е изд., ред. Н. С. Тихонравова, т. 3, А. Ф. Маркс, Санкт-Петербург, 1893. Страница 10 скана Wikimedia Commons (Public Domain), JPEG без дальнейших изменений. Другое издание, чем источник текста.",
+      "sha256": "860920b2b3604da1ef4918bf524f20f6a677cc13bc21926c05da4b6180481462",
+      "pdfSha256": "7c3d8b3c6e6331571d708ddafa3cc28fe816cc661dddae10c0f79e00818d4c0f",
+      "pdfPage": 10
+    }
+  },
+  {
+    "id": "asya",
+    "version": "1",
+    "title": "Ася",
+    "author": "Иван Тургенев",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1097/p.1/index.html",
+      "scope": "work",
+      "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 5. М.: Наука, 1980"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1097/p.1/index.html",
+        "sha256": "7de9c2565d63a6afb5ba2fb96822efe0472cd3cefad7977096af9887b829e8bb",
+        "page": 1,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.2/index.html",
+        "sha256": "f1cd6445f42e1949169fdf7b6fd9ff42d03a60877068fd93c1f740b9c924d858",
+        "page": 2,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.3/index.html",
+        "sha256": "ce1da232f5f076ec31f56b4b5e2463c5e2ca8ff405522dd3062f6864058cbba3",
+        "page": 3,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.4/index.html",
+        "sha256": "807f7720d3eee3b7558ca79b9da39df2d82b7c0c031457ca137fee4f91201a11",
+        "page": 4,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.5/index.html",
+        "sha256": "81216e10b485779a988c1a90b9e7ecad719031cb77860d03d8e1e97420325d58",
+        "page": 5,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.6/index.html",
+        "sha256": "74f8d6e11e70561fd048993bf52efddea3aaf4514ebf4cb338600e72a287bd5c",
+        "page": 6,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.7/index.html",
+        "sha256": "42be1971138408d7af5e8712d75c70d21eddcd33f721618f6a5887d1341ac2f2",
+        "page": 7,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.8/index.html",
+        "sha256": "b35221455bf38da4c259efcd26b0171dbb774139d270bf0a9f102523983ba70e",
+        "page": 8,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.9/index.html",
+        "sha256": "b3d243fbf1a40e23f1a5241aab5ca44d936d52512b729a10b0159501381c96f2",
+        "page": 9,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.10/index.html",
+        "sha256": "759d5faba3dd9eb6843cf4a11fd9320a050ace3d22d5fde2d6f9e572eda5876c",
+        "page": 10,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.11/index.html",
+        "sha256": "fdbf11731959646c3c1d622030ef1f48704d9ee7c0bd0ef0b14001733e6b01a3",
+        "page": 11,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.12/index.html",
+        "sha256": "7a4dfe8fe52e9ae60f0dfd8da561697cf2a45d0fa7feb677a71978180670a06e",
+        "page": 12,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.13/index.html",
+        "sha256": "2c7e738be5a7d9d4eed00d461ff9f9d2eb9ad39eb151fbcee943541fc633b9ea",
+        "page": 13,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.14/index.html",
+        "sha256": "6c971717d7fd134c016f3d7f173dbaaa2eb464ab20548a8fda8934cbe25a4778",
+        "page": 14,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.15/index.html",
+        "sha256": "46bcd63021bc41bb9527da647d0082029b13df8c621b46d4d1cf08cda931387b",
+        "page": 15,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.16/index.html",
+        "sha256": "4eddcb1ac881fef3b81d8754e968e8711b06df90de9bdb11732a000ab2d537d4",
+        "page": 16,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.17/index.html",
+        "sha256": "2190cab32ddb346eff669422787f60b4487fae7eecca2f4572bd6bdcfbb20989",
+        "page": 17,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.18/index.html",
+        "sha256": "7e241e302c11a546176bf3aaaa13bd52182dcca6d8e65e87fb5dfef5a1fb86cb",
+        "page": 18,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.19/index.html",
+        "sha256": "39117e1a9ad3698d937a8c5625978ad8cf372e879ce0b3c1830ef045fe805fa6",
+        "page": 19,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.20/index.html",
+        "sha256": "85d4e68091a9e93c7282e415856fdc9b0a454637cfcc3e2c24ca6d5815f29094",
+        "page": 20,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.21/index.html",
+        "sha256": "0bb381642be57585148ad9942c1074649897f66b19d2b9700fda138ad7dfb4da",
+        "page": 21,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1097/p.22/index.html",
+        "sha256": "6acd0c9488162f4baacfce01ff89043f3a14266ab85f49bad621c4e40bed330d",
+        "page": 22,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "4ff866fe9afb2b730eac919ddc64559c8aa7bf637e2e172e4ba55b9a1aad4c1e",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 5. М.: Наука, 1980 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 13,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/%D0%98%D0%B2%D0%B0%D0%BD_%D0%A2%D1%83%D1%80%D0%B3%D0%B5%D0%BD%D0%B5%D0%B2_%E2%80%93_%D0%90%D1%81%D1%8F_%E2%80%93_%D0%BE%D0%B1%D0%BB%D0%BE%D0%B6%D0%BA%D0%B0_1911.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Иван_Тургенев_–_Ася_–_обложка_1911.jpg",
+      "rightsBasis": "Печатная обложка «Аси», типография Глазунова, 1911. Wikimedia Commons: PD-RusEmpire. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "409354666083bc191143b48d8ad7bf40c02711690d46ae765ac8f918f42b61da"
+    }
+  },
+  {
+    "id": "first-love",
+    "version": "1",
+    "title": "Первая любовь",
+    "author": "Иван Тургенев",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1335/p.1/index.html",
+      "scope": "work",
+      "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 6. М.: Наука, 1981"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1335/p.1/index.html",
+        "sha256": "4c691c3c0946733628aa3374fc5f7d9c186699b83dc95a75f2c4e9ac06717245",
+        "page": 1,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.2/index.html",
+        "sha256": "4d88ca42491973a4c0764b054f5302dd386f512a9580219cc35a81cf2cdee713",
+        "page": 2,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.3/index.html",
+        "sha256": "3e20d7152719e07ffe56e8c19641526fa5d3349cd9ec04d2db6eeb4aa4c472d0",
+        "page": 3,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.4/index.html",
+        "sha256": "b35eb622e80d83e617e5f4163f0067d7aa8f955799ae342fb4c2e8c9b6cf53e9",
+        "page": 4,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.5/index.html",
+        "sha256": "2eaebe25eedb70ad9a1d037bf51de9c07a15b818f468e528d8f90acabd165f09",
+        "page": 5,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.6/index.html",
+        "sha256": "de88fc57631ce8ad6f1bfc6946308dab5beb935a1d54a4685e269c57571ff86d",
+        "page": 6,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.7/index.html",
+        "sha256": "2873dfae820846c9f804e4fedf382868d3706e8d41f97255b4a7e80aa2d10c8d",
+        "page": 7,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.8/index.html",
+        "sha256": "1f0faedfbe2ee32bf61b98cdc95c92e54ff142c9db0898dc148223eb5fa6062e",
+        "page": 8,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.9/index.html",
+        "sha256": "5a3baf60b320970a92083a29bb37f1824c62f90c669afa9262c375a7f19690fa",
+        "page": 9,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.10/index.html",
+        "sha256": "dcf49d91634e2844e8093f338df2d0c36d78d48a9df82664a8d84703e4ded926",
+        "page": 10,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.11/index.html",
+        "sha256": "c32ccee0c2ed4115a30f1a1b6302175bd44c576904a937fa7d9b7fa23a838f5c",
+        "page": 11,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.12/index.html",
+        "sha256": "a1774921dc07f2a6176a61dd07b811e6cd542c30fd4083240e640afe3199fdb2",
+        "page": 12,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.13/index.html",
+        "sha256": "c87c6596e122c88b51c6b4ea548e9914511629b46e37b821845bd973d25aef40",
+        "page": 13,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.14/index.html",
+        "sha256": "3ab4c6643fa09cb5ff493ee8d49868e0787093892aeba387718b4428a0ad873a",
+        "page": 14,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.15/index.html",
+        "sha256": "ae45a4abadfb6aa7a8b21971439b3ec048f1beac76bb425daa7f0f608c833d7c",
+        "page": 15,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.16/index.html",
+        "sha256": "ca4110b382bfb7762e81e9a9dab220346a5f55bee892f2934f994f431704b599",
+        "page": 16,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.17/index.html",
+        "sha256": "934cc33ce085ceeabf2b5385de073d582d0b67dcd2d7cbb474bd7b038f06bacc",
+        "page": 17,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.18/index.html",
+        "sha256": "19637277aeda446cacfef54937cb79579f67178bf2c939cdd066cffb32050156",
+        "page": 18,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.19/index.html",
+        "sha256": "685f046e665a7e784f145f4ff9449d6eb7266de5d76fd39116e598bff1dcd1f3",
+        "page": 19,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.20/index.html",
+        "sha256": "7c1956bde6553b50e5e2b78da9f87734cb6f3340aa1d0dddc678d351fbc936ce",
+        "page": 20,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.21/index.html",
+        "sha256": "9078b310af768afe1ae8af2a84b2285ce89537825d22d4c3544a46b98158ddf6",
+        "page": 21,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1335/p.22/index.html",
+        "sha256": "5a133f8a4c7c6514f8398adadfd6c63971c97e74f2039b67747ebd08a29273fe",
+        "page": 22,
+        "totalPages": 22,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "201d185cbc4fed8d4613fc7bdcec271bf4621f26280c3c41f92b9e4e3b05509f",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 6. М.: Наука, 1981 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 14,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Tourgueniev_-_Premier_Amour%2C_trad._Halp%C3%A9rine-Kaminsky.djvu/page9-500px-Tourgueniev_-_Premier_Amour%2C_trad._Halp%C3%A9rine-Kaminsky.djvu.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tourgueniev_-_Premier_Amour,_trad._Halpérine-Kaminsky.djvu",
+      "rightsBasis": "Шмуцтитул французского печатного издания «Premier Amour», 1889, перевод И. Гальперина-Каминского (1858–1936), скан Gallica bpt6k8764833, страница 9. Wikimedia Commons: PD-old-80-expired. В приложении публикуется русский оригинал; французский перевод не включён. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "7cca6c3a8dcdddb74593e68cb0f6da325ece715d77c8ca62cadf14c7af84f9f7",
+      "page": 9
+    }
+  },
+  {
+    "id": "mumu",
+    "version": "1",
+    "title": "Муму",
+    "author": "Иван Тургенев",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1250/p.1/index.html",
+      "scope": "work",
+      "edition": "И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 4. М.: Наука, 1980"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1250/p.1/index.html",
+        "sha256": "347610272907f1e0e6a1690ba01e340a122fce0254917d9d99e2cac9d8f856c5",
+        "page": 1,
+        "totalPages": 1,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1250/index.html",
+        "sha256": "7c83cc0c711252743fa3c75ade24c7a33c264be4c9ef64370728773fa15fe8c2",
+        "role": "single-page-index"
+      }
+    ],
+    "textSha256": "c6ce23bac77ce9b489611d32759725c99367bf99ee20593c5861fbcef2c93c00",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. И. С. Тургенев. Полное собрание сочинений и писем в тридцати томах. Т. 4. М.: Наука, 1980 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 15,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/%D0%A2%D1%83%D1%80%D0%B3%D0%B5%D0%BD%D0%B5%D0%B2._%D0%9C%D1%83%D0%BC%D1%83._%D0%9F%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F_%D0%B2_%D0%B6%D1%83%D1%80%D0%BD%D0%B0%D0%BB%D0%B5_%D0%A1%D0%BE%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D0%B8%D0%BA._1854.png",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Тургенев._Муму._Публикация_в_журнале_Современник._1854.png",
+      "rightsBasis": "Первая печатная страница «Муму», журнал «Современник», 1854. Wikimedia Commons: PD-old-70-expired. Используется вместо отдельной обложки; другое издание, чем источник транскрипции. PNG перекодирован в JPEG quality 95 без обрезки и изменения размеров.",
+      "sha256": "60c14b707b45a6c5ba6099ac3e2552c3c6ee5b5c662162f99e608ae081ad2d91",
+      "jpeg": {
+        "file": "content/covers/mumu-1854.jpg",
+        "sha256": "ebaf09b1e82dc96d63d28738ec97448561685b2b9f8b98314a2a23d6eb9e4522",
+        "transformation": "sips -s format jpeg -s formatOptions 95 SOURCE.png --out content/covers/mumu-1854.jpg"
+      }
+    }
+  },
+  {
+    "id": "death-of-ivan-ilyich",
+    "version": "1",
+    "title": "Смерть Ивана Ильича",
+    "author": "Лев Толстой",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/7/p.1/index.html",
+      "scope": "work",
+      "edition": "Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано."
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/7/p.1/index.html",
+        "sha256": "a241d9a43a93cb15b08e3d3088774424e7d4e92f009188d9d9a3d5219e92c9bb",
+        "page": 1,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.2/index.html",
+        "sha256": "4ae09e9510a866d837a21984db56edcabb6892dc626d46a50122aee8054b7fa2",
+        "page": 2,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.3/index.html",
+        "sha256": "ddf7c4fdb90a07f91a7c7b2b2f84bee131fa3bf8273507973e3fe5f943c9a74e",
+        "page": 3,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.4/index.html",
+        "sha256": "8481af260d6ffabe83c82465a6364f7dd8c8a97d1ba0e46e8d9566f7b359e7a9",
+        "page": 4,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.5/index.html",
+        "sha256": "b946a117d8d9e6e6174d39d3c2d2386abb67a0985f16d0e05cf4dce3847c022d",
+        "page": 5,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.6/index.html",
+        "sha256": "e037e4d8f50c2e285d73e29871a2c74137224cc2909f049050bbfb7179bd57fb",
+        "page": 6,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.7/index.html",
+        "sha256": "53d4a49cc58bb800cbf0e0a52a7028e2f8933026153d2a89f0fc0fcfdabc016f",
+        "page": 7,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.8/index.html",
+        "sha256": "3ce7008c62f485e917509ff0cc48ea2b94f11590a719dedc3230d026c1967f0f",
+        "page": 8,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.9/index.html",
+        "sha256": "79fbdfd2aee2f7b68301ac2babcd99f474480116f3353410e7b006ff0fe87192",
+        "page": 9,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.10/index.html",
+        "sha256": "221cf454f52f8822a4f87e507a590c5eaad7dc57ec9c5caf364f60c9e4e083c0",
+        "page": 10,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.11/index.html",
+        "sha256": "990f6d99103e80508b733dc42138ff25f258da9a9baf241b60934d072443a895",
+        "page": 11,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/7/p.12/index.html",
+        "sha256": "6bb6708f68d733dd2afa14059a8bffe2b666e5510104fc2f040e70f4942bd862",
+        "page": 12,
+        "totalPages": 12,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "bffa777c7722249eef5d37e2e231c4062b5cfb110014192b68bf37391dbc1731",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Электронная публикация Интернет-библиотеки Алексея Комарова; печатное издание на странице источника не указано. Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 16,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Death_of_Ivan_Ilyich_title_page.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Death_of_Ivan_Ilyich_title_page.jpg",
+      "rightsBasis": "Титульный лист русского печатного издания «Смерть Ивана Ильича», 1895. Wikimedia Commons: PD-Art / PD-old-70. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "16dd9887315b9aac70c74bee1fe1edb7196db7b0c0bab21203d5c6e60f22496b"
+    }
+  },
+  {
+    "id": "kreutzer-sonata",
+    "version": "1",
+    "title": "Крейцерова соната",
+    "author": "Лев Толстой",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1009/p.1/index.html",
+      "scope": "work",
+      "edition": "Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1009/p.1/index.html",
+        "sha256": "53d030c95643ddfa00a74542ede454891c04c4b2dd23015bf1d0053ef0726904",
+        "page": 1,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.2/index.html",
+        "sha256": "e0c5a66671ed69ea9c2a3c4cfeb6ba203e6adaa5b6b1c48f040c87f6e6b48431",
+        "page": 2,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.3/index.html",
+        "sha256": "0fe6b7230fb688cb98cbd13c0b8645bc1ed9c7a7946d3318e9cc70059d6f7f92",
+        "page": 3,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.4/index.html",
+        "sha256": "ada324d37d6a8c8b417bcb9f6d3f154ca0061e0f25f4346e722c77cddb2ec68d",
+        "page": 4,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.5/index.html",
+        "sha256": "d6750684f75565e53648cc62551f063fcbd16ccd8c986a080b9cb99732a4b5b5",
+        "page": 5,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.6/index.html",
+        "sha256": "490cf61e226993723c9b5fe478efefa72fa64ad5a63b9215b6b5b0b462d6036a",
+        "page": 6,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.7/index.html",
+        "sha256": "68d729d32040ac4d670c8b0bfd711fc929e4fa46d76851dfe081ca45e0d7f670",
+        "page": 7,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.8/index.html",
+        "sha256": "99b531ef96d3c0c425e832f2aacebc3701bcea057e479e03b2c0c84d42540416",
+        "page": 8,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.9/index.html",
+        "sha256": "12776aaeeb5521772ba7e7b4017ebc86bfbbf77053344f82081955adcac36575",
+        "page": 9,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.10/index.html",
+        "sha256": "12b782531d64e0b2fac01fcd9328c317866a360b728d6421cca22d7efcdb8e4c",
+        "page": 10,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.11/index.html",
+        "sha256": "600449351a659590de410303302992d7e0023a821831b8d989f19ca764d4ebf9",
+        "page": 11,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.12/index.html",
+        "sha256": "1d66098db3dbb01a05ef8248b0f8772b50b192860ceb87d42ae308d20f92936b",
+        "page": 12,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.13/index.html",
+        "sha256": "bffd118a2b4a770141b4f761527f4a7bcbaec6e7ee3c7d94010f3e06b9ca0bc1",
+        "page": 13,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.14/index.html",
+        "sha256": "37d32079fd3248ab2bef665fde69efbe469d01eceefafd3c83a3ee8951baa5ec",
+        "page": 14,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.15/index.html",
+        "sha256": "75460845b52e3acb8949fa2354fe1270eb0880bf2cc5bc72c03524bf79cda1a0",
+        "page": 15,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.16/index.html",
+        "sha256": "de0427b7af274246909b4914b4ac28f9df2b30db075edb7066840f3bf03c1b3d",
+        "page": 16,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.17/index.html",
+        "sha256": "d6cce7750c442e3b634d3c5df924ca18f53289d719587f5b8e6dfbd1dc697468",
+        "page": 17,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.18/index.html",
+        "sha256": "8a6e9ceba5db4806200664e1cd9dc097bf91d8197a12db8f6a6b5731b7628126",
+        "page": 18,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.19/index.html",
+        "sha256": "b6fabee431d860aa78e2a06313cb9c086c4355c9db354bfe391a3d138b8dcf9f",
+        "page": 19,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.20/index.html",
+        "sha256": "813d4195397c9d35c4f040c2a5e217b8d8609f44775d647bd72e480a3fb20ab2",
+        "page": 20,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.21/index.html",
+        "sha256": "2dd5844717fe8b4b158147bf3d7a5347de8dd35eebf5ed8ea31a25efe2f3e928",
+        "page": 21,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.22/index.html",
+        "sha256": "e5ae23100b7cc8e9948b8a8847582b6ffafca51b25f631e206cf4db366c09a4e",
+        "page": 22,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.23/index.html",
+        "sha256": "125d9507a37c2808c827cb7118d57fb0b696a95a2209005686cb77b8d2a5946a",
+        "page": 23,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.24/index.html",
+        "sha256": "ede2274b08bdcb8487a087c03ec214f1bbcfaea33a473a6a639dcc84fd7026a3",
+        "page": 24,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.25/index.html",
+        "sha256": "a3b824c4ebcf9074905d7b975912bb07d76e00702ba918e509f59693ea1498c4",
+        "page": 25,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.26/index.html",
+        "sha256": "505affecde68a08c1cd852c982afb974148129ceee1264f92125552c8ce5cb9d",
+        "page": 26,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.27/index.html",
+        "sha256": "e332071e1b6db692bc4a78cd2211e71901fb0c00e5a6f67bab613f464b3389c6",
+        "page": 27,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1009/p.28/index.html",
+        "sha256": "165dce568d11234af2ab3fc4c5176f9a0f51843cbe271c636bb13c40d9a604a8",
+        "page": 28,
+        "totalPages": 28,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "f818e7c112d2c7f60f26a60008381a2241e5613cbf02a96f6981dddfa274a575",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 17,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/The_Kreutzer_Sonata_%28Tucker_1890%29.djvu/page7-500px-The_Kreutzer_Sonata_%28Tucker_1890%29.djvu.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_Kreutzer_Sonata_(Tucker_1890).djvu",
+      "rightsBasis": "Печатная обложка английского издания «The Kreutzer Sonata», Boston, Benjamin R. Tucker, 4-е изд., 1890, страница 7 скана. Wikimedia Commons: PD-scan / PD-old-80-expired. Английский перевод не включён; текст в приложении русский. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "96f884a2c92e20d447056d2e4410bc41ce19c5527c5ae442f90728f4c97d5f6d",
+      "page": 7
+    }
+  },
+  {
+    "id": "after-the-ball",
+    "version": "1",
+    "title": "После бала",
+    "author": "Лев Толстой",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/1005/p.1/index.html",
+      "scope": "work",
+      "edition": "Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/1005/p.1/index.html",
+        "sha256": "1f1fd7ca95e784e47d7e4fd22c70428897e8b70e3c4d819f619710a50545c0df",
+        "page": 1,
+        "totalPages": 1,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/1005/index.html",
+        "sha256": "b290acb31cd173590696fefb365df4fb7f646a92d016ecbd1c8c1c165b4fb209",
+        "role": "single-page-index"
+      }
+    ],
+    "textSha256": "6c685e1062031f51fc6a9cd554722b93948373876b127795e4fc5e5ce6d94eaa",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. Л. Н. Толстой. Собрание сочинений в восьми томах. Т. 7. М., Лексика, 1996 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 18,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/After_The_Ball_Posrednik.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:After_The_Ball_Posrednik.jpg",
+      "rightsBasis": "Печатное издание «После бала», «Посредник», 1912, скан из НЭБ (003797786). Wikimedia Commons: PD-old-100. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "7df58ffc16638120bfd81f1f9590c5475ef0d04e4908498875e134d2e451c1fe"
+    }
+  },
+  {
+    "id": "lady-with-dog",
+    "version": "1",
+    "title": "Дама с собачкой",
+    "author": "Антон Чехов",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/976/p.1/index.html",
+      "scope": "work",
+      "edition": "А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/976/p.1/index.html",
+        "sha256": "a909e2904d2c3d76f685559f98b78a5258c086a95969790cbf7a0ba231501fe6",
+        "page": 1,
+        "totalPages": 4,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/976/p.2/index.html",
+        "sha256": "80b4625a4a652ce1826de407a2ee94a88fff04c7632a7425dbe92b5ea9258be8",
+        "page": 2,
+        "totalPages": 4,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/976/p.3/index.html",
+        "sha256": "1550e2d89d8d238d2f5a77ddc8c06a5257afc4be2c467feb095bf95594b6a18d",
+        "page": 3,
+        "totalPages": 4,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/976/p.4/index.html",
+        "sha256": "8efbad900a9919ff6c15df755c5895be6387f999c555574f8d03635473bd4efb",
+        "page": 4,
+        "totalPages": 4,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "4cdaab51a1685557f34559dde9fd875e81f7a8e1344494d89bc2ec8a425622a9",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 19,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/The_lady_with_the_dog_-_and_other_stories_%28IA_chekhovstories00chekrich%29.pdf/page7-500px-The_lady_with_the_dog_-_and_other_stories_%28IA_chekhovstories00chekrich%29.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_lady_with_the_dog_-_and_other_stories_(IA_chekhovstories00chekrich).pdf",
+      "rightsBasis": "Шмуцтитул печатного английского сборника «The Lady with the Dog and Other Stories», The Tales of Chekhov, vol. III, New York: Wiley, 1917, перевод Констанс Гарнетт (1862–1946), страница 7 скана Internet Archive chekhovstories00chekrich. Оглавление содержит The Lady with the Dog и Ionitch. Wikimedia Commons: PD-US-expired; автор и переводчик умерли более 70 лет назад. Переводы не включены; оба текста в приложении русские. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "31207342179cd4cce76132da8e3ad13af47e6774d0b5c28558f0ce0ac8997d44",
+      "page": 7
+    }
+  },
+  {
+    "id": "ionych",
+    "version": "1",
+    "title": "Ионыч",
+    "author": "Антон Чехов",
+    "source": {
+      "type": "ilibrary",
+      "url": "https://ilibrary.ru/text/437/p.1/index.html",
+      "scope": "work",
+      "edition": "А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986"
+    },
+    "sourceFiles": [
+      {
+        "url": "https://ilibrary.ru/text/437/p.1/index.html",
+        "sha256": "f1d55a2d76dde8056af93a5ce332a57e808fe1af95c3f97c34fb97d045bdda27",
+        "page": 1,
+        "totalPages": 5,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/437/p.2/index.html",
+        "sha256": "b176fd6ddf2caa5723801517ec3eb30dec30ccbe856b2bfc29db9062f43813a7",
+        "page": 2,
+        "totalPages": 5,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/437/p.3/index.html",
+        "sha256": "0e971e61a57d68c75d4d57367b46525b2f819ba8d849d471edfbb0f60b7db2e8",
+        "page": 3,
+        "totalPages": 5,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/437/p.4/index.html",
+        "sha256": "f84c196eecf487612c9bd7ad52e08e16e70bd9c32f86122b35c70747049eecdc",
+        "page": 4,
+        "totalPages": 5,
+        "sourceDeclaresPublicDomain": true
+      },
+      {
+        "url": "https://ilibrary.ru/text/437/p.5/index.html",
+        "sha256": "d86483c44fe2e60bc4e622d3a98a9f9c10d7f0dcff9baa45399c56dfbc133377",
+        "page": 5,
+        "totalPages": 5,
+        "sourceDeclaresPublicDomain": true
+      }
+    ],
+    "textSha256": "7107857356003fc3ad61f41ea8b9126afc82dfe3055cf8a03609bf1f613c3f8d",
+    "rightsBasis": "Русский оригинал — общественное достояние. Источник текста: Интернет-библиотека Алексея Комарова. А. П. Чехов. Полное собрание сочинений и писем в 30-ти томах. Сочинения. Том 10. М., Наука, 1986 Страницы источника разрешают свободное использование произведения. Включён полный литературный текст выбранной публикации, без навигации, оформления, скриптов, редакционных сносок и переводов в сносках; пробелы нормализованы, курсив приведён к обычному тексту, строки эпиграфов соединены пробелами. Источники всех страниц и SHA-256 закреплены отдельно.",
+    "cover": {
+      "approved": true,
+      "id": 19,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/The_lady_with_the_dog_-_and_other_stories_%28IA_chekhovstories00chekrich%29.pdf/page7-500px-The_lady_with_the_dog_-_and_other_stories_%28IA_chekhovstories00chekrich%29.pdf.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_lady_with_the_dog_-_and_other_stories_(IA_chekhovstories00chekrich).pdf",
+      "rightsBasis": "Шмуцтитул печатного английского сборника «The Lady with the Dog and Other Stories», The Tales of Chekhov, vol. III, New York: Wiley, 1917, перевод Констанс Гарнетт (1862–1946), страница 7 скана Internet Archive chekhovstories00chekrich. Оглавление содержит The Lady with the Dog и Ionitch. Wikimedia Commons: PD-US-expired; автор и переводчик умерли более 70 лет назад. Переводы не включены; оба текста в приложении русские. Это другое издание, чем источник русского текста. Изображение не изменено.",
+      "sha256": "31207342179cd4cce76132da8e3ad13af47e6774d0b5c28558f0ce0ac8997d44",
+      "page": 7
+    }
   }
 ]

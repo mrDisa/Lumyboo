@@ -160,7 +160,7 @@ class BatchTests(unittest.TestCase):
             root = Path(directory)
             value, bundle, d = self.setup_bundle(root, [book()])
             d.pages['https://example.org/print.jpg'] = b'\xff\xd8\xffdifferent'
-            with self.assertRaisesRegex(ValueError, 'JPEG hash'):
+            with self.assertRaisesRegex(ValueError, 'reviewed source hash'):
                 publish(value, bundle, '016_batch', d, root)
             d.pages['https://example.org/print.jpg'] = b'\xff\xd8\xffcover'
             (root / 'services/api/db/migrations/016_other.up.sql').write_text('existing')
@@ -175,6 +175,32 @@ class BatchTests(unittest.TestCase):
                 path.write_bytes(json_bytes({'schemaVersion': 1, 'id': 'batch', 'books': books}))
                 with self.assertRaises(ValueError):
                     selection(path)
+
+    def test_png_cover_requires_pinned_source_and_reviewed_jpeg(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            b = book()
+            original = b'\x89PNG\r\n\x1a\nprinted-page'
+            jpeg = b'\xff\xd8\xffreviewed-conversion'
+            b['cover'].update(sha256=digest(original), jpeg={
+                'file': 'content/covers/printed-page.jpg', 'sha256': digest(jpeg),
+                'transformation': 'PNG encoded as JPEG without cropping'})
+            value, bundle, d = self.setup_bundle(root, [b])
+            d.pages[b['cover']['url']] = original
+            path = root / b['cover']['jpeg']['file']
+            path.parent.mkdir(parents=True)
+            path.write_bytes(jpeg + b'tampered')
+            with self.assertRaisesRegex(ValueError, 'derivative changed'):
+                publish(value, bundle, '016_batch', d, root)
+            self.assertFalse((root / 'apps/web/public').exists())
+            path.write_bytes(jpeg)
+            b['cover']['jpeg']['file'] = '../outside.jpg'
+            with self.assertRaisesRegex(ValueError, 'Invalid reviewed JPEG'):
+                publish(value, bundle, '016_batch', d, root)
+            b['cover']['jpeg']['file'] = 'content/covers/printed-page.jpg'
+            self.assertEqual(publish(value, bundle, '016_batch', d, root), 1)
+            self.assertEqual((root / 'apps/web/public/assets/cover-9.jpg').read_bytes(), jpeg)
+            self.assertEqual(publish(value, bundle, '016_batch', d, root), 0)
 
 
 if __name__ == '__main__':

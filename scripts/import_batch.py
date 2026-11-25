@@ -365,12 +365,30 @@ def publish(value, bundle, migration, downloader, root=ROOT):
             raise ValueError(f'Source selection changed: {book["id"]}')
         cover = book['cover']
         cover_raw = downloader.get(cover['url'])
-        if digest(cover_raw) != cover['sha256'] or not cover_raw.startswith(b'\xff\xd8\xff'):
+        if digest(cover_raw) != cover['sha256']:
+            raise ValueError('Cover must match the reviewed source hash')
+        # Preserve the source hash when a printed PNG page needs JPEG encoding.
+        # The reviewed derivative is tracked separately; arbitrary local paths
+        # and an unpinned conversion must never enter the publication.
+        if cover.get('jpeg'):
+            jpeg = cover['jpeg']
+            if (not cover_raw.startswith(b'\x89PNG\r\n\x1a\n')
+                    or not re.fullmatch(r'content/covers/[a-z0-9-]+\.jpg', jpeg.get('file', ''))
+                    or not re.fullmatch(r'[a-f0-9]{64}', jpeg.get('sha256', ''))
+                    or not jpeg.get('transformation', '').strip()):
+                raise ValueError('Invalid reviewed JPEG derivative')
+            derivative = root / jpeg['file']
+            if not derivative.resolve().is_relative_to((root / 'content/covers').resolve()):
+                raise ValueError('Invalid reviewed JPEG derivative path')
+            cover_raw = derivative.read_bytes()
+            if digest(cover_raw) != jpeg['sha256']:
+                raise ValueError('Reviewed JPEG derivative changed')
+        if not cover_raw.startswith(b'\xff\xd8\xff'):
             raise ValueError('Cover must match the reviewed JPEG hash')
         cover_path = root / f'apps/web/public/assets/cover-{cover["id"]}.jpg'
-        if (cover_path in cover_hashes and cover_hashes[cover_path] != cover['sha256']) or (cover_path.exists() and cover_path.read_bytes() != cover_raw):
+        if (cover_path in cover_hashes and cover_hashes[cover_path] != digest(cover_raw)) or (cover_path.exists() and cover_path.read_bytes() != cover_raw):
             raise ValueError('Cover number collision')
-        cover_hashes[cover_path] = cover['sha256']
+        cover_hashes[cover_path] = digest(cover_raw)
         manifest = {k: book[k] for k in ('id', 'title', 'author', 'genre', 'year', 'version')}
         manifest.update(cover=cover['id'], description=book['review']['description'], kind='full',
                         url=f'/books/{book["id"]}.json', sha256=digest(raw), bytes=len(raw),
